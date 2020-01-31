@@ -114,8 +114,17 @@ attribute [simp] mul_right_inv
 
 lemma eq_mul_inv_of_mul_eq {a b c : G} (h : a * c = b) : a = b * c⁻¹ :=
 begin
-
+  rw ←h,
+  rw mul_assoc,
+  rw mul_right_inv,
+  rw mul_one
 end
+
+lemma eq_mul_inv_of_mul_eq' {a b c : G} (h : a * c = b) : a = b * c⁻¹ :=
+by rw [←h, mul_assoc, mul_right_inv, mul_one]
+
+lemma eq_mul_inv_of_mul_eq'' {a b c : G} (h : a * c = b) : a = b * c⁻¹ :=
+by simp [h.symm, mul_assoc]
 
 lemma mul_left_eq_self {a b : G} : a * b = b ↔ a = 1 :=
 begin
@@ -134,3 +143,18 @@ end
 end group
 
 end mygroup
+
+open mygroup.group
+
+-- We define an instance giving a Lean group from our home-grown group.
+-- Ignore this bit
+
+-- actually I'm not sure it's a good idea
+-- instance mygroup.to_group (G : Type) [mygroup.group G] : group G :=
+-- { mul := (*),
+--   mul_assoc := mul_assoc,
+--   one := 1,
+--   one_mul := one_mul,
+--   mul_one := mul_one,
+--   inv := inv,
+--   mul_left_inv := mul_left_inv }

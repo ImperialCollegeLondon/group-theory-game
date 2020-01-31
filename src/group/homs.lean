@@ -13,13 +13,19 @@ namespace mygroup
 
 variables {G H : Type} [group G] [group H]
 
+open group
 -- 
 
 /-- If f is a group homomorphism then f 1 = 1. -/
 @[simp]
 lemma map_one (f : G →* H) : f 1 = 1 :=
 begin
-  apply 
+  have h : f 1 * f 1 = f 1,
+    rw ←f.map_mul,
+    rw group.one_mul, -- annoying but stops cheating
+  rw group.mul_left_eq_self at h, -- annoying
+  assumption
 end
 
+end mygroup
 
