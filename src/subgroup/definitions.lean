@@ -66,6 +66,8 @@ theorem mul_mem {x y : G} : x ∈ H → y ∈ H → x * y ∈ H := subgroup.mul_
 /-- A subgroup is closed under inverse -/
 theorem inv_mem {x : G} : x ∈ H → x⁻¹ ∈ H := subgroup.inv_mem' _ 
 
+-- TODO -- definitions of normal and central subgroups?
+
 end subgroup
 
 end mygroup
