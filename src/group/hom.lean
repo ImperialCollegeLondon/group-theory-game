@@ -11,10 +11,9 @@ namespace mygroup
 `lemma group_hom.map_mul (f : G →* H) (a b : G) : f (a * b) = f a * f b`
 -/
 
-variables {G H : Type} [group G] [group H]
+namespace group_hom
 
-open group
--- 
+variables {G H : Type} [group G] [group H]
 
 /-- If f is a group homomorphism then f 1 = 1. -/
 @[simp]
@@ -27,5 +26,15 @@ begin
   assumption
 end
 
+/-- If f is a group homomorphism then f(x⁻¹) = f(x)⁻¹ -/
+@[simp]
+lemma map_inv (f : G →* H) {x : G} : f (x⁻¹) = (f x)⁻¹ :=
+begin
+  
+end
+
+end group_hom
+
 end mygroup
 
+#check mygroup.group_hom.map_one

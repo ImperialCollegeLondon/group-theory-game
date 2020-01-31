@@ -140,6 +140,28 @@ begin
   }
 end
 
+-- introduce convert?
+lemma eq_inv_of_mul_eq_one {a b : G} (h : a * b = 1) : a = b⁻¹ :=
+begin
+  convert eq_mul_inv_of_mul_eq h,
+  simp,
+end
+
+lemma inv_inv (a : G) : a ⁻¹ ⁻¹ = a :=
+begin
+  symmetry,
+  apply eq_inv_of_mul_eq_one,
+  simp,
+end
+
+lemma inv_eq_of_mul_eq_one {a b : G} (h : a * b = 1) : a⁻¹ = b :=
+begin
+  replace h := eq_mul_inv_of_mul_eq h,
+  rw one_mul at h,
+  rw h,
+  rw inv_inv,
+end
+
 end group
 
 end mygroup
