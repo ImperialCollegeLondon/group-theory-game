@@ -61,8 +61,7 @@ begin
   apply mul_left_cancel a⁻¹,
   rw ←mul_assoc,
   rw mul_left_inv,
-  rw one_mul,
-  assumption
+  rwa one_mul, -- rewrite then assumption
 end
 
 -- could prove it in `calc` mode:
