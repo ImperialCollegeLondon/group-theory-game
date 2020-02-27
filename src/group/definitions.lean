@@ -43,7 +43,7 @@ instance group_has_pow_nat {G : Type} [group G] : has_pow G ℕ := ⟨group_pow_
 
 @[simp] def group_pow {G : Type} [group G] : G → ℤ → G
 | g (int.of_nat n) := group_pow_nat g n
-| g -[1+ n] := group_pow_nat g⁻¹ (n + 1)
+| g -[1+ n] := (group_pow_nat g (n + 1))⁻¹
 
 instance group_has_pow {G : Type} [group G] : has_pow G ℤ := ⟨group_pow⟩
 
