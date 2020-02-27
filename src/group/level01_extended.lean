@@ -42,7 +42,9 @@ namespace group
 
 variables {G : Type} [group G]  
 
-/-
+-- Commented out lemmas are alternative solutions to the ones found in group.theorem while the non-commented out one are new!
+
+/- 
 lemma mul_left_cancel (a x y : G) (Habac : a * x = a * y) : x = y := 
   calc x = 1 * x : by rw one_mul
     ...  = (a⁻¹ * a) * x : by rw mul_left_inv
