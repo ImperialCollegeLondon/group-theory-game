@@ -71,6 +71,10 @@ theorem inv_mem {x : G} : x ∈ H → x⁻¹ ∈ H := subgroup.inv_mem' _
 class normal {G : Type} [group G] (K : subgroup G) :=
 (conjugate : ∀ g : G, ∀ k ∈ K, (g * k * g⁻¹) ∈ K)
 
+-- Defining cosets thats used in some lemmas
+def left_coeset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = g * k}
+def right_coeset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = k * g}
+
 -- Central subgroup
 class central {G : Type} [group G] (K : subgroup G) :=
 (comm : ∀ g : G, ∀ k ∈ K, k * g = g * k)
