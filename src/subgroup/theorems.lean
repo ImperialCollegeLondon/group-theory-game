@@ -23,4 +23,88 @@ namespace mygroup
 
 -- TODO: prove subgroups are a lattice/semilattice-sup-bot/complete lattice/ whatever
 
+namespace subgroup
+
+variables {G : Type}
+variables [group G]
+
+-- If a statement if true about group G, then its true for its subgroups
+theorem group_props {K : subgroup G} (hprop : G → Prop) : 
+(∀ g : G, hprop g = true) → ∀ k ∈ K, hprop k = true := λ hg k hk, hg k
+
+-- Some equivalent definitions for normal groups
+lemma norm_conj {K : subgroup G} [normal K] : ∀ g : G, ∀ k ∈ K, (g * k * g⁻¹) ∈ K := normal.conjugate
+
+lemma in_normal_to_comm {K : subgroup G} [normal K] : ∀ g k : G, g * k ∈ K → k * g ∈ K :=
+begin
+    intros g k hgk,
+    suffices : g⁻¹ * (g * k) * g ∈ K,
+        {rwa [←group.mul_assoc, group.mul_left_inv, group.one_mul] at this},
+    convert normal.conjugate g⁻¹ (g * k) hgk, rw group.inv_inv
+end
+
+lemma comm_to_in_normal {K : subgroup G} (h : ∀ g k : G, g * k ∈ K → k * g ∈ K) : normal K :=
+begin
+    split,
+    intros g k hk,
+    suffices : g * (k * g⁻¹) ∈ K,
+        {rwa ←group.mul_assoc at this},
+    apply h (k * g⁻¹) g,
+    rwa [group.mul_assoc, group.mul_left_inv, group.mul_one]
+end
+
+lemma nomal_coset_eq {K : subgroup G} [normal K] : 
+∀ g : G, {s : G | ∃ k ∈ K, s = g * k} = {s : G | ∃ k ∈ K, s = k * g} :=
+begin
+    intros g,
+    ext, split,
+        all_goals {repeat {rw set.mem_set_of_eq}, intros hx, rcases hx with ⟨k, ⟨hk₁, hk₂⟩⟩},
+        {use (g * k * g⁻¹), split,
+        all_goals {try {apply normal.conjugate, assumption}},
+        rwa [←hk₂, group.mul_assoc, group.mul_left_inv, group.mul_one]
+        },
+        use (g⁻¹ * k * g), split,
+        convert normal.conjugate g⁻¹ k hk₁, rwa group.inv_inv,
+        rwa [←group.mul_assoc, ←group.mul_assoc, group.mul_right_inv, group.one_mul, hk₂]
+end
+
+lemma coset_eq_normal {K : subgroup G} (h : ∀ g : G, {s : G | ∃ k ∈ K, s = g * k} = {s : G | ∃ k ∈ K, s = k * g}) : normal K :=
+begin
+    split,
+    intros g k hk,
+    replace h : {s : G | ∃ (k : G) (H : k ∈ K), s = g * k} = {s : G | ∃ (k : G) (H : k ∈ K), s = k * g} := h g,
+    have : ∃ s ∈ {s : G | ∃ k ∈ K, s = k * g}, s = g * k :=
+        by {rw ←h, use (g * k),
+        simp only [group.mul_right_cancel_iff, exists_prop, and_true, set.mem_set_of_eq],
+        split, use k, from ⟨hk, rfl⟩, refl
+        },
+    rcases this with ⟨s, ⟨hs₁, hs₂⟩⟩,
+    rw set.mem_set_of_eq at hs₁,
+    rcases hs₁ with ⟨l, ⟨hl₁, hl₂⟩⟩,
+    rw [←hs₂, hl₂, group.mul_assoc, group.mul_right_inv, group.mul_one],
+    assumption
+end
+
+lemma normal_to_prod_in_coset {K : subgroup G} [normal K] : 
+∀ x y g h : G, x ∈ {s : G | ∃ (k : G) (H : k ∈ K), s = g * k} ∧ y ∈ {s : G | ∃ (k : G) (H : k ∈ K), s = h * k} →
+x * y ∈ {s : G | ∃ (k : G) (H : k ∈ K), s = g * h * k} :=
+begin
+    sorry
+end
+
+lemma prod_in_coset_to_normal {K : subgroup G} 
+(h : ∀ x y g h : G, x ∈ {s : G | ∃ (k : G) (H : k ∈ K), s = g * k} ∧ y ∈ {s : G | ∃ (k : G) (H : k ∈ K), s = h * k} →
+x * y ∈ {s : G | ∃ (k : G) (H : k ∈ K), s = g * h * k}) : normal K :=
+begin
+    sorry
+end
+
+/-
+TODO : Normal K equivalent to
+- K is a union of conjugate classes
+- K is preserved by inner automorphisms
+-/
+
+end subgroup
+
 end mygroup
