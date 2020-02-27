@@ -8,7 +8,8 @@ variable {G : Type}
 variable [group G]
 
 @[simp] lemma pow_int_of_nat {g : G} {n : ℕ} : g ^ (int.of_nat n) = g ^ n := rfl
-@[simp] lemma pow_neg {g : G} {n : ℕ} : g ^ (-[1+ n]) = g⁻¹ ^ (n + 1) := rfl
+@[simp] lemma pow_neg {g : G} {n : ℕ} : g ^ (-[1+ n]) = (g ^ (n + 1))⁻¹ := rfl
+@[simp] theorem pow_neg_succ (g : G) (n : ℕ) : g ^ -[1+n] = (g ^ n.succ)⁻¹ := rfl
 
 @[simp] lemma zero_pow_nat {g : G} : g ^ 0 = 1 := rfl
 @[simp] lemma zero_pow {g : G} : g ^ (0 : ℤ) = 1 := rfl
@@ -19,14 +20,13 @@ variable [group G]
 begin
     have : -1 = -[1+ 0] := rfl,
     rw [this, pow_neg, nat.add_comm, succ_pow_nat],
-    simp only [mygroup.group.mul_left_eq_self, mygroup.group.zero_pow_nat]
+    simp only [mygroup.group.one_mul, mygroup.group.zero_pow_nat]
 end
 
 @[simp] lemma succ_pow {g : G} {n : ℤ} : g ^ (n + 1) = g ^ n * g := 
 begin
     induction n,
         {rw [pow_int_of_nat, ←succ_pow_nat], refl},
-        rw [pow_neg, succ_pow_nat, mul_assoc, mul_left_inv, mul_one],
         sorry
 end
 
