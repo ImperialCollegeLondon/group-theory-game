@@ -32,9 +32,8 @@ variables [group G]
 theorem group_props {K : subgroup G} (hprop : G → Prop) : 
 (∀ g : G, hprop g = true) → ∀ k ∈ K, hprop k = true := λ hg k hk, hg k
 
--- Some equivalent definitions for normal groups
-lemma norm_conj {K : subgroup G} [normal K] : ∀ g : G, ∀ k ∈ K, (g * k * g⁻¹) ∈ K := normal.conjugate
-
+-- Some equivalent definitions for normal groups from wikipedia
+-- Any two elements commute regarding the normal subgroup membership relation
 lemma in_normal_to_comm {K : subgroup G} [normal K] : ∀ g k : G, g * k ∈ K → k * g ∈ K :=
 begin
     intros g k hgk,
@@ -53,8 +52,9 @@ begin
     rwa [group.mul_assoc, group.mul_left_inv, group.mul_one]
 end
 
+-- If K is a normal subgroup of the group G, then the sets of left and right cosets of K in the G coincide
 lemma nomal_coset_eq {K : subgroup G} [normal K] : 
-∀ g : G, {s : G | ∃ k ∈ K, s = g * k} = {s : G | ∃ k ∈ K, s = k * g} :=
+∀ g : G, left_coset g K = right_coset g K :=
 begin
     intros g,
     ext, split,
@@ -68,7 +68,7 @@ begin
         rwa [←group.mul_assoc, ←group.mul_assoc, group.mul_right_inv, group.one_mul, hk₂]
 end
 
-lemma coset_eq_normal {K : subgroup G} (h : ∀ g : G, {s : G | ∃ k ∈ K, s = g * k} = {s : G | ∃ k ∈ K, s = k * g}) : normal K :=
+lemma coset_eq_normal {K : subgroup G} (h : ∀ g : G, left_coset g K = right_coset g K) : normal K :=
 begin
     split,
     intros g k hk,
@@ -85,16 +85,15 @@ begin
     assumption
 end
 
+-- If K is a normal subgroup of the group G then the product of an element of the left coset of K with respect to g ∈ G and an element of the left coset of N with respect to h ∈ G is an element of the left coset of K with respect to gh
 lemma normal_to_prod_in_coset {K : subgroup G} [normal K] : 
-∀ x y g h : G, x ∈ {s : G | ∃ (k : G) (H : k ∈ K), s = g * k} ∧ y ∈ {s : G | ∃ (k : G) (H : k ∈ K), s = h * k} →
-x * y ∈ {s : G | ∃ (k : G) (H : k ∈ K), s = g * h * k} :=
+∀ x y g h : G, x ∈ left_coset g K ∧ y ∈ left_coset h K → x * y ∈ left_coset (g * h) K :=
 begin
     sorry
 end
 
 lemma prod_in_coset_to_normal {K : subgroup G} 
-(h : ∀ x y g h : G, x ∈ {s : G | ∃ (k : G) (H : k ∈ K), s = g * k} ∧ y ∈ {s : G | ∃ (k : G) (H : k ∈ K), s = h * k} →
-x * y ∈ {s : G | ∃ (k : G) (H : k ∈ K), s = g * h * k}) : normal K :=
+(h : ∀ x y g h : G, x ∈ left_coset g K ∧ y ∈ left_coset h K → x * y ∈ left_coset (g * h) K) : normal K :=
 begin
     sorry
 end
