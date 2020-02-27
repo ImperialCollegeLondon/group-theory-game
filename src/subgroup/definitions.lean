@@ -1,4 +1,5 @@
 import group.theorems -- basic interface for groups
+import group.group_powers
 
 /-!
 
@@ -66,7 +67,13 @@ theorem mul_mem {x y : G} : x ∈ H → y ∈ H → x * y ∈ H := subgroup.mul_
 /-- A subgroup is closed under inverse -/
 theorem inv_mem {x : G} : x ∈ H → x⁻¹ ∈ H := subgroup.inv_mem' _ 
 
--- TODO -- definitions of normal and central subgroups?
+-- Defintion of normal subgroup
+class normal {G : Type} [group G] (K : subgroup G) :=
+(conjugate : ∀ g : G, ∀ k ∈ K, (g * k * g⁻¹) ∈ K)
+
+-- Central subgroup
+class central {G : Type} [group G] (K : subgroup G) :=
+(comm : ∀ g : G, ∀ k ∈ K, k * g = g * k)
 
 end subgroup
 
