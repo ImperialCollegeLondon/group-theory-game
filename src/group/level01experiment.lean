@@ -114,7 +114,7 @@ end
 --new
 lemma eq_mul_of_inv_mul_eq {a x y : G} (h : a⁻¹ * x = y) : x = a * y :=
 begin
-  
+  rw [←h, ←mul_assoc, mul_right_inv, one_mul]
 end
 
 lemma mul_left_eq_self {a b : G} : a * b = b ↔ a = 1 :=
@@ -130,12 +130,14 @@ end
 
 lemma inv_eq_of_mul_eq_one {a b : G} (h : a * b = 1) : a⁻¹ = b :=
 begin
-  sorry
+  apply mul_left_cancel a,
+  rw [mul_right_inv, h]
 end
 
 lemma inv_inv (a : G) : a ⁻¹ ⁻¹ = a :=
 begin
-  sorry
+  apply mul_left_cancel a⁻¹,
+  rw [mul_left_inv, mul_right_inv]
 end
 
 end group
