@@ -47,6 +47,10 @@ instance group_has_pow_nat {G : Type} [group G] : has_pow G ℕ := ⟨group_pow_
 
 instance group_has_pow {G : Type} [group G] : has_pow G ℤ := ⟨group_pow⟩
 
+-- Center of a group
+def center (G : Type) [group G] := {g : G | ∀ k : G, k * g = g * k}
+attribute [reducible] center
+
 end groupdefs
 
 end mygroup
