@@ -67,17 +67,32 @@ theorem mul_mem {x y : G} : x ∈ H → y ∈ H → x * y ∈ H := subgroup.mul_
 /-- A subgroup is closed under inverse -/
 theorem inv_mem {x : G} : x ∈ H → x⁻¹ ∈ H := subgroup.inv_mem' _ 
 
+-- Coersion to group
+/-
+instance subgroup_to_group_coe : has_coe (subgroup G) (group G) :=
+begin
+  split, intro K,
+  split,
+    {intros g h k, rw mul_assoc},
+    {intro g, from group.one_mul g,
+
+    }
+end
+-/
+
 -- Defintion of normal subgroup
-class normal {G : Type} [group G] (K : subgroup G) :=
+class normal (K : subgroup G) :=
 (conjugate : ∀ g : G, ∀ k ∈ K, (g * k * g⁻¹) ∈ K)
 
 -- Defining cosets thats used in some lemmas
 def left_coset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = g * k}
 def right_coset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = k * g}
 
--- Central subgroup
-class central {G : Type} [group G] (K : subgroup G) :=
-(comm : ∀ g : G, ∀ k ∈ K, k * g = g * k)
+attribute [reducible] left_coset right_coset
+
+-- Defining the central subgroup as a subset of the center
+class central_subgroup (K : subgroup G) :=
+(center : ∀ k ∈ K, k ∈ mygroup.center G)
 
 end subgroup
 
