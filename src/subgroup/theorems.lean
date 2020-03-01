@@ -28,7 +28,7 @@ namespace subgroup
 variables {G : Type}
 variables [group G]
 
--- If a statement if true about group G, then its true for its subgroups
+-- If a statement if true about group G, then its true for its subgroups (Do a coersion?)
 theorem group_props {K : subgroup G} (hprop : G → Prop) : 
 (∀ g : G, hprop g = true) → ∀ k ∈ K, hprop k = true := λ hg k hk, hg k
 
@@ -89,20 +89,59 @@ end
 lemma normal_to_prod_in_coset {K : subgroup G} [normal K] : 
 ∀ x y g h : G, x ∈ left_coset g K ∧ y ∈ left_coset h K → x * y ∈ left_coset (g * h) K :=
 begin
-    sorry
+    rintros x y g h ⟨hx, hy⟩,
+    rw set.mem_set_of_eq at hx hy,
+    rcases hx with ⟨k₀, ⟨hx₁, hx₂⟩⟩,
+    rcases hy with ⟨k₁, ⟨hy₁, hy₂⟩⟩,
+    rw [hx₂, hy₂],
+    suffices : h⁻¹ * k₀ * h * k₁ ∈ K,
+        {rw set.mem_set_of_eq,
+        use h⁻¹ * k₀ * h * k₁,
+        split, assumption,
+        apply group.mul_left_cancel g⁻¹,
+        rw [←@group.mul_assoc _ _ g⁻¹ (g * k₀) (h * k₁), ←@group.mul_assoc _ _ g⁻¹ g k₀, 
+        group.mul_left_inv, group.one_mul,
+        ←@group.mul_assoc _ _ g⁻¹ (g * h) (h⁻¹ * k₀ * h * k₁), ←@group.mul_assoc _ _ g⁻¹ g h, 
+        group.mul_left_inv, group.one_mul],
+        apply group.mul_left_cancel h⁻¹,
+        rw [←@group.mul_assoc _ _ h⁻¹ h  (h⁻¹ * k₀ * h * k₁), group.mul_left_inv, group.one_mul,
+        ←@group.mul_assoc _ _ h⁻¹ k₀ (h * k₁), ←@group.mul_assoc _ _ (h⁻¹ * k₀) h k₁]
+        },
+    apply @mul_mem _ _ K (h⁻¹ * k₀ * h) k₁,
+    convert normal.conjugate h⁻¹ k₀ hx₁, 
+        rw group.inv_inv,
+        assumption
 end
 
 lemma prod_in_coset_to_normal {K : subgroup G} 
 (h : ∀ x y g h : G, x ∈ left_coset g K ∧ y ∈ left_coset h K → x * y ∈ left_coset (g * h) K) : normal K :=
 begin
-    sorry
+    split, intros g k hk,
+    let x := g * k,
+    let y :=  g⁻¹ * k,
+    suffices : g * k * g⁻¹ * k ∈ K,
+        {rw [←group.mul_one (g * k * g⁻¹), ←group.mul_right_inv k, ←group.mul_assoc],
+        apply mul_mem, assumption,
+        apply inv_mem, assumption
+        },
+    suffices : g * k * g⁻¹ * k ∈ left_coset (g * g⁻¹) K,
+        {rw [set.mem_set_of_eq, group.mul_right_inv] at this,
+        rcases this with ⟨l, ⟨hl₁, hl₂⟩⟩,
+        rw [hl₂, group.one_mul], assumption
+        },
+    rw group.mul_assoc,
+    show x * y ∈ left_coset (g * g⁻¹) K,
+    apply h x y g g⁻¹,
+    split, {use k, from ⟨hk, rfl⟩},
+        {use k, from ⟨hk, rfl⟩}
 end
 
 /-
 TODO : Normal K equivalent to
 - K is a union of conjugate classes
-- K is preserved by inner automorphisms
 -/
+
+-- Trivial central subgroups
 
 end subgroup
 
