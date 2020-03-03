@@ -68,17 +68,18 @@ theorem mul_mem {x y : G} : x ∈ H → y ∈ H → x * y ∈ H := subgroup.mul_
 theorem inv_mem {x : G} : x ∈ H → x⁻¹ ∈ H := subgroup.inv_mem' _ 
 
 -- Coersion to group
-/-
-instance subgroup_to_group_coe : has_coe (subgroup G) (group G) :=
-begin
-  split, intro K,
-  split,
-    {intros g h k, rw mul_assoc},
-    {intro g, from group.one_mul g,
+-- Coercion from subgroup to underlying type -/
 
-    }
-end
--/
+instance : has_coe (subgroup G) (set G) := ⟨subgroup.carrier⟩
+
+instance (K : subgroup G) : group ↥K :=
+{ mul := λ a b, ⟨a.1 * b.1, K.mul_mem' a.2 b.2⟩,
+  one := ⟨1, K.one_mem'⟩,
+  inv := λ a, ⟨a⁻¹, K.inv_mem' a.2⟩,
+  mul_assoc := λ a b c, by {cases a, cases b, cases c, rw subtype.ext, apply group.mul_assoc},
+  one_mul := λ a, by {cases a, rw subtype.ext, apply group.one_mul},
+  mul_left_inv := λ a, by {cases a, rw subtype.ext, apply group.mul_left_inv}
+  } 
 
 -- Defintion of normal subgroup
 class normal (K : subgroup G) :=
