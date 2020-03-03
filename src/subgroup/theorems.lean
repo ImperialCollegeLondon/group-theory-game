@@ -28,10 +28,6 @@ namespace subgroup
 variables {G : Type}
 variables [group G]
 
--- If a statement if true about group G, then its true for its subgroups (Do a coersion?)
-theorem group_props {K : subgroup G} (hprop : G → Prop) : 
-(∀ g : G, hprop g = true) → ∀ k ∈ K, hprop k = true := λ hg k hk, hg k
-
 -- Some equivalent definitions for normal groups from wikipedia
 -- Any two elements commute regarding the normal subgroup membership relation
 lemma in_normal_to_comm {K : subgroup G} [normal K] : ∀ g k : G, g * k ∈ K → k * g ∈ K :=
