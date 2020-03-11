@@ -82,8 +82,7 @@ instance (K : subgroup G) : group ↥K :=
   } 
 
 -- Defintion of normal subgroup
-class normal (K : subgroup G) :=
-(conjugate : ∀ g : G, ∀ k ∈ K, (g * k * g⁻¹) ∈ K)
+def is_normal (K : subgroup G) := ∀ g : G, ∀ k ∈ K, (g * k * g⁻¹) ∈ K
 
 -- Defining cosets thats used in some lemmas
 def left_coset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = g * k}
@@ -91,9 +90,18 @@ def right_coset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = k * g}
 
 attribute [reducible] left_coset right_coset
 
--- Defining the central subgroup as a subset of the center
-class central_subgroup (K : subgroup G) :=
-(center : ∀ k ∈ K, k ∈ mygroup.center G)
+-- Defining the the center of a group is a subgroup
+def central_subgroup {H : set G} : subgroup G :=
+{ carrier := center G,
+  one_mem' := λ k, by simp,
+  mul_mem' := λ x y hx hy k, by rw [←group.mul_assoc, hx, group.mul_assoc, hy, ←group.mul_assoc],
+  inv_mem' := λ x hx k,
+  begin
+    apply group.mul_left_cancel x,
+    iterate 2 {rw ←group.mul_assoc},
+    rw [←hx, group.mul_right_inv, group.mul_assoc, group.mul_right_inv], simp
+  end
+}
 
 end subgroup
 
