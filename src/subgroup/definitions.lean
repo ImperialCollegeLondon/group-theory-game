@@ -82,7 +82,8 @@ instance (K : subgroup G) : group ↥K :=
   } 
 
 -- Defintion of normal subgroup
-def is_normal (K : subgroup G) := ∀ g : G, ∀ k ∈ K, (g * k * g⁻¹) ∈ K
+class normal (K : subgroup G) :=
+(conjugate : ∀ g : G, ∀ k ∈ K, (g * k * g⁻¹) ∈ K)
 
 -- Defining cosets thats used in some lemmas
 def left_coset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = g * k}
@@ -102,6 +103,7 @@ def central_subgroup {H : set G} : subgroup G :=
     rw [←hx, group.mul_right_inv, group.mul_assoc, group.mul_right_inv], simp
   end
 }
+
 
 end subgroup
 
