@@ -28,6 +28,27 @@ namespace subgroup
 variables {G : Type}
 variables [group G]
 
+-- The intersect of two subgroups is also a subgroup
+def inter_subgroup (H K : subgroup G) : subgroup G :=
+{ carrier := H ∩ K,
+  one_mem' := ⟨H.one_mem, K.one_mem⟩,
+  mul_mem' := λ _ _ ⟨hhx, hkx⟩ ⟨hhy, hky⟩, 
+    ⟨H.mul_mem hhx hhy, K.mul_mem hkx hky⟩,
+  inv_mem' := λ x ⟨hhx, hhy⟩,
+    ⟨H.inv_mem hhx, K.inv_mem hhy⟩}
+
+open set
+variable {ι : Sort}
+
+-- The intersect of a set of subgroups is a subgroup
+def Inter_subgroup (H : ι → subgroup G) : subgroup G := 
+{ carrier := ⋂ i, H i,
+  one_mem' := mem_Inter.mpr $ λ i, (H i).one_mem,
+  mul_mem' := λ _ _ hx hy, mem_Inter.mpr $ λ i, 
+    by {rw mem_Inter at *, from mul_mem (H i) (hx i) (hy i)},
+  inv_mem' := λ x hx, mem_Inter.mpr $ λ i, (H i).inv_mem $ by apply mem_Inter.mp hx }
+
+
 -- Some equivalent definitions for normal groups from wikipedia
 -- Any two elements commute regarding the normal subgroup membership relation
 lemma in_normal_to_comm {K : subgroup G} [normal K] : ∀ g k : G, g * k ∈ K → k * g ∈ K :=
@@ -38,7 +59,7 @@ begin
     convert normal.conjugate g⁻¹ (g * k) hgk, rw group.inv_inv
 end
 
-lemma comm_to_in_normal {K : subgroup G} (h : ∀ g k : G, g * k ∈ K → k * g ∈ K) : normal K :=
+instance comm_to_in_normal {K : subgroup G} (h : ∀ g k : G, g * k ∈ K → k * g ∈ K) : normal K :=
 begin
     split,
     intros g k hk,
@@ -64,7 +85,7 @@ begin
         rwa [←group.mul_assoc, ←group.mul_assoc, group.mul_right_inv, group.one_mul, hk₂]
 end
 
-lemma coset_eq_normal {K : subgroup G} (h : ∀ g : G, left_coset g K = right_coset g K) : normal K :=
+instance coset_eq_normal {K : subgroup G} (h : ∀ g : G, left_coset g K = right_coset g K) : normal K :=
 begin
     split,
     intros g k hk,
@@ -109,7 +130,7 @@ begin
         assumption
 end
 
-lemma prod_in_coset_to_normal {K : subgroup G} 
+instance prod_in_coset_to_normal {K : subgroup G} 
 (h : ∀ x y g h : G, x ∈ left_coset g K ∧ y ∈ left_coset h K → x * y ∈ left_coset (g * h) K) : normal K :=
 begin
     split, intros g k hk,
