@@ -92,8 +92,8 @@ def right_coset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = k * g}
 attribute [reducible] left_coset right_coset
 
 -- Defining the the center of a group is a subgroup
-def central_subgroup (G : Type) [group G] : subgroup G :=
-{ carrier := center G,
+def center (G : Type) [group G] : subgroup G :=
+{ carrier  := {g : G | ∀ k : G, k * g = g * k},
   one_mem' := λ k, by simp,
   mul_mem' := λ x y hx hy k, by rw [←group.mul_assoc, hx, group.mul_assoc, hy, ←group.mul_assoc],
   inv_mem' := λ x hx k,
