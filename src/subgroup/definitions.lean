@@ -1,5 +1,4 @@
 import group.theorems -- basic interface for groups
-import group.group_powers
 
 /-!
 
