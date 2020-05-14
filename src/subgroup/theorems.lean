@@ -1,4 +1,4 @@
-import subgroup.definitions
+import subgroup.definitions group.group_powers
 
 /-
 An API for subgroups
