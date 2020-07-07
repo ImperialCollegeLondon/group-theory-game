@@ -136,7 +136,7 @@ namespace order
 -- We need Lagrange's theorem for Orbit-Stabilizer theorem
 -- In this section we will only consider finite groups
 
-open fintype
+open function fintype
 
 variables {G : Type*} [group G] [fintype G] 
 variables {H : subgroup G}
@@ -182,8 +182,35 @@ theorem lcoset_of_mem {a : G} :
 
 -- Now we would like to prove that all lcosets have the same order
 
-/-- The cardinality of all lcosets are equal -/
-theorem card_of_lcoset_eq {a b : G} : card (a • H) = card (b • H) := sorry
+private def aux_map (a : G) (H :subgroup G) : H → a • H := 
+  λ h, ⟨a * h, h, h.2, rfl⟩
+
+private lemma aux_map_biject {a : G} : bijective (aux_map a H) := 
+begin
+  split,
+    { intros x y hxy,
+      suffices : (x : G) = y, 
+        { ext, assumption },
+        { simp [aux_map] at hxy, assumption } },
+    { rintro ⟨y, y_val⟩, 
+      rcases y_val with ⟨h, hh₀, hh₁⟩,
+      refine ⟨⟨h, hh₀⟩, by simp [aux_map, hh₁]⟩ }
+end
+
+/-- There is a bijection between `H` and its left cosets -/
+theorem lcoset_equiv {a : G} : H ≃ a • H := 
+equiv.of_bijective (aux_map a H) aux_map_biject
+
+/-- The cardinality of `H` equals its left cosets-/
+lemma eq_card_of_lcoset {a : G} : card H = card (a • H) := 
+begin
+  rw card_eq, by_contra h,
+  exact not_nonempty_iff_imp_false.1 h lcoset_equiv
+end
+
+/-- The cardinality of all left cosets are equal -/
+theorem card_of_lcoset_eq {a b : G} : card (a • H) = card (b • H) := 
+by iterate 2 { rw ←eq_card_of_lcoset }
 
 end order
 
@@ -199,6 +226,17 @@ def conj_laction : laction G G :=
   map_one := by simp,
   map_assoc := λ g h k, by simp [mul_assoc] }
 
-def centralizer (g : G) : subgroup G := stabilizer conj_laction g 
+/-- The centralizer of `g` is the stabilizer of `g` with the conjugate action -/
+@[reducible] def centralizer (g : G) : subgroup G := stabilizer conj_laction g 
+
+/-- Elements of the centralizer of `g : G` commutes with `g` -/
+theorem comm_of_mem_centralizer {g h : G} (hc : h ∈ centralizer g) : 
+  g * h = h * g := 
+begin
+  change h * g * h⁻¹ = g at hc,
+  conv_lhs { rw [←hc] }, simp
+end
+
+-- The conjugate class of `g` is the orbit of `g` with the conjugate action 
 
 end action
