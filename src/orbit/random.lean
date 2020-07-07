@@ -14,7 +14,7 @@ structure laction (G : Type*) [group G] (S : Type*) :=
 variables {G : Type*} [group G] {S : Type*}
 variables {α : Type*} {μ : laction G S}
 
-/- Example of a left action -/
+-- Example of a left action - The natural left action of a group acting on itself
 def natural_self_laction : laction G G := 
 { to_fun := λ g h, g * h,
   map_one := one_mul,
@@ -23,6 +23,7 @@ def natural_self_laction : laction G G :=
 @[reducible] def orbit (μ : laction G S) (s : S) : set S := 
   { m : S | ∃ g : G, m = μ.1 g s } 
 
+/-- An element of `G` is in its own orbit -/
 lemma self_mem_orbit (s : S) : s ∈ orbit μ s := ⟨1, (μ.2 s).symm⟩
 
 structure partition (S : Type*) :=
@@ -31,13 +32,13 @@ structure partition (S : Type*) :=
 (covers : univ = ⋃ (s ∈ blocks), s)
 (disj   : ∀ s t ∈ blocks, s ∩ t ≠ ∅ → s = t)
 
-lemma not_empty {S : set α} (h : S ≠ ∅) : ∃ s : α, s ∈ S := 
+private lemma not_empty {S : set α} (h : S ≠ ∅) : ∃ s : α, s ∈ S := 
 begin
   by_contra hs, push_neg at hs,
   exact (push_neg.not_eq _ _).1 h (set.eq_empty_iff_forall_not_mem.2 hs)
 end
 
-/- The orbits form a partition -/
+/-- The set of orbits of a set forms a partition -/
 def orbit_partition : partition S := 
 { blocks := { o : set S | ∃ s : S, o = orbit μ s },
   nonempty := λ B hB hemp, by { rcases hB with ⟨s, rfl⟩,
@@ -64,7 +65,7 @@ def orbit_partition : partition S :=
           rw [hg, ←μ.3, this] }
     end }
 
-/- The stabilizer of an action is a subgroup -/
+/- We define the stabilizer of an action is as a subgroup -/
 @[reducible]
 def stabilizer (μ : laction G S) (s : S) : subgroup G := 
 { carrier := { g : G | μ.1 g s = s },
@@ -76,6 +77,8 @@ def stabilizer (μ : laction G S) (s : S) : subgroup G :=
       conv_lhs { rw ←hx },
       rw [μ.3, inv_mul_self _, μ.2] 
     end }
+
+-- Some lemmas about orbits that are useful 
 
 lemma in_orbit_of_in_same_orbit {s₁ s₂ s₃ : S} :
 s₁ ∈ orbit μ s₃ ∧ s₂ ∈ orbit μ s₃ → s₁ ∈ orbit μ s₂ :=
@@ -92,7 +95,25 @@ lemma in_orbit_of_inv {s₁ s₂ : S} {g : G} (h : s₁ = μ.1 g s₂) :
 def is_conjugate (H K : subgroup G) := 
   ∃ g : G, {c | ∃ h ∈ H, c = g⁻¹ * h * g } = K
 
-lemma conjugate_stabilizer_of_in_same_orbit {s₁ s₂ s₃ : S} 
+/-- If `H` is the conjugate of `K`, then `K` is the conjugate of `H` -/
+lemma is_conjugate_comm {H K : subgroup G} (h : is_conjugate H K) :
+  is_conjugate K H := 
+begin
+  cases h with g hg, refine ⟨g⁻¹, _⟩,
+  ext, split; intro hx, 
+    { rcases hx with ⟨h, hh₀, hh₁⟩,
+      change h ∈ (K : set G) at hh₀,
+      rw ←hg at hh₀,
+      rcases hh₀ with ⟨k, hk₀, hk₁⟩,
+      rw [hh₁, hk₁], simp [mul_assoc, hk₀] },
+    { rw mem_set_of_eq,
+      refine ⟨g⁻¹ * x * g, _, by simp [mul_assoc]⟩,
+      show g⁻¹ * x * g ∈ (K : set G),
+      rw ←hg, exact ⟨x, hx, rfl⟩ }
+end
+
+/-- If two elements are in the same orbit, then their stabilizers are conjugates -/
+theorem conjugate_stabilizer_of_in_same_orbit {s₁ s₂ s₃ : S} 
   (h : s₁ ∈ orbit μ s₃ ∧ s₂ ∈ orbit μ s₃) : 
   is_conjugate (stabilizer μ s₁) (stabilizer μ s₂) :=
 begin
@@ -128,7 +149,7 @@ notation g ` • ` : 70 H : 70 := lcoset g H
 lemma self_mem_coset (a : G) (H : subgroup G): a ∈ a • H := 
   ⟨1, H.one_mem, (mul_one a).symm⟩
 
-/-- Two cosets aH, bH are equal if and only if b⁻¹a ∈ H -/
+/-- Two cosets `a • H`, `b • H` are equal if and only if `b⁻¹ * a ∈ H` -/
 theorem lcoset_eq {a b : G} :
   a • H = b • H ↔ b⁻¹ * a ∈ H := 
 begin
@@ -144,9 +165,9 @@ begin
           convert H.inv_mem h, simp } }
 end
 
--- A corollary of this is aH = H iff a ∈ H 
+-- A corollary of this is a • H = H iff a ∈ H 
 
-/-- The coset of H, 1H is H -/
+/-- The coset of `H`, `1 • H` equals `H` -/
 lemma lcoset_of_one : 1 • H = H :=
 begin
   ext, split; intro hx,
@@ -155,7 +176,7 @@ begin
     { exact ⟨x, hx, (one_mul x).symm⟩ }
 end
 
-/-- A left coset gH equals H if and only if g ∈ H -/
+/-- A left coset `a • H` equals `H` if and only if `a ∈ H` -/
 theorem lcoset_of_mem {a : G} :
   a • H = H ↔ a ∈ H := by rw [←lcoset_of_one, lcoset_eq]; simp
 
@@ -172,7 +193,7 @@ variables {G : Type*} [group G]
 
 -- Let's define the centralizer 
 
-/- A group (left) acts on itself by conjugation -/
+/-- A group (left) acts on itself by conjugation -/
 def conj_laction : laction G G := 
 { to_fun := λ g h, g * h * g⁻¹,
   map_one := by simp,
