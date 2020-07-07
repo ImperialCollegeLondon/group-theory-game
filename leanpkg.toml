@@ -1,8 +1,8 @@
 [package]
 name = "group-theory-game"
 version = "0.1"
-lean_version = "leanprover-community/lean:3.13.2"
+lean_version = "leanprover-community/lean:3.17.0"
 path = "src"
 
 [dependencies]
-mathlib = {git = "https://github.com/leanprover-community/mathlib", rev = "434e6a65b8d8cc80371f7a6a835e672fa112c111"}
+mathlib = {git = "https://github.com/leanprover-community/mathlib", rev = "11ba68730ac1139d0987b8450499c6261fde1f28"}
