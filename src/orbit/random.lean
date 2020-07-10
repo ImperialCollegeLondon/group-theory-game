@@ -272,23 +272,64 @@ begin
   refine not_nonempty_iff_imp_false.1 h (Union_blocks_equiv p)
 end
 
-theorem card_Union {α} [fintype α] (p : partition α) [h : finite p.1] :
-card (⋃ (s ∈ h.to_finset), s) = h.to_finset.sum (λ s, card s) := 
+-- Thanks to Carl for these proofs!
+lemma bind_of_partition_eq_univ {α} [fintype α] (p : partition α) : 
+  p.blocks.to_finset.bind (λ s, s.to_finset) = finset.univ := 
 begin
-  sorry
+  ext, split; intro ha,
+    { exact finset.mem_univ _ },
+    { rw finset.mem_bind,
+      have := mem_univ a, rw [p.3, mem_Union] at this,
+      cases this with s hs,
+      rw mem_Union at hs, 
+      cases hs with hs₀ hs₁,
+      refine ⟨s, mem_to_finset.2 hs₀, mem_to_finset.2 hs₁⟩
+    }
 end
 
-theorem lagrange [fintype G] : 
-  card G = card { c | ∃ g : G, c = g • H } * card H := 
+lemma disjoint_finset_of_disjoint {α} [fintype α] {s t : set α} 
+  (h : disjoint s t) : disjoint s.to_finset t.to_finset := 
 begin
-  rw eq_card_of_partition (lcoset_partition G H),
-  /-
-  We need :
-  card (↥⋃ (b ∈ (lcoset_partition G H).blocks), b) = ...(1)
-  ∑ (b ∈ (lcoset_partition G H).blocks), card b     = ...(2)
-  card ↥{c : set G | ∃ (g : G), c = g • H} * card ↥H  ...(3)
-  -/
-  sorry
+  intros a hinter,
+  have hset : a ∈ ∅, 
+    { rw ←set.bot_eq_empty,
+      rw ←le_bot_iff.mp h,
+      apply (set.mem_inter_iff a s t).mpr ,
+      split,
+        exact set.mem_to_finset.mp (finset.mem_of_mem_inter_left hinter),
+        exact set.mem_to_finset.mp (finset.mem_of_mem_inter_right hinter) },
+  exfalso, exact set.not_mem_empty a hset
+end
+
+/-- The cardinality of a fintype `α` equals the sum of cardinalities of blocks 
+in its partition -/
+theorem card_eq_sum_partition {α} [fintype α] (p : partition α) : 
+card α = p.blocks.to_finset.sum (λ s, card s) := 
+begin
+  suffices : card α = p.blocks.to_finset.sum (λ s, s.to_finset.card),
+    { finish [this] },
+  conv_rhs { congr, skip, funext, rw finset.card_eq_sum_ones },
+  rw [←finset.sum_bind _, ←finset.card_eq_sum_ones, 
+    bind_of_partition_eq_univ p], 
+  exact finset.card_univ.symm,
+  intros s hs t ht hst,
+  apply disjoint_finset_of_disjoint, 
+  suffices : s ∩ t = ∅, simp [disjoint, subset_empty_iff, this],
+  by_contra hemp,
+  exact hst (p.4 s t (mem_to_finset.mp hs) (mem_to_finset.mp ht) hemp)
+end
+
+/-- Let `H` be a subgroup of the finite group `G`, then the cardinality of `G` 
+equals the cardinality of `H` multiplied with the number of left cosets of `H` -/
+theorem lagrange [fintype G] : 
+  card G = card { B | ∃ g : G, B = g • H } * card H := 
+begin
+  rw card_eq_sum_partition (lcoset_partition G H),
+  dsimp [lcoset_partition],
+  convert finset.sum_const_nat _, exact (to_finset_card _).symm,
+  intros _ hx, 
+  rcases mem_to_finset.1 hx with ⟨g, rfl⟩, 
+  exact (@eq_card_of_lcoset _ _ H g _).symm
 end
 
 end order
