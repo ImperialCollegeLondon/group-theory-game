@@ -33,6 +33,22 @@ def natural_self_laction : laction G G :=
   map_one := one_mul,
   map_assoc := λ _ _ _, (mul_assoc _ _ _).symm }
 
+lemma laction_mul_inv_cancel {g h : G} {s : S} : 
+  μ.1 g s = μ.1 h s ↔ s = μ.1 (g⁻¹ * h) s :=
+begin
+  split; intro hgh,
+    { conv_lhs { rw ←μ.2 s }, 
+      rw [←(mul_inv_self g⁻¹), ←μ.3, ←μ.3, ←hgh, inv_inv] },
+    { conv_lhs { rw [hgh, μ.3, ←mul_assoc, mul_inv_self, one_mul] } }
+end
+
+lemma laction_mul_inv {g : G} {s t : S} : μ.1 g s = t ↔ s = μ.1 g⁻¹ t :=
+begin
+  split; intro h,
+    rw [←h, μ.3, mul_left_inv, μ.2],
+    rw [h, μ.3, mul_right_inv, μ.2]
+end
+
 @[reducible] def orbit (μ : laction G S) (s : S) : set S := 
   { m : S | ∃ g : G, m = μ.1 g s } 
 
@@ -206,7 +222,7 @@ end
 private def aux_map (a : G) (H :subgroup G) : H → a • H := 
   λ h, ⟨a * h, h, h.2, rfl⟩
 
-private lemma aux_map_biject {a : G} : bijective (aux_map a H) := 
+private lemma aux_map_biject {a : G} : bijective $ aux_map a H := 
 begin
   split,
     { intros x y hxy,
@@ -257,7 +273,7 @@ private def aux_map' {α} [fintype α] (p : partition α) :
 α → ⋃ (b ∈ p.blocks), b :=  λ a, ⟨a, p.3 ▸ mem_univ _⟩
 
 private lemma aux_map'_biject {α} [fintype α] (p : partition α) : 
-  bijective (aux_map' p) := 
+  bijective $ aux_map' p := 
 ⟨λ _ _ _, by finish [aux_map'], λ ⟨y, y_prop⟩, ⟨y, by unfold aux_map'⟩⟩
 
 lemma Union_blocks_equiv {α} [fintype α] (p : partition α) : 
@@ -336,7 +352,59 @@ end order
 
 namespace action
 
-variables {G : Type*} [group G]
+open function fintype
+
+variables {G : Type*} [group G] {S : Type*}
+variables {μ : laction G S}
+
+-- For the Orbit-Stabilizer theorem, the general idea is to show that there is a 
+-- bijection between the orbit of some g ∈ G and the left cosets of its stabilizer.
+-- With that it the theorem follows from Lagrange's theorem
+
+private structure extract_struct {μ : laction G S} {a : S} (s : orbit μ a) :=
+(val : G) (prop : s.1 = μ.to_fun val a)
+
+@[reducible] private def extract {μ : laction G S} {a : S} (s : orbit μ a) : 
+  extract_struct s := ⟨some s.2, some_spec s.2⟩
+
+@[reducible] private def aux_map (μ : laction G S) (a : S) : 
+  orbit μ a → { s | ∃ h : G, s = h • stabilizer μ a } := 
+λ s, ⟨(extract s).1 • stabilizer μ a, (extract s).1, rfl⟩
+
+private lemma aux_map_biject {a : S} : bijective $ aux_map μ a :=
+begin
+  split,
+    { rintro ⟨x, hx⟩ ⟨y, hy⟩ hxy,
+      rw [subtype.mk.inj_eq, order.lcoset_eq] at hxy,
+      change ((extract ⟨y, hy⟩).val)⁻¹ * (extract ⟨x, hx⟩).val ∈ 
+        { g : G | μ.1 g a = a } at hxy,
+      rw [mem_set_of_eq, ←μ.3, ←(extract ⟨x, hx⟩).2, 
+        @laction_mul_inv _ _ _ μ _ x a, inv_inv, ←(extract ⟨y, hy⟩).2] at hxy,
+      simp only [hxy] },
+    { rintro ⟨_, g, hg⟩, refine ⟨⟨μ.1 g a, g, rfl⟩, _⟩,
+      rw [subtype.mk.inj_eq, hg, order.lcoset_eq],
+      show g⁻¹ * (extract ⟨μ.to_fun g a, _⟩).val ∈ { g : G | μ.1 g a = a },
+      rw [mem_set_of_eq, ←μ.3, ←(extract ⟨μ.to_fun g a, _⟩).2, 
+        μ.3, mul_left_inv, μ.2] }
+end 
+
+-- With this function defined, we see that the cardinality of orbit s equals 
+-- the number of left cosets of stabilizer s
+
+/- I need some way of convincing Lean that (orbit μ a) is a fintype
+def t [fintype G] {a : S} : finset (orbit μ a) :=
+begin
+  apply finset.image,
+  exact λ g, ⟨μ.1 g a, g, rfl⟩,
+  exact (univ : set G).to_finset
+end
+
+theorem orbit_stabilizer [fintype G] {a : S} : 
+  card G = card (orbit μ a) * card (stabilizer μ a) := 
+begin
+
+end
+-/
 
 -- Let's define the centralizer 
 
