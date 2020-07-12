@@ -391,20 +391,32 @@ end
 -- With this function defined, we see that the cardinality of orbit s equals 
 -- the number of left cosets of stabilizer s
 
-/- I need some way of convincing Lean that (orbit μ a) is a fintype
-def t [fintype G] {a : S} : finset (orbit μ a) :=
+lemma finite_orbit [fintype G] {a : S} : finite (orbit μ a) :=
 begin
-  apply finset.image,
-  exact λ g, ⟨μ.1 g a, g, rfl⟩,
-  exact (univ : set G).to_finset
+  split, split,
+    swap, 
+    { apply finset.image,
+      exact λ g, ⟨μ.1 g a, g, rfl⟩,
+      exact (univ : set G).to_finset },
+    { simp, -- Nonterminating simp! I promise I will fix it!
+      rintro x ⟨g, rfl⟩,
+      refine ⟨g, rfl⟩ }
 end
 
+lemma card_orbit_eq_num_lcoset [fintype G] {a : S} : 
+@card (orbit μ a) finite_orbit.fintype = card { s | ∃ h : G, s = h • stabilizer μ a } :=
+begin
+  rw card_eq, by_contra h,
+  refine not_nonempty_iff_imp_false.1 h 
+    (equiv.of_bijective (aux_map μ a) aux_map_biject)
+end
+
+/-- Orbit-Stabilizer : The cardinality of a finite group `G` given a laction `μ` 
+on some `S` equals the cardinality of the orbit of `s` multiplied by the 
+cardinality of the stabilizer of `s` for any `s : S` -/
 theorem orbit_stabilizer [fintype G] {a : S} : 
-  card G = card (orbit μ a) * card (stabilizer μ a) := 
-begin
-
-end
--/
+  card G = @card (orbit μ a) finite_orbit.fintype * card (stabilizer μ a) := 
+by rw card_orbit_eq_num_lcoset; exact order.lagrange
 
 -- Let's define the centralizer 
 
