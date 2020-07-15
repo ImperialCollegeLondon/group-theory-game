@@ -1,5 +1,7 @@
 import hom.definitions
 
+local attribute [instance] classical.prop_decidable -- I hope we don't mind this
+
 /-
   The type of group homs G → H is
   denoted f : G →* H
@@ -78,6 +80,72 @@ def kernel (f : G →* H) : subgroup G :=
       rw [mem_preimage, mem_singleton_iff] at *,
       rw [map_inv f, hx, one_inv]
     end }
+
+/-- The image of a homomorphism `f : G →* H` is the subgroup of `H` whos carrier 
+is the image of `univ : set G`, i.e. `f '' univ` -/
+def image (f : G →* H) : subgroup H :=
+{ carrier := f '' univ, 
+  one_mem' := ⟨1, mem_univ _, map_one _⟩,
+  mul_mem' := 
+    begin
+      rintros _ _ ⟨x, hx₀, hx₁⟩ ⟨y, hy₀, hy₁⟩,
+      refine ⟨x * y, mem_univ _, _⟩,
+      rw [map_mul f x y, hx₁, hy₁]
+    end, 
+  inv_mem' := 
+    begin
+      rintros _ ⟨x, hx₀, hx₁⟩,
+      refine ⟨x⁻¹, mem_univ _, _⟩,
+      rw [←hx₁, map_inv]
+    end }
+
+-- We will prove the classic results about injective homomorphisms that a 
+-- homomorphism is injective if and only if it have the trivial kernel
+
+open function
+
+/-- A homomorphism `f` is injective iff. `f` has kernel `{1}` -/
+theorem injective_iff_ker_eq_one {f : G →* H} : 
+  injective f ↔ (kernel f : set G) = {1} :=
+begin -- Should we split this up into maby smaller proofs or should we keep it?
+  split; intro hf,
+    { show f ⁻¹' {1} = {1},
+      ext, split; intro hx,
+        { apply @hf x 1,
+          rw map_one, 
+          exact mem_singleton_iff.1 hx },
+        { rw [mem_preimage, mem_singleton_iff, mem_singleton_iff.1 hx],
+          exact map_one _ } },
+    { change f ⁻¹' {1} = {1} at hf,
+      by_contra h, push_neg at h,
+      rcases h with ⟨x, y, heq, hneq⟩,
+      refine hneq (group.mul_right_cancel y⁻¹ _ _ _),
+      have : x * y⁻¹ ∈ f ⁻¹' {1},
+        apply group.mul_right_cancel (f y),
+        rw [map_mul f, group.mul_assoc, map_inv, group.mul_left_inv, 
+            group.one_mul, group.mul_one, heq],
+      rw [hf, mem_singleton_iff] at this, 
+      rw [this, group.mul_right_inv] }
+end
+
+-- Do we want that a homomorphism is surjective iff the image is the whole group?
+-- The proof might be too trivial to be a level
+
+/-- A homomorphism `f : G →* H` is surjective iff. the image of `f` is `H` -/
+theorem surjective_iff_max_img {f : G →* H} : 
+  surjective f ↔ (image f : set H) = univ :=
+begin
+  split; intro hf,
+    { ext y, split; intro hy,
+        exact mem_univ _,
+        cases hf y with x hx,
+        refine ⟨x, mem_univ _, hx⟩ },
+    { intro y,
+      rcases (show y ∈ (image f : set H), 
+        by rw hf; exact mem_univ _) with ⟨x, _, hx⟩,
+      exact ⟨x, hx⟩ }
+end
+
 
 end group_hom
 
