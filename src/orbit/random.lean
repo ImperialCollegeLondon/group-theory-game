@@ -219,7 +219,7 @@ end
 
 -- Now we would like to prove that all lcosets have the same order
 
-private def aux_map (a : G) (H :subgroup G) : H → a • H := 
+private def aux_map (a : G) (H : subgroup G) : H → a • H := 
   λ h, ⟨a * h, h, h.2, rfl⟩
 
 private lemma aux_map_biject {a : G} : bijective $ aux_map a H := 
@@ -308,13 +308,12 @@ lemma disjoint_finset_of_disjoint {α} [fintype α] {s t : set α}
 begin
   intros a hinter,
   have hset : a ∈ ∅, 
-    { rw ←set.bot_eq_empty,
-      rw ←le_bot_iff.mp h,
-      apply (set.mem_inter_iff a s t).mpr ,
+    { rw [←bot_eq_empty, ←le_bot_iff.mp h],
+      apply (mem_inter_iff a s t).mpr ,
       split,
-        exact set.mem_to_finset.mp (finset.mem_of_mem_inter_left hinter),
-        exact set.mem_to_finset.mp (finset.mem_of_mem_inter_right hinter) },
-  exfalso, exact set.not_mem_empty a hset
+        exact mem_to_finset.mp (finset.mem_of_mem_inter_left hinter),
+        exact mem_to_finset.mp (finset.mem_of_mem_inter_right hinter) },
+  exfalso, exact not_mem_empty a hset
 end
 
 /-- The cardinality of a fintype `α` equals the sum of cardinalities of blocks 
