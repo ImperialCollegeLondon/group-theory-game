@@ -29,12 +29,18 @@ instance {G H : Type} {hG : group G} {hH : group H} :
 
 namespace group_hom
 
-variables {G : Type} [group G] {H : Type} [group H]
+variables {G H K : Type} [group G] [group H] [group K]
 
 /-- If f is a group homomorphism then f (a * b) = f a * f b. -/
 @[simp]
 lemma map_mul (f : G →* H) (a b : G) : f (a * b) = f a * f b :=
 f.map_mul' a b
+
+/-- The composition of two group homomorphism form a group homomorphism -/
+def map_comp (f : G →* H) (g : H →* K) : group_hom G K := 
+{ to_fun   := g ∘ f, 
+  map_mul' := λ x y, by simp }
+notation g ` ∘* ` f := map_comp f g
 
 end group_hom -- namespace for group homs
 

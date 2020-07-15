@@ -21,9 +21,11 @@ namespace mygroup
 -- We're proving things about group homs so this all goes in the `group_hom`
 -- namespace
 
+open set
+
 namespace group_hom
 
-variables {G H : Type} [group G] [group H]
+variables {G H K : Type} [group G] [group H] [group K]
 
 /-- If f is a group homomorphism then f 1 = 1. -/
 @[simp] -- it's a good simp lemma
@@ -51,6 +53,31 @@ end
 -- TODO: map and comap, kernel and image
 -- We prove the theorems here (only);
 -- definitions need to go elsewhere
+
+-- Rather than defining the kernel as the preimage of {1}, I think defining it 
+-- as a subgroup of the domain is better
+
+-- We uses this and it should be moved to group
+@[simp] lemma one_inv : (1 : G)⁻¹ = 1 :=
+by conv_rhs { rw [←(group.mul_left_inv (1 : G)), group.mul_one] }
+
+/-- The kernel of a homomorphism `f : G →* H` is the subgroup of `G` whos carrier 
+is the preimage of `{1}`, i.e. `f ⁻¹' {1}` -/
+def kernel (f : G →* H) : subgroup G := 
+{ carrier := f ⁻¹' {1},
+  one_mem' := map_one _, 
+  mul_mem' := 
+    begin
+      intros _ _ hx hy,
+      rw [mem_preimage, mem_singleton_iff] at *,
+      rw [map_mul f, hx, hy, group.mul_one]
+    end,
+  inv_mem' := 
+    begin
+      intros _ hx,
+      rw [mem_preimage, mem_singleton_iff] at *,
+      rw [map_inv f, hx, one_inv]
+    end }
 
 end group_hom
 
