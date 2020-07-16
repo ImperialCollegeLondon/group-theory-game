@@ -1,4 +1,4 @@
-import group_theory.subgroup data.fintype.basic 
+import group_theory.subgroup data.fintype.basic
 import tactic -- remove once library_search bug is fixed
 
 noncomputable theory
@@ -413,7 +413,7 @@ end
 /-- Orbit-Stabilizer : The cardinality of a finite group `G` given a laction `μ` 
 on some `S` equals the cardinality of the orbit of `s` multiplied by the 
 cardinality of the stabilizer of `s` for any `s : S` -/
-theorem orbit_stabilizer [fintype G] {a : S} : 
+theorem orbit_stabilizer [fintype G] {a : S} (μ : laction G S) : 
   card G = @card (orbit μ a) finite_orbit.fintype * card (stabilizer μ a) := 
 by rw card_orbit_eq_num_lcoset; exact order.lagrange
 
@@ -437,5 +437,90 @@ begin
 end
 
 -- The conjugate class of `g` is the orbit of `g` with the conjugate action 
+
+
+-- the class equation of groups
+
+def center (G : Type*) [group G] : set G :=
+  {x : G | ∀ y : G, x * y = y * x}
+
+def conj_class {G : Type} [group G] (g : G) : set G :=
+  orbit conj_laction g
+
+def index_subgroup {G : Type*} [group G] [fintype G] (H : subgroup G) : ℕ :=
+  fintype.card G / fintype.card H
+
+lemma comm_of_mem_center {G : Type*} [group G] {g h : G} (hc : g ∈ center G) :
+  g * h = h * g :=
+begin
+  rw center at hc,
+  rw mem_set_of_eq at hc,
+  exact hc h
+end
+
+lemma mem_conj_class_self {G : Type*} [group G] {g : G} :
+  g ∈ conj_class g :=
+begin
+  simp only [conj_class, conj_laction, mem_set_of_eq],
+  use g,
+  rw [mul_assoc, mul_right_inv, mul_one],
+end
+
+lemma orbit_card_one_of_mem_center {G : Type*} [group G] [fintype G] (g : G) :
+   g ∈ (center G) → card (conj_class g) = 1  := begin
+  intro h,
+  apply finset.card_eq_one.mpr,
+  use g,
+  { exact mem_conj_class_self },
+  ext ⟨a, ha⟩,
+  split,
+  {
+    simp only [forall_prop_of_true, finset.mem_univ, finset.mem_singleton],
+    congr,
+    rcases ha with ⟨x, rfl⟩,
+    simp only [conj_laction],
+    rw [←comm_of_mem_center h, mul_assoc, mul_right_inv, mul_one],
+  },
+  exact λ _, finset.mem_univ _,
+end
+
+theorem card_set_eq_sum_card_orbits {G S : Type*} [group G] [fintype S] (μ : laction G S) (reprs : finset S)
+    (hcover : reprs.bind(λ s, (orbit μ s).to_finset) = finset.univ)
+    (hdisjoint : ∀ x y ∈ reprs, x ≠ y → disjoint (orbit μ x) (orbit μ y)):
+  fintype.card S = reprs.sum(λ s, fintype.card(orbit μ s)) :=
+begin
+    change finset.univ.card = _,
+    conv_rhs begin congr, skip, funext, rw ← to_finset_card, end,
+    rw [←hcover, finset.card_bind],
+    exact λ x hx y hy hxyne, order.disjoint_finset_of_disjoint (hdisjoint x y hx hy hxyne),
+end
+
+lemma card_pos_of_mem {α : Type*} {s : finset α} {e : α} : e ∈ s → s.card > 0 :=
+  λ h, finset.card_pos.mpr $ finset.nonempty_of_ne_empty $ finset.ne_empty_of_mem h
+
+lemma index_centralizer (G : Type*) (s : G) [group G] [fintype G] :
+  index_subgroup (centralizer s) = fintype.card(conj_class s) := begin
+  rw [←to_finset_card, index_subgroup, centralizer,
+      orbit_stabilizer conj_laction, set.to_finset_card, nat.mul_div_cancel],
+  congr,
+  exact card_pos_of_mem (finset.mem_univ 1),
+end
+
+theorem group_class_equation {G : Type*} [group G] [fintype G] (reprs : finset G)
+    (hcover : reprs.bind(λ s, (conj_class s).to_finset) = finset.univ \ (center G).to_finset)
+    (hdisjoint : ∀ x y ∈ reprs, x ≠ y → disjoint (conj_class x) (conj_class y)):
+  fintype.card G = fintype.card(center G) + reprs.sum(λ s, index_subgroup (centralizer s)) :=
+begin
+  conv_rhs begin congr, skip, congr, skip, funext, rw index_centralizer, rw conj_class end,
+  change finset.univ.card = _,
+  rw [← to_finset_card, ←finset.sdiff_union_of_subset (center G).to_finset.subset_univ,
+      finset.card_disjoint_union (finset.sdiff_disjoint),
+      add_comm, add_right_inj, ←hcover,
+      finset.card_bind],
+  { conv_lhs begin congr, skip, funext, rw conj_class end,
+    conv_rhs begin congr, skip, funext, rw ←to_finset_card end},
+  { intros x hx y hy hxyne,
+    exact order.disjoint_finset_of_disjoint (hdisjoint x y hx hy hxyne)},
+end
 
 end action
