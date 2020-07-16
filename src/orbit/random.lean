@@ -414,7 +414,7 @@ end
 /-- Orbit-Stabilizer : The cardinality of a finite group `G` given a laction `μ` 
 on some `S` equals the cardinality of the orbit of `s` multiplied by the 
 cardinality of the stabilizer of `s` for any `s : S` -/
-theorem orbit_stabilizer [fintype G] {a : S} : 
+theorem orbit_stabilizer [fintype G] {a : S} (μ : laction G S) : 
   card G = @card (orbit μ a) finite_orbit.fintype * card (stabilizer μ a) := 
 by rw card_orbit_eq_num_lcoset; exact order.lagrange
 
@@ -488,9 +488,10 @@ end
 theorem card_set_eq_sum_card_orbits {G S : Type*} [group G] [fintype S] (μ : laction G S) (reprs : finset S)
     (hcover : reprs.bind(λ s, (orbit μ s).to_finset) = finset.univ)
     (hdisjoint : ∀ x y ∈ reprs, x ≠ y → disjoint (orbit μ x) (orbit μ y)):
-  fintype.card S = reprs.sum (λ s, (orbit μ s).to_finset.card) :=
+  fintype.card S = reprs.sum(λ s, fintype.card(orbit μ s)) :=
 begin
     change finset.univ.card = _,
+    conv_rhs begin congr, skip, funext, rw ← to_finset_card, end,
     rw [←hcover, finset.card_bind],
     exact λ x hx y hy hxyne, order.disjoint_finset_of_disjoint (hdisjoint x y hx hy hxyne),
 end
@@ -499,10 +500,9 @@ lemma card_pos_of_mem {α : Type*} {s : finset α} {e : α} : e ∈ s → s.card
   λ h, finset.card_pos.mpr $ finset.nonempty_of_ne_empty $ finset.ne_empty_of_mem h
 
 lemma index_centralizer (G : Type*) (s : G) [group G] [fintype G] :
-  index_subgroup (centralizer s) = (conj_class s).to_finset.card := begin
-  rw [index_subgroup, centralizer,
-      @orbit_stabilizer G (by apply_instance) G conj_laction (by apply_instance) s,
-      set.to_finset_card, nat.mul_div_cancel],
+  index_subgroup (centralizer s) = fintype.card(conj_class s) := begin
+  rw [←to_finset_card, index_subgroup, centralizer,
+      orbit_stabilizer conj_laction, set.to_finset_card, nat.mul_div_cancel],
   congr,
   exact card_pos_of_mem (finset.mem_univ 1),
 end
@@ -510,15 +510,16 @@ end
 theorem group_class_equation {G : Type*} [group G] [fintype G] (reprs : finset G)
     (hcover : reprs.bind(λ s, (conj_class s).to_finset) = finset.univ \ (center G).to_finset)
     (hdisjoint : ∀ x y ∈ reprs, x ≠ y → disjoint (conj_class x) (conj_class y)):
-  fintype.card G = (center G).to_finset.card + reprs.sum(λ s, index_subgroup (centralizer s)) :=
+  fintype.card G = fintype.card(center G) + reprs.sum(λ s, index_subgroup (centralizer s)) :=
 begin
   conv_rhs begin congr, skip, congr, skip, funext, rw index_centralizer, rw conj_class end,
   change finset.univ.card = _,
-  rw [←finset.sdiff_union_of_subset (center G).to_finset.subset_univ,
+  rw [← to_finset_card, ←finset.sdiff_union_of_subset (center G).to_finset.subset_univ,
       finset.card_disjoint_union (finset.sdiff_disjoint),
       add_comm, add_right_inj, ←hcover,
       finset.card_bind],
-  { conv_lhs begin congr, skip, funext, rw conj_class end },
+  { conv_lhs begin congr, skip, funext, rw conj_class end,
+    conv_rhs begin congr, skip, funext, rw ←to_finset_card end},
   { intros x hx y hy hxyne,
     exact order.disjoint_finset_of_disjoint (hdisjoint x y hx hy hxyne)},
 end
