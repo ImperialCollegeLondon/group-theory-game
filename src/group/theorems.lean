@@ -76,9 +76,9 @@ begin
   ...           = a⁻¹ * y     : by rw h  
 end
 
--- Alternatively, get the simplifier to do some of the work for us
 attribute [simp] one_mul mul_left_inv
 
+-- Alternatively, get the simplifier to do some of the work for us
 lemma mul_eq_of_eq_inv_mul'' {a x y : G} : x = a⁻¹ * y → a * x = y :=
 λ h, mul_left_cancel a⁻¹ _ _ $ by rw ←mul_assoc; simp [h]
 
@@ -251,7 +251,7 @@ begin
     ←mul_assoc, mul_left_inv, one_mul]
 end
 
-attribute [simp] mul_left_cancel_iff mul_right_cancel_iff inv_mul
+attribute [simp] mul_left_cancel_iff mul_right_cancel_iff inv_mul inv_inv
 
 end group
 
