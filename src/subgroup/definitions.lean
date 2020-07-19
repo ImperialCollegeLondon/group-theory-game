@@ -82,15 +82,24 @@ instance (K : subgroup G) : group ↥K :=
   mul_left_inv := λ a, by { cases a, apply subtype.ext, 
     apply group.mul_left_inv } } 
 
--- Defintion of normal subgroup
-class normal (K : subgroup G) :=
-(conjugate : ∀ g : G, ∀ k ∈ K, (g * k * g⁻¹) ∈ K)
+-- Defintion of normal subgroup (in a bundled form)
+structure normal (G : Type) [group G] extends subgroup G :=
+(conj_mem : ∀ n, n ∈ carrier → ∀ g : G, g * n * g⁻¹ ∈ carrier)
+
+-- This is so I can write K : subgroup G
+instance normal_to_subgroup : has_coe (normal G) (subgroup G) := 
+  ⟨λ K, K.to_subgroup⟩
+
+-- This saves me from writting m ∈ (K : subgroup G) every time
+instance normal_has_mem : has_mem G (normal G) := ⟨λ m K, m ∈ K.carrier⟩
 
 -- Defining cosets thats used in some lemmas
-def left_coset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = g * k}
-def right_coset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = k * g}
+def lcoset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = g * k}
+def rcoset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = k * g}
+notation g ` • ` :70 H :70 := lcoset g H
+notation H ` • ` :70 g :70 := rcoset g H
 
-attribute [reducible] left_coset right_coset
+attribute [reducible] lcoset rcoset
 
 -- Defining the the center of a group is a subgroup
 def center (G : Type) [group G] : subgroup G :=
