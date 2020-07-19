@@ -33,9 +33,9 @@ def inter_subgroup (H K : subgroup G) : subgroup G :=
 { carrier := H ∩ K,
   one_mem' := ⟨H.one_mem, K.one_mem⟩,
   mul_mem' := λ _ _ ⟨hhx, hkx⟩ ⟨hhy, hky⟩, 
-    ⟨H.mul_mem hhx hhy, K.mul_mem hkx hky⟩,
+  ⟨H.mul_mem hhx hhy, K.mul_mem hkx hky⟩,
   inv_mem' := λ x ⟨hhx, hhy⟩,
-    ⟨H.inv_mem hhx, K.inv_mem hhy⟩}
+  ⟨H.inv_mem hhx, K.inv_mem hhy⟩}
 
 open set
 variable {ι : Sort}
@@ -45,120 +45,94 @@ def Inter_subgroup (H : ι → subgroup G) : subgroup G :=
 { carrier := ⋂ i, H i,
   one_mem' := mem_Inter.mpr $ λ i, (H i).one_mem,
   mul_mem' := λ _ _ hx hy, mem_Inter.mpr $ λ i, 
-    by {rw mem_Inter at *, from mul_mem (H i) (hx i) (hy i)},
+  by {rw mem_Inter at *, from mul_mem (H i) (hx i) (hy i)},
   inv_mem' := λ x hx, mem_Inter.mpr $ λ i, (H i).inv_mem $ by apply mem_Inter.mp hx }
 
+-- Change the above to has_inf and has_Inf respectively so we can use them for 
+-- proving they are lattices?
+
+-- Move Lagrange's theorem from orbit.random to here
 
 -- Some equivalent definitions for normal groups from wikipedia
+open normal
+
 -- Any two elements commute regarding the normal subgroup membership relation
-lemma in_normal_to_comm {K : subgroup G} [normal K] : ∀ g k : G, g * k ∈ K → k * g ∈ K :=
+lemma comm_mem_of_normal {K : normal G} 
+  {g k : G} (h : g * k ∈ K) : k * g ∈ K :=
 begin
-    intros g k hgk,
-    suffices : g⁻¹ * (g * k) * g ∈ K,
-        {rwa [←group.mul_assoc, group.mul_left_inv, group.one_mul] at this},
-    convert normal.conjugate g⁻¹ (g * k) hgk, rw group.inv_inv
+  suffices : k * (g * k) * k⁻¹ ∈ K,
+    { simp [group.mul_assoc] at this, assumption },
+  refine conj_mem _ _ h _
 end
 
-instance comm_to_in_normal {K : subgroup G} (h : ∀ g k : G, g * k ∈ K → k * g ∈ K) : normal K :=
+def normal_of_mem_comm {K : subgroup G} 
+  (h : ∀ g k : G, g * k ∈ K → k * g ∈ K) : normal G :=
+{ conj_mem := 
+  begin
+    intros n hn g,
+    suffices : g * (n * g⁻¹) ∈ K,
+      { rwa ←group.mul_assoc at this },
+    refine h _ _ _, simpa [group.mul_assoc]
+  end, .. K } -- The .. tells Lean that we use K for the unfilled fields
+
+-- If K is a normal subgroup of the group G, then the sets of left and right 
+-- cosets of K in the G coincide
+lemma nomal_coset_eq {K : normal G} : 
+  ∀ g : G, g • (K : subgroup G) = (K : subgroup G) • g :=
 begin
-    split,
-    intros g k hk,
-    suffices : g * (k * g⁻¹) ∈ K,
-        {rwa ←group.mul_assoc at this},
-    apply h (k * g⁻¹) g,
-    rwa [group.mul_assoc, group.mul_left_inv, group.mul_one]
+  -- dsimp, 
+  -- Without the dsimp it displays weridly,
+  -- dsimp not required if we write out right_coset g K however?
+  intros g,
+  ext, split; intro hx,
+    { rcases hx with ⟨k, hk, rfl⟩,
+      refine ⟨_, K.2 k hk g, _⟩,
+      simp [group.mul_assoc] },
+    { rcases hx with ⟨k, hk, rfl⟩,
+      refine ⟨_, K.2 k hk g⁻¹, _⟩,
+      simp [←group.mul_assoc] }
 end
 
--- If K is a normal subgroup of the group G, then the sets of left and right cosets of K in the G coincide
-lemma nomal_coset_eq {K : subgroup G} [normal K] : 
-∀ g : G, left_coset g K = right_coset g K :=
+def normal_of_coset_eq {K : subgroup G} 
+  (h : ∀ g : G, g • K = K • g) : normal G :=
+{ conj_mem := 
+  begin
+    intros n hn g,
+    have : ∃ s ∈ K • g, s = g * n,
+      { refine ⟨g * n, _, rfl⟩,
+        rw ←h, exact ⟨n, hn, rfl⟩ },
+    rcases this with ⟨s, ⟨l, hl₁, hl₂⟩, hs₂⟩,
+    rw [←hs₂, hl₂],
+    simpa [group.mul_assoc]
+  end, .. K}
+
+-- If K is normal then if x ∈ g K and y ∈ h K then x * y ∈ (g * h) K
+lemma prod_in_coset_of_normal {K : normal G} {x y g h : G} 
+  (hx : x ∈ g • K) (hy : y ∈ h • K) : x * y ∈ (g * h) • K :=
 begin
-    intros g,
-    ext, split,
-        all_goals {repeat {rw set.mem_set_of_eq}, intros hx, rcases hx with ⟨k, ⟨hk₁, hk₂⟩⟩},
-        {use (g * k * g⁻¹), split,
-        all_goals {try {apply normal.conjugate, assumption}},
-        rwa [←hk₂, group.mul_assoc, group.mul_left_inv, group.mul_one]
-        },
-        use (g⁻¹ * k * g), split,
-        convert normal.conjugate g⁻¹ k hk₁, rwa group.inv_inv,
-        rwa [←group.mul_assoc, ←group.mul_assoc, group.mul_right_inv, group.one_mul, hk₂]
+  rcases hx with ⟨k₀, hx₁, rfl⟩,
+  rcases hy with ⟨k₁, hy₁, rfl⟩,
+  refine ⟨h⁻¹ * k₀ * h * k₁, _, _⟩,
+    { refine K.1.3 _ hy₁, 
+      convert K.2 _ hx₁ _, exact (group.inv_inv _).symm },
+    { iterate 2 { rw group.mul_assoc },
+      rw group.mul_left_cancel_iff g _ _,
+      simp [←group.mul_assoc] }
 end
 
-instance coset_eq_normal {K : subgroup G} (h : ∀ g : G, left_coset g K = right_coset g K) : normal K :=
-begin
-    split,
-    intros g k hk,
-    replace h : {s : G | ∃ (k : G) (H : k ∈ K), s = g * k} = {s : G | ∃ (k : G) (H : k ∈ K), s = k * g} := h g,
-    have : ∃ s ∈ {s : G | ∃ k ∈ K, s = k * g}, s = g * k :=
-        by {rw ←h, use (g * k),
-        simp only [group.mul_right_cancel_iff, exists_prop, and_true, set.mem_set_of_eq],
-        split, use k, from ⟨hk, rfl⟩, refl
-        },
-    rcases this with ⟨s, ⟨hs₁, hs₂⟩⟩,
-    rw set.mem_set_of_eq at hs₁,
-    rcases hs₁ with ⟨l, ⟨hl₁, hl₂⟩⟩,
-    rw [←hs₂, hl₂, group.mul_assoc, group.mul_right_inv, group.mul_one],
-    assumption
-end
-
--- If K is a normal subgroup of the group G then the product of an element of the left coset of K with respect to g ∈ G and an element of the left coset of N with respect to h ∈ G is an element of the left coset of K with respect to gh
-lemma normal_to_prod_in_coset {K : subgroup G} [normal K] : 
-∀ x y g h : G, x ∈ left_coset g K ∧ y ∈ left_coset h K → x * y ∈ left_coset (g * h) K :=
-begin
-    rintros x y g h ⟨hx, hy⟩,
-    rw set.mem_set_of_eq at hx hy,
-    rcases hx with ⟨k₀, ⟨hx₁, hx₂⟩⟩,
-    rcases hy with ⟨k₁, ⟨hy₁, hy₂⟩⟩,
-    rw [hx₂, hy₂],
-    suffices : h⁻¹ * k₀ * h * k₁ ∈ K,
-        {rw set.mem_set_of_eq,
-        use h⁻¹ * k₀ * h * k₁,
-        split, assumption,
-        apply group.mul_left_cancel g⁻¹,
-        rw [←@group.mul_assoc _ _ g⁻¹ (g * k₀) (h * k₁), ←@group.mul_assoc _ _ g⁻¹ g k₀, 
-        group.mul_left_inv, group.one_mul,
-        ←@group.mul_assoc _ _ g⁻¹ (g * h) (h⁻¹ * k₀ * h * k₁), ←@group.mul_assoc _ _ g⁻¹ g h, 
-        group.mul_left_inv, group.one_mul],
-        apply group.mul_left_cancel h⁻¹,
-        rw [←@group.mul_assoc _ _ h⁻¹ h  (h⁻¹ * k₀ * h * k₁), group.mul_left_inv, group.one_mul,
-        ←@group.mul_assoc _ _ h⁻¹ k₀ (h * k₁), ←@group.mul_assoc _ _ (h⁻¹ * k₀) h k₁]
-        },
-    apply @mul_mem _ _ K (h⁻¹ * k₀ * h) k₁,
-    convert normal.conjugate h⁻¹ k₀ hx₁, 
-        rw group.inv_inv,
-        assumption
-end
-
-instance prod_in_coset_to_normal {K : subgroup G} 
-(h : ∀ x y g h : G, x ∈ left_coset g K ∧ y ∈ left_coset h K → x * y ∈ left_coset (g * h) K) : normal K :=
-begin
-    split, intros g k hk,
-    let x := g * k,
-    let y :=  g⁻¹ * k,
-    suffices : g * k * g⁻¹ * k ∈ K,
-        {rw [←group.mul_one (g * k * g⁻¹), ←group.mul_right_inv k, ←group.mul_assoc],
-        apply mul_mem, assumption,
-        apply inv_mem, assumption
-        },
-    suffices : g * k * g⁻¹ * k ∈ left_coset (g * g⁻¹) K,
-        {rw [set.mem_set_of_eq, group.mul_right_inv] at this,
-        rcases this with ⟨l, ⟨hl₁, hl₂⟩⟩,
-        rw [hl₂, group.one_mul], assumption
-        },
-    rw group.mul_assoc,
-    show x * y ∈ left_coset (g * g⁻¹) K,
-    apply h x y g g⁻¹,
-    split, {use k, from ⟨hk, rfl⟩},
-        {use k, from ⟨hk, rfl⟩}
-end
-
-/-
-TODO : Normal K equivalent to
-- K is a union of conjugate classes
--/
-
--- Trivial central subgroups
+def normal_of_prod_in_coset {K : subgroup G} 
+  (h : ∀ x y g h : G, x ∈ g • K → y ∈ h • K → x * y ∈ (g * h) • K) : normal G :=
+{ conj_mem := 
+  begin
+    intros n hn g,
+    rcases h (g * n) (g⁻¹ * n) g g⁻¹ 
+      ⟨n, hn, rfl⟩ ⟨n, hn, rfl⟩ with ⟨m, hm₀, hm₁⟩,
+    rw [←group.mul_right_cancel_iff n⁻¹,
+        group.mul_assoc, group.mul_assoc, group.mul_assoc] at hm₁,
+    suffices : g * n * g⁻¹ = m * n⁻¹, 
+      rw this, exact K.mul_mem hm₀ (K.inv_mem hn),
+    simp [←group.mul_assoc] at hm₁; assumption
+  end, .. K }
 
 end subgroup
 
