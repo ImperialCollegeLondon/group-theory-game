@@ -76,10 +76,11 @@ instance (K : subgroup G) : group ↥K :=
 { mul := λ a b, ⟨a.1 * b.1, K.mul_mem' a.2 b.2⟩,
   one := ⟨1, K.one_mem'⟩,
   inv := λ a, ⟨a⁻¹, K.inv_mem' a.2⟩,
-  mul_assoc := λ a b c, by {cases a, cases b, cases c, rw subtype.ext, apply group.mul_assoc},
-  one_mul := λ a, by {cases a, rw subtype.ext, apply group.one_mul},
-  mul_left_inv := λ a, by {cases a, rw subtype.ext, apply group.mul_left_inv}
-  } 
+  mul_assoc := λ a b c, by { cases a, cases b, cases c, refine subtype.ext _, 
+    apply group.mul_assoc },
+  one_mul := λ a, by { cases a, apply subtype.ext, apply group.one_mul },
+  mul_left_inv := λ a, by { cases a, apply subtype.ext, 
+    apply group.mul_left_inv } } 
 
 -- Defintion of normal subgroup
 class normal (K : subgroup G) :=
