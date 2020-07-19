@@ -140,6 +140,11 @@ by rw [←h, mul_assoc, mul_right_inv, mul_one]
 lemma eq_mul_inv_of_mul_eq'' {a b c : G} (h : a * c = b) : a = b * c⁻¹ :=
 by simp [h.symm, mul_assoc]
 
+lemma eq_inv_mul_of_mul_eq {a b c : G} (h : b * a = c) : a = b⁻¹ * c :=
+begin
+  rw [←h, ←mul_assoc, mul_left_inv b, one_mul]
+end
+
 -- Another useful lemma for the interface:
 lemma mul_left_eq_self {a b : G} : a * b = b ↔ a = 1 :=
 begin
@@ -153,6 +158,16 @@ begin
     rw h,
     rw one_mul
   }
+end
+
+lemma mul_right_eq_self {a b : G} : a * b = a ↔ b = 1 :=
+begin
+  split,
+    intro h,
+    from calc b = a⁻¹ * a : by apply eq_inv_mul_of_mul_eq h
+           ...  = 1 : by rw mul_left_inv,
+    intro h,
+    rw [h, mul_one]
 end
 
 -- Another useful lemma for the interface.
@@ -187,6 +202,56 @@ begin
   -- and we just did this, it's `inv_inv`
   rw inv_inv,
 end
+
+lemma unique_id {e : G} (h : ∀ x : G, e * x = x) : e = 1 :=
+calc e = e * 1 : by rw mul_one
+  ...  = 1 : by rw h 1
+
+-- Maybe add unique_id but with x * e = x
+
+lemma unique_inv {a b : G} (h : a * b = 1) : b = a⁻¹ :=
+begin
+  apply mul_left_cancel a,
+  rw [h, mul_right_inv]
+end
+
+lemma mul_right_cancel (a x y : G) (Habac : x * a = y * a) : x = y := 
+calc x = x * 1 : by rw mul_one
+  ...  = x * (a * a⁻¹) : by rw mul_right_inv
+  ...  = x * a * a⁻¹ : by rw mul_assoc
+  ...  = y * a * a⁻¹ : by rw Habac
+  ...  = y * (a * a⁻¹) : by rw mul_assoc
+  ...  = y * 1 : by rw mul_right_inv
+  ...  = y : by rw mul_one
+
+lemma mul_left_cancel_iff (a x y : G) : a * x = a * y ↔ x = y :=
+begin
+  split,
+    from mul_left_cancel a x y,
+    intro hxy,
+    rwa hxy
+end
+
+lemma mul_right_cancel_iff (a x y : G) : x * a = y * a ↔ x = y :=
+begin
+  split,
+    from mul_right_cancel a x y,
+    intro hxy,
+    rwa hxy
+end
+
+lemma inv_mul (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹ :=
+begin
+  apply mul_right_cancel (a * b),
+  rw [mul_left_inv, 
+    ←mul_left_cancel_iff b,
+    mul_assoc, ←mul_assoc,
+    mul_right_inv,
+    one_mul, mul_one,
+    ←mul_assoc, mul_left_inv, one_mul]
+end
+
+attribute [simp] mul_left_cancel_iff mul_right_cancel_iff inv_mul
 
 end group
 
