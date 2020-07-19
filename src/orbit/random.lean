@@ -506,7 +506,7 @@ begin
 end
 
 theorem group_class_equation [fintype G] (reprs : finset G)
-    (hcover : reprs.bind(λ s, (conj_class s).to_finset) = 
+    (hcover : reprs.bind (λ s, (conj_class s).to_finset) = 
       finset.univ \ (center G).to_finset)
     (hdisjoint : ∀ x y ∈ reprs, x ≠ y → 
       disjoint (conj_class x) (conj_class y)) :
