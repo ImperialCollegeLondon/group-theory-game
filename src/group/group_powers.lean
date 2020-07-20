@@ -1,4 +1,4 @@
-import group.level01_extended
+import group.theorems
 
 namespace mygroup
 
