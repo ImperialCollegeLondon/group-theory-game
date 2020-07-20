@@ -102,6 +102,7 @@ notation H ` • ` :70 g :70 := rcoset g H
 attribute [reducible] lcoset rcoset
 
 -- Defining the the center of a group is a subgroup
+/- Should probably define it as a normal subgroup
 def center (G : Type) [group G] : subgroup G :=
 { carrier  := {g : G | ∀ k : G, k * g = g * k},
   one_mem' := λ k, by simp,
@@ -112,7 +113,7 @@ def center (G : Type) [group G] : subgroup G :=
     iterate 2 {rw ←group.mul_assoc},
     rw [←hx, group.mul_right_inv, group.mul_assoc, group.mul_right_inv], simp
   end
-}
+} -/
 
 end subgroup
 

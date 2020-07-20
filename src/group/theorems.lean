@@ -251,7 +251,11 @@ begin
     ←mul_assoc, mul_left_inv, one_mul]
 end
 
-attribute [simp] mul_left_cancel_iff mul_right_cancel_iff inv_mul inv_inv
+lemma one_inv : (1 : G)⁻¹ = 1 :=
+by conv_rhs { rw [←(mul_left_inv (1 : G)), mul_one] }
+
+attribute [simp] mul_left_cancel_iff mul_right_cancel_iff inv_mul inv_inv 
+  one_inv
 
 end group
 

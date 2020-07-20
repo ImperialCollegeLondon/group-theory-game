@@ -440,17 +440,13 @@ end
 
 -- the class equation of groups
 
-def center (G : Type*) [group G] : set G :=
-  {x : G | ∀ y : G, x * y = y * x}
+def center (G : Type*) [group G] : set G := { x : G | ∀ y : G, x * y = y * x }
 
-def conj_class (g : G) : set G :=
-  orbit conj_laction g
+def conj_class (g : G) : set G := orbit conj_laction g
 
-def index_subgroup [fintype G] (H : subgroup G) : ℕ :=
-  card G / card H
+def index_subgroup [fintype G] (H : subgroup G) : ℕ := card G / card H
 
-lemma comm_of_mem_center {g h : G} (hc : g ∈ center G) :
-  g * h = h * g :=
+lemma comm_of_mem_center {g h : G} (hc : g ∈ center G) : g * h = h * g :=
 begin
   rw center at hc,
   rw mem_set_of_eq at hc,

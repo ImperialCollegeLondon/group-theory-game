@@ -59,10 +59,6 @@ end
 -- Rather than defining the kernel as the preimage of {1}, I think defining it 
 -- as a subgroup of the domain is better
 
--- We uses this and it should be moved to group
-@[simp] lemma one_inv : (1 : G)⁻¹ = 1 :=
-by conv_rhs { rw [←(group.mul_left_inv (1 : G)), group.mul_one] }
-
 /-- The kernel of a homomorphism `f : G →* H` is the subgroup of `G` whos carrier 
 is the preimage of `{1}`, i.e. `f ⁻¹' {1}` -/
 def kernel (f : G →* H) : subgroup G := 
@@ -78,7 +74,7 @@ def kernel (f : G →* H) : subgroup G :=
     begin
       intros _ hx,
       rw [mem_preimage, mem_singleton_iff] at *,
-      rw [map_inv f, hx, one_inv]
+      rw [map_inv f, hx, group.one_inv]
     end }
 
 /-- The image of a homomorphism `f : G →* H` is the subgroup of `H` whos carrier 
