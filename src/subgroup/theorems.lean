@@ -1,5 +1,7 @@
 import subgroup.definitions
 
+noncomputable theory
+
 /-
 An API for subgroups
 
@@ -23,10 +25,9 @@ namespace mygroup
 
 -- TODO: prove subgroups are a lattice/semilattice-sup-bot/complete lattice/ whatever
 
-namespace subgroup
+variables {G : Type} [group G]
 
-variables {G : Type}
-variables [group G]
+namespace subgroup
 
 -- The intersect of two subgroups is also a subgroup
 def inter_subgroup (H K : subgroup G) : subgroup G :=
@@ -51,10 +52,94 @@ def Inter_subgroup (H : ι → subgroup G) : subgroup G :=
 -- Change the above to has_inf and has_Inf respectively so we can use them for 
 -- proving they are lattices?
 
--- Move Lagrange's theorem from orbit.random to here
+end subgroup
+
+namespace lagrange
+
+variables {H : subgroup G}
+
+lemma self_mem_coset (a : G) (H : subgroup G): a ∈ a • H := 
+  ⟨1, H.one_mem, (group.mul_one a).symm⟩
+
+/-- Two cosets `a • H`, `b • H` are equal if and only if `b⁻¹ * a ∈ H` -/
+theorem lcoset_eq {a b : G} :
+  a • H = b • H ↔ b⁻¹ * a ∈ H := 
+begin
+  split; intro h,
+    { replace h : a ∈ b • H, rw ←h, exact self_mem_coset a H,
+      rcases h with ⟨g, hg₀, hg₁⟩,
+      rw hg₁, simp [←group.mul_assoc, hg₀] },
+    { ext, split; intro hx,
+        { rcases hx with ⟨g, hg₀, hg₁⟩, rw hg₁,
+          exact ⟨b⁻¹ * a * g, H.mul_mem h hg₀, by simp [←group.mul_assoc]⟩ },
+        { rcases hx with ⟨g, hg₀, hg₁⟩, rw hg₁,
+          refine ⟨a⁻¹ * b * g, H.mul_mem _ hg₀, by simp [←group.mul_assoc]⟩,
+          convert H.inv_mem h, simp } }
+end
+
+
+-- A corollary of this is a • H = H iff a ∈ H 
+
+/-- The coset of `H`, `1 • H` equals `H` -/
+theorem lcoset_of_one : 1 • H = H :=
+begin
+  ext, split; intro hx,
+    { rcases hx with ⟨h, hh₀, hh₁⟩,
+      rwa [hh₁, group.one_mul] },
+    { exact ⟨x, hx, (group.one_mul x).symm⟩ }
+end
+
+/-- A left coset `a • H` equals `H` if and only if `a ∈ H` -/
+theorem lcoset_of_mem {a : G} :
+  a • H = H ↔ a ∈ H := by rw [←lcoset_of_one, lcoset_eq]; simp 
+
+/-- Two left cosets `a • H` and `b • H` are equal if they are not disjoint -/
+theorem lcoset_digj {a b c : G} (ha : c ∈ a • H) (hb : c ∈ b • H) : 
+  a • H = b • H :=
+begin
+  rcases ha with ⟨g₀, hg₀, hca⟩,
+  rcases hb with ⟨g₁, hg₁, hcb⟩,
+  rw lcoset_eq, rw (show a = c * g₀⁻¹, by simp [hca, group.mul_assoc]),
+  rw (show b⁻¹ = g₁ * c⁻¹, 
+    by rw (show b = c * g₁⁻¹, by simp [hcb, group.mul_assoc]); simp),
+  suffices : g₁ * g₀⁻¹ ∈ H, 
+    { rw [group.mul_assoc, ←@group.mul_assoc _ _ c⁻¹],
+      simp [this] },
+  exact H.mul_mem hg₁ (H.inv_mem hg₀)
+end
+
+-- Now we would like to prove that all lcosets have the same order
+
+open function fintype
+
+private def aux_map (a : G) (H : subgroup G) : H → a • H := 
+  λ h, ⟨a * h, h, h.2, rfl⟩
+
+private lemma aux_map_biject {a : G} : bijective $ aux_map a H := 
+begin
+  split,
+    { intros x y hxy,
+      suffices : (x : G) = y, 
+        { ext, assumption },
+        { simp [aux_map] at hxy, assumption } },
+    { rintro ⟨y, y_prop⟩, 
+      rcases y_prop with ⟨h, hh₀, hh₁⟩,
+      refine ⟨⟨h, hh₀⟩, by simp [aux_map, hh₁]⟩ }
+end
+
+/-- There is a bijection between `H` and its left cosets -/
+theorem lcoset_equiv {a : G} : H ≃ a • H := 
+equiv.of_bijective (aux_map a H) aux_map_biject
+
+-- Move the rest of Lagrange's theorem from orbit.random to here
+
+end lagrange
+
+namespace normal
 
 -- Some equivalent definitions for normal groups from wikipedia
-open normal
+
+open subgroup 
 
 -- Any two elements commute regarding the normal subgroup membership relation
 lemma comm_mem_of_normal {K : normal G} 
@@ -62,7 +147,7 @@ lemma comm_mem_of_normal {K : normal G}
 begin
   suffices : k * (g * k) * k⁻¹ ∈ K,
     { simp [group.mul_assoc] at this, assumption },
-  refine conj_mem _ _ h _
+  refine normal.conj_mem _ _ h _
 end
 
 def normal_of_mem_comm {K : subgroup G} 
@@ -134,6 +219,6 @@ def normal_of_prod_in_coset {K : subgroup G}
     simp [←group.mul_assoc] at hm₁; assumption
   end, .. K }
 
-end subgroup
+end normal
 
 end mygroup
