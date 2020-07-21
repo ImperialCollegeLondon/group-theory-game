@@ -1,59 +1,84 @@
-import subgroup.theorems data.quot
+import subgroup.theorems group_theory.congruence
 
 namespace mygroup
 
 namespace quotient
 
-#check quotient -- quotient takes a setoid (a type equiped with an equivalence 
--- relation) and gives us a sort
+-- We will in this file define quotient groups using congruences
 
-open subgroup lagrange
+/- We define `group_con` as an extention of `con` which respects the inverse 
+operation -/
+structure group_con (G : Type) [group G] extends con G :=
+(inv' : ∀ {x y}, r x y → r x⁻¹ y⁻¹)
 
--- We will create the quotient subgroup by defining an equivalence relation on 
--- the group G where ∀ g h : G, rel g h ↔ g • H = h • H where H ≤ G
-
--- See: https://courses.maths.ox.ac.uk/node/view_material/43836 p.57
+-- A `group_con G` induces a group structure with its congruence classes
 
 variables {G : Type} [group G]
 
-def rel (H : subgroup G) (g h : G) : Prop := g • H = h • H
+-- We define a coercion from `group_con G` to `setoid G` 
+instance has_coe_to_setoid : has_coe (group_con G) (setoid G) := 
+  ⟨λ R, R.to_con.to_setoid⟩
 
-def rel_setoid (H : subgroup G) : setoid G := 
-{ r := rel H,
-  iseqv := 
-  begin
-    refine ⟨by tauto, λ _ _ hxy, hxy.symm, _⟩,
-      { intros _ _ _ hxy hyz,
-        unfold rel at *,
-        rw [hxy, hyz] }
-  end }
+/- Coercion from a `group_con G` to its underlying binary relation -/
+instance : has_coe_to_fun (group_con G) := ⟨_, λ R, λ x y, R.r x y⟩
 
-def group_quotient (G : Type) [group G] (H : subgroup G) := 
-  quotient $ rel_setoid H
-notation G ` / ` H := group_quotient G H
+lemma mul {R : group_con G} {x₀ x₁ y₀ y₁ : G} : 
+  R x₀ x₁ → R y₀ y₁ → R (x₀ * y₀) (x₁ * y₁) := by apply R.mul'
 
--- Now we will make group_quotient into a group whenever its a group quotient on 
--- a normal subgroup
+lemma inv {R : group_con G} {x y : G} : R x y → R x⁻¹ y⁻¹ := by apply R.inv'
 
-variables {H : subgroup G}
+-- A quotient on a `group_con G` is the quotient on its coerced setoid
+def quotient (R : group_con G) := quotient (R : setoid G)
 
-instance : has_coe G (G / H) := ⟨λ g, quotient.mk' g⟩
+variables {R : group_con G}
 
-lemma eq {g h : G} : (g : G / H) = h ↔ h⁻¹ * g ∈ H := 
-begin
-  -- convert lcoset_eq,
-  sorry
-end
+-- Coercion from a group to its quotient
+instance : has_coe_t G (quotient R) := ⟨quotient.mk'⟩
 
-instance {H : subgroup G} : has_mul $ G / H := sorry
-instance {H : subgroup G} : has_one $ G / H := sorry
-instance {H : subgroup G} : has_inv $ G / H := sorry
+-- We can think of the coercion above as making a term of `G` into its 
+-- equivalence class. So two elements of type `quotient R` are equal iff 
+-- they are related by the binary relation `R`
+lemma eq {x y : G} : (x  : quotient R) = y ↔ R x y := quotient.eq'
 
-instance {H : normal G} : group $ G / H := 
+def lift_on {β} {R : group_con G} (x : quotient R) (f : G → β) 
+  (h : ∀ x y, R x y → f x = f y) : β := quotient.lift_on' x f h
+
+def lift_on₂ {β} {R : group_con G} (x y : quotient R) (f : G → G → β)
+  (h : ∀ a₁ a₂ b₁ b₂, R a₁ b₁ → R a₂ b₂ → f a₁ a₂ = f b₁ b₂) : β := 
+quotient.lift_on₂' x y f h
+
+-- Mathematically, we define mul for `quotient R` by taking to congruence 
+-- classes and outputing the congruence class of their mul, i.e. 
+-- (*) : (⟦g⟧, ⟦h⟧) ↦ ⟦g * h⟧
+
+-- In Lean, we achieve this by using `lift_on₂` where given some type `β` 
+-- (in this case `quotient R`), two elements of `quotient R` and a function 
+-- `f : G → G → β` that respects `R`, it returns a term of `β`.
+instance : has_mul (quotient R) := 
+{ mul := λ x y, lift_on₂ x y (λ x y , ((x * y : G) : quotient R)) 
+    $ λ _ _ _ _ h₁ h₂, eq.2 (mul h₁ h₂) }
+
+-- Similar story for the inverse in which we use `lift_on` instead.
+-- Mathematically, the inverse is defined to be the congruence class of the 
+-- inverse, i.e. (⁻¹) : ⟦g⟧ ↦ ⟦g⁻¹⟧
+instance : has_inv (quotient R) := 
+  ⟨λ x, lift_on x (λ x, ((x⁻¹ : G) : quotient R)) $ λ _ _ h, eq.2 (inv h)⟩
+
+instance : has_one (quotient R) := ⟨((1 : G) : quotient R)⟩
+
+-- We now simply need to prove all the group axioms
+
+lemma mul_assoc' {a b c : quotient R} : a * b * c = a * (b * c) := sorry
+
+lemma one_mul' {a : quotient R} : 1 * a = a := sorry
+
+lemma mul_left_inv' {a : quotient R} : a⁻¹ * a = 1 := sorry
+
+instance : group (quotient R) := 
 { mul := (*), one := (1), inv := has_inv.inv,
-  mul_assoc := sorry,
-  one_mul := sorry,
-  mul_left_inv := sorry }
+  mul_assoc := λ _ _ _, mul_assoc',
+  one_mul := λ _, one_mul',
+  mul_left_inv := λ _, mul_left_inv' }
 
 end quotient
 
