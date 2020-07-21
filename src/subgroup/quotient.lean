@@ -66,19 +66,84 @@ instance : has_inv (quotient R) :=
 
 instance : has_one (quotient R) := ⟨((1 : G) : quotient R)⟩
 
+lemma coe     (x : G)   : quotient.mk' x = (x : quotient R) := rfl 
+lemma coe_mul (x y : G) : (x : quotient R) * y = ((x * y : G) : quotient R) := rfl  
+lemma coe_inv (x : G)   : (x : quotient R)⁻¹ = ((x⁻¹ : G ): quotient R) := rfl
+lemma coe_one           : 1 = ((1 : G) : quotient R) := rfl
+
+-- I think the rhs is more desirable in most cases so I will make simp use them
+attribute [simp] coe coe_mul coe_inv coe_one
+
 -- We now simply need to prove all the group axioms
 
-lemma mul_assoc' {a b c : quotient R} : a * b * c = a * (b * c) := sorry
+-- To prove propositions regarding elements of `quotient R` we need to use the 
+-- induction principle for quotients `quotient.induciton_on`. 
+-- In this case we are using the variant of this induction principle with 
+-- three arguments.
+-- Essentially, to prove a proposition true for all `x : quotient R`, it 
+-- suffices to prove that the proposition is true for all `(g : G) : quotient R`
+lemma mul_assoc' {a b c : quotient R} : a * b * c = a * (b * c) := 
+begin
+  apply quotient.induction_on₃' a b c,
+  intros _ _ _, 
+  iterate 3 { rw coe },
+  iterate 4 { rw coe_mul },
+  rw group.mul_assoc
+end
 
-lemma one_mul' {a : quotient R} : 1 * a = a := sorry
+lemma one_mul' {a : quotient R} : 1 * a = a := 
+begin
+  apply quotient.induction_on' a,
+  intro x, rw [coe, coe_one, coe_mul, group.one_mul]  
+end
 
-lemma mul_left_inv' {a : quotient R} : a⁻¹ * a = 1 := sorry
+lemma mul_left_inv' {a : quotient R} : a⁻¹ * a = 1 := 
+begin
+  apply quotient.induction_on' a,
+  intro x, rw [coe, coe_inv, coe_mul, group.mul_left_inv, coe_one]
+end
 
+-- With that we find `quotient R` form a group
 instance : group (quotient R) := 
 { mul := (*), one := (1), inv := has_inv.inv,
   mul_assoc := λ _ _ _, mul_assoc',
   one_mul := λ _, one_mul',
   mul_left_inv := λ _, mul_left_inv' }
+
+-- But this is not how most of us learnt quotient groups. For us, quotient groups 
+-- are defined by creating a group structure on the set of coests of a normal 
+-- subgroup. We will show that these two definitions are, in fact, the same.
+
+/- The main proposition we will prove is that given a subgroup H of the group G, 
+the equivalence relation ~ : (g, k) ↦ g H = k H on G is a group congruence if 
+and only if H is normal. -/
+
+open mygroup.subgroup
+
+variables {H : subgroup G} 
+
+-- We will redeclare the notation since importing group_theory.congruence also 
+-- imported some other notations using `•`
+notation g ` • ` :70 H :70 := lcoset g H
+notation H ` • ` :70 g :70 := rcoset g H
+
+def lcoset_rel (H : subgroup G) := λ x y, x • H = y • H 
+local notation x ` ~ ` y := lcoset_rel H x y
+
+def lcoset_iseqv (H : subgroup G) : equivalence (lcoset_rel H) := 
+begin
+  refine ⟨by tauto, λ _ _ hxy, hxy.symm, _⟩,
+  intros _ _ _ hxy hyz, unfold lcoset_rel at *, rw [hxy, hyz]
+end 
+
+def lcoset_setoid (H : subgroup G) : setoid G :=
+{ r := lcoset_rel H,
+  iseqv := lcoset_iseqv H}
+
+/-- If `lcoset_rel H` is a congruence then `H` is normal -/
+def normal_of_con 
+  (hmul : ∀ x₀ x₁ y₀ y₁ : G, x₀ ~ x₁ → y₀ ~ y₁ → x₀ * y₀ ~ x₁ * y₁) 
+  (hinv : ∀ x y : G, x ~ y → x⁻¹ ~ y⁻¹) : normal G := sorry
 
 end quotient
 
