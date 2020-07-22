@@ -161,14 +161,14 @@ end deff
 
 namespace iterate'
 
--- lemma pow: need to prove this but we can't define the
-lemma foo (f : X ≃ X) (a b : ℤ) : iterate' a (iterate' b f) =
-iterate' (a * b) f :=
-begin
-  simp [iterate'],
-  -- we're not ready for this 
-  sorry
-end
+-- -- lemma pow: need to prove this but we can't define the
+-- lemma foo (f : X ≃ X) (a b : ℤ) : iterate' a (iterate' b f) =
+-- iterate' (a * b) f :=
+-- begin
+--   simp [iterate'],
+--   -- we're not ready for this 
+--   sorry
+-- end
 
 -- I wrote this file once before. I'm going through it again.
 -- I'm going to make a basic interface for the int.iterate function

@@ -45,7 +45,12 @@ lemma mul : g * h = int.iterate 1 (lmul g) h := rfl
 lemma foo : (iterate n (lmul g) h) * k = iterate n (lmul g) (h * k) :=
 begin
   -- this is I think what we need
-  sorry
+  -- 
+  apply int.induction_on' n 0,
+    refl,
+    -- we're missing some API
+    sorry,
+    sorry
 end
 
 @[simp] lemma pow_add_mul {g : G} {m n : ℤ} : (⦃m+n⦄^g : G) = (⦃m⦄^g) * ⦃n⦄^g :=
