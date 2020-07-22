@@ -23,7 +23,7 @@ namespace mygroup
 -- We're proving things about group homs so this all goes in the `group_hom`
 -- namespace
 
-open set
+open set mygroup.subgroup
 
 namespace group_hom
 
@@ -59,9 +59,9 @@ end
 -- Rather than defining the kernel as the preimage of {1}, I think defining it 
 -- as a subgroup of the domain is better
 
-/-- The kernel of a homomorphism `f : G →* H` is the subgroup of `G` whos carrier 
-is the preimage of `{1}`, i.e. `f ⁻¹' {1}` -/
-def kernel (f : G →* H) : subgroup G := 
+/-- The kernel of a homomorphism `f : G →* H` is the normal subgroup of `G` whos 
+carrier is the preimage of `{1}`, i.e. `f ⁻¹' {1}` -/
+def kernel (f : G →* H) : normal G := 
 { carrier := f ⁻¹' {1},
   one_mem' := map_one _, 
   mul_mem' := 
@@ -75,6 +75,12 @@ def kernel (f : G →* H) : subgroup G :=
       intros _ hx,
       rw [mem_preimage, mem_singleton_iff] at *,
       rw [map_inv f, hx, group.one_inv]
+    end,
+  conj_mem :=
+    begin
+      intros _ hn _,
+      rw [mem_preimage, mem_singleton_iff] at *,
+      simp [hn]
     end }
 
 /-- The image of a homomorphism `f : G →* H` is the subgroup of `H` whos carrier 
@@ -141,6 +147,7 @@ begin
         by rw hf; exact mem_univ _) with ⟨x, _, hx⟩,
       exact ⟨x, hx⟩ }
 end
+
 
 
 end group_hom
