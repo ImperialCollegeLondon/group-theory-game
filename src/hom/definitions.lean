@@ -1,5 +1,5 @@
 import tactic
-import subgroup.theorems
+import subgroup.quotient
 
 /-!
 
