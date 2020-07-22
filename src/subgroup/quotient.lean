@@ -120,7 +120,7 @@ and only if H is normal. -/
 
 open mygroup.subgroup lagrange
 
-variables {H : subgroup G} 
+variables {H : subgroup G} {N : normal G}
 
 -- We will redeclare the notation since importing group_theory.congruence also 
 -- imported some other notations using `•`
@@ -137,17 +137,17 @@ begin
 end 
 
 /-- If `H` is normal, then `lcoset_rel H` is a group congruence -/
-def con_of_normal (H : normal G) : group_con G :=
-{ r := lcoset_rel H,
-  iseqv := lcoset_iseqv H, 
+def con_of_normal (G : Type) [group G] (N : normal G) : group_con G :=
+{ r := lcoset_rel N,
+  iseqv := lcoset_iseqv N, 
   mul' := -- Should move mul' and inv' into individual lemmas about normal
     begin
       intros x₀ x₁ y₀ y₁ hx hy,
       unfold lcoset_rel at *,
       rw lcoset_eq at *,
-      have := H.conj_mem _ hx y₁⁻¹, 
+      have := N.conj_mem _ hx y₁⁻¹, 
       rw group.inv_inv at this,
-      replace this := H.mul_mem' this hy,
+      replace this := N.mul_mem' this hy,
       rw [←group.mul_assoc, group.mul_assoc (y₁⁻¹ * (x₁⁻¹ * x₀)), 
         group.mul_right_inv, group.mul_one, ←group.mul_assoc] at this,
       rwa [group.inv_mul, ←group.mul_assoc],
@@ -157,8 +157,8 @@ def con_of_normal (H : normal G) : group_con G :=
       dsimp, intros x y hxy,
       unfold lcoset_rel at *,
       rw lcoset_eq at *, rw ←group.inv_mul,
-      apply H.inv_mem',
-      convert H.conj_mem _ hxy y,
+      apply N.inv_mem',
+      convert N.conj_mem _ hxy y,
       simp [←group.mul_assoc]
     end }
 
@@ -184,6 +184,10 @@ def normal_of_con (H : subgroup G) {R : group_con G}
       refine R.mul' (R.mul' (R.iseqv.1 _) _) (R.iseqv.1 _),
        { rw hR, exact con_one_of_mem _ hn }
     end .. H }
+
+-- So now, whenever we would like to work with "normal" quotient groups of 
+-- a group `G` over a normal group `N`, we write `quotient (con_of_normal N)`
+notation G ` ∎ ` N := quotient (con_of_normal G N) -- I can't use `/` so I used `∎` 
 
 end quotient
 
