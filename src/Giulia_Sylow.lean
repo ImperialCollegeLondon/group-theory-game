@@ -1,6 +1,6 @@
 import group_theory.subgroup data.fintype.basic
 import tactic -- remove once library_search bug is fixed
-
+import group_theory.group_action
 noncomputable theory
 
 open set classical
@@ -26,7 +26,8 @@ structure laction (G : Type*) [group G] (S : Type*) :=
 
 variables {G : Type*} [group G] {S : Type*}
 variables {μ : laction G S}
-
+variables (a b c s: S)
+variables (g h : G)
 -- Example of a left action - The natural left action of a group acting on itself
 def natural_self_laction : laction G G := 
 { to_fun := λ g h, g * h,
@@ -48,23 +49,36 @@ begin
     rw [←h, μ.3, mul_left_inv, μ.2],
     rw [h, μ.3, mul_right_inv, μ.2]
 end
-
+--why reducible? TODO
 @[reducible] def orbit (μ : laction G S) (s : S) : set S := 
   { m : S | ∃ g : G, m = μ.1 g s } 
 
 #check orbit
---Defining the set of fixed points of the action G on S. They form a subset of X.
-@[reducible] def fixed_points (μ : laction G S) (s : S) : set S:=
+--Defining the set of fixed points of the action G on S. They form a subset of S.
+@[reducible] def fixed_points (μ : laction G S) : set S:=
 {s : S | ∀ g : G, μ.1 g s = s }
 
-#check fixed_points
+#check @fixed_points
+--Dependant instance doesn't work
+--instance : has_scalar G S := ⟨ λ g s, μ.1 g s ⟩
+--#print notation • #exit 
+local notation g ` • ` s := μ.1 g s 
 
---Want to show that if s is in the set of fixed points, then the orbit of s contains only s.#check
-lemma orb_of_fixed_point {g : G}{s : S} (μ : laction G S) : (h: s ∈ fixed_points G S) → orbit μ s = {s}
-
+notation g ` •[` μ `] ` s := μ.1 g s 
+@[simp]lemma mem_fixed_points_iff : s ∈ fixed_points μ ↔ ∀ (g : G) , (g • s) = s := by refl 
 
 /-- An element of `G` is in its own orbit -/
 lemma self_mem_orbit (s : S) : s ∈ orbit μ s := ⟨1, (μ.2 s).symm⟩
+
+--Want to show that if s is in the set of fixed points of μ, then the orbit of s contains only s.#check
+lemma orbit_eq_singleton {g : G}{s : S} (μ : laction G S) : 
+(s ∈ fixed_points μ) → orbit μ s = {s} := 
+begin
+  intro h,
+  ext x, 
+  simp * at *, 
+end
+
 
 /-- The set of orbits of a set forms a partition -/
 def orbit_partition : partition S := 
