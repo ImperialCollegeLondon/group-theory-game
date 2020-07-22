@@ -169,7 +169,7 @@ begin
   rw lcoset_eq, simpa  
 end
 
-lemma mem_of_con_one (g : G) (hg : g ~ 1) : g ∈ H :=
+lemma mem_of_con_one {g : G} (hg : g ~ 1) : g ∈ H :=
 begin
   unfold lcoset_rel at hg,
   rwa [lcoset_eq, group.one_inv, group.one_mul] at hg
@@ -178,16 +178,16 @@ end
 /-- If `lcoset_rel H` is a congruence then `H` is normal -/
 def normal_of_con (H : subgroup G) {R : group_con G} 
   (hR : R.r = lcoset_rel H) : normal G := 
-{ conj_mem := λ n hn g, mem_of_con_one _ $
+{ conj_mem := λ n hn g, mem_of_con_one $
     begin
-      rw [←hR, (show (1 : G) = g * 1* g⁻¹, by simp)],
+      rw [←hR, (show (1 : G) = g * 1 * g⁻¹, by simp)],
       refine R.mul' (R.mul' (R.iseqv.1 _) _) (R.iseqv.1 _),
        { rw hR, exact con_one_of_mem _ hn }
     end .. H }
 
 -- So now, whenever we would like to work with "normal" quotient groups of 
 -- a group `G` over a normal group `N`, we write `quotient (con_of_normal N)`
-notation G ` ∎ ` N := quotient (con_of_normal G N) -- I can't use `/` so I used `∎` 
+notation G ` /ₘ ` N := quotient (con_of_normal G N)
 
 end quotient
 
