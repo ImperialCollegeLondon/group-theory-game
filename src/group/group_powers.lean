@@ -5,136 +5,80 @@ namespace mygroup
 
 namespace group
 
-variable {G : Type}
-variable [group G]
+variables {G : Type} [group G]
 
-namespace group
+open int 
 
 /-- left multiplication is a bijection-/
 def lmul (g : G) : G ≃ G :=
-{ to_fun := (*) g,
-  inv_fun := (*) g⁻¹,
+{ to_fun := (*) g, inv_fun := (*) g⁻¹,
   left_inv := begin intro x, rw [←mul_assoc, mul_left_inv, one_mul], end,
   right_inv := begin intro x, rw [←mul_assoc, mul_right_inv, one_mul] end }
 
 def pow : ℤ → G → G :=
-λ n g, (int.iterate n (lmul g)) 1
+  λ n g, (iterate n (lmul g)) 1
 
 -- binding power is a joke
 notation `⦃`:91 n `⦄^`:91 g := pow n g
+-- Why do you force me to use this awful notation instead of making a has_pow
+-- instance :(
 
+variables (n m : ℤ) (g h k : G)
 
-@[simp] lemma zero_pow (g : G) : (⦃0⦄^g : G)= 1 := rfl
+lemma lmul_one : (lmul g) 1 = g := mul_one g
 
-@[simp] lemma neg_one_pow_inv (g : G) : (⦃-1⦄^g : G) = g⁻¹ :=
+lemma lmul_symm  : (lmul g).symm = lmul g⁻¹ := by ext; refl
+lemma lmul_symm' : (lmul g)⁻¹ = (lmul g).symm := rfl 
+
+lemma pow_def     : (⦃n⦄^g : G) = iterate n (lmul g) 1 := rfl
+lemma pow_one_mul : iterate 1 (lmul g) h = g * h := rfl
+
+@[simp] lemma zero_pow : (⦃0⦄^g) = 1 := rfl
+@[simp] lemma one_pow  : (⦃1⦄^g) = g := 
 begin
-  simp [pow, int.iterate],
-  have h : ∀ e : G ≃ G, e⁻¹ = e.symm := by intro e; refl,--equiv.perm.inv_def,
-  rw h,
-  simp [lmul]
+  rw [pow_def, iterate.one],
+  exact mul_one g, 
 end
 
-variables (n : ℤ) (g h k : G)
+theorem pow_neg : (⦃-n⦄^g) = ⦃n⦄^g⁻¹ :=
+by rw [pow_def, pow_def, ←lmul_symm, ←iterate.neg]
 
-open int.iterate int
+-- A direct corollary
+@[simp] theorem pow_neg_one_inv (g : G) : (⦃-1⦄^g) = g⁻¹ := by simp [pow_neg 1 g]
 
-lemma pow_def : (⦃n⦄^g : G) = int.iterate n (lmul g) 1 := rfl
+lemma iterate_succ : iterate (n + 1) (lmul g) h = g * iterate n (lmul g) h := 
+by rw [add_comm, ←iterate.comp, pow_one_mul]
 
-lemma mul : g * h = int.iterate 1 (lmul g) h := rfl
-
-lemma foo : (iterate n (lmul g) h) * k = iterate n (lmul g) (h * k) :=
+-- What this is saying is essentially (g^n * h) * k = g^n * (h * k)
+lemma iterate_mul_assoc : (iterate n (lmul g) h) * k = iterate n (lmul g) (h * k) :=
 begin
-  -- this is I think what we need
-  -- 
   apply int.induction_on' n 0,
-    refl,
-    -- we're missing some API
-    sorry,
-    sorry
+    { refl },
+    { intros _ _ h,
+      rw [iterate_succ, mul_assoc, h, ←iterate_succ] },
+    { intros m _ h,
+      rw [show m - 1 = -(-m + 1), by ring],
+      rw [iterate.neg, lmul_symm, iterate_succ, mul_assoc,
+          ←lmul_symm, ←iterate.neg, neg_neg, h, lmul_symm, 
+          iterate_succ, ←lmul_symm, ←iterate.neg, neg_neg] }
 end
 
-@[simp] lemma pow_add_mul {g : G} {m n : ℤ} : (⦃m+n⦄^g : G) = (⦃m⦄^g) * ⦃n⦄^g :=
+theorem pow_add : (⦃m + n⦄^g) = (⦃m⦄^g) * ⦃n⦄^g :=
 begin
-  rw pow_def,
-  rw pow_def,
-  rw pow_def,
-  rw ←comp,
-  rw foo,
-  rw one_mul
+  iterate 3 { rw pow_def },
+  rw [←iterate.comp, iterate_mul_assoc, one_mul]
 end
 
--- lemma pow_mul : (⦃n⦄^g : G) * h = int.iterate n (lmul g) h :=
--- begin
---   change int.iterate n (lmul g) 1 * h = int.iterate n (lmul g) h, 
---   rw mul,
---   rw int.iterate.one,
---   refl,
--- end
-
-
-private lemma succ_pow {g : G} {n : ℤ} : (⦃n + 1⦄^g : G) = ⦃n⦄^g * g := 
+theorem pow_mul : (⦃m * n⦄^g) = ⦃m⦄^(⦃n⦄^g) :=
 begin
-  unfold pow,
-
+  simp [pow_def],
+  rw [←iterate.mul _ _ _ g], 
+  congr, ext,
+  show _ = (n.iterate (lmul g)) 1 * x,
+  rw [iterate_mul_assoc, one_mul],
 end
 
-
-
-#exit
---@[simp] lemma pow_int_of_nat {g : G} {n : ℕ} : g ^ (int.of_nat n) = g ^ n := rfl
---@[simp] lemma pow_neg {g : G} {n : ℕ} : g ^ (-[1+ n]) = (g ^ (n + 1))⁻¹ := rfl
---@[simp] theorem pow_neg_succ (g : G) (n : ℕ) : g ^ -[1+n] = (g ^ n.succ)⁻¹ := rfl
-
---@[simp] lemma zero_pow_nat {g : G} : g ^ 0 = 1 := rfl
-
---@[simp] lemma succ_pow_nat {g : G} {n : ℕ} : g ^ (n + 1) = g ^ n * g := rfl
-
-
-
--- @[simp] lemma succ_pow {g : G} {n : ℤ} : g ^ (n + 1) = g ^ n * g := 
--- begin
-  
---     induction n,
---         {rw [pow_int_of_nat, ←succ_pow_nat], refl},
---         sorry
--- end
-
---@[simp] lemma one_mul_pow_nat {g : G} {n : ℕ} : 1 * (g ^ n) = (g ^ n) := by {simp}
-
---@[simp] lemma pow_mul_one_nat {g : G} {n : ℕ} : (g ^ n) * 1 = (g ^ n) := by{simp}
-
---@[simp] lemma pow_add_mul_nat {g : G} {m n : ℕ} : g ^ (m + n) = g ^ m * g ^ n :=
---begin
---    induction n with k hk,
---        {rw [add_zero, zero_pow_nat, pow_mul_one_nat]},
---        rwa [succ_pow_nat, ←mul_assoc, ←hk, ←succ_pow_nat, nat.add_assoc]
---end
-
--- @[simp] lemma pow_add_mul {g : G} {m n : ℤ} : g ^ (m + n) = g ^ m * g ^ n :=
--- begin
---     induction n,
---     induction m,
---         {repeat {rw pow_int_of_nat}, rw ←pow_add_mul_nat, refl},
---         repeat {sorry}
--- end
-
-@[simp] lemma inv_pow {g : G} {n : ℕ} : (g ^ n)⁻¹ = g⁻¹ ^ n :=
-begin
-    sorry
-end
-
-@[simp] lemma pow_mul_pow_nat {g : G} {m n : ℕ} : g ^ (m * n) = (g ^ m) ^ n :=
-begin
-    induction n with k hk,
-        simp only [nat.nat_zero_eq_zero, zero_pow_nat, mul_zero],
-        show g ^ (m * k + m) = (g ^ m) ^ (k + 1),
-        rw [succ_pow_nat, ←hk, pow_add_mul_nat]
-end
-
-@[simp] lemma pow_mul_pow {g : G} {m n : ℤ} : g ^ (m * n) = (g ^ m) ^ n :=
-begin
-    sorry
-end
+-- Is there more theorems about pow we should add? 
 
 end group
 
