@@ -6,6 +6,10 @@ class group (G : Type) extends has_group_notation G :=
 (mul_assoc : ∀ (a b c : G), a * b * c = a * (b * c))
 (one_mul : ∀ (a : G), 1 * a = a)
 (mul_left_inv : ∀ (a : G), a⁻¹ * a = 1)
+
+-- IMPORTANT; KB has some much slicker proofs of these in 
+-- the Wednesday solutions to his LFTCM talk. Feel
+-- free to steal
 -/
 
 -- This entire project takes place in the mygroup namespace
@@ -276,3 +280,9 @@ end mygroup
 --   mul_one := mul_one,
 --   inv := inv,
 --   mul_left_inv := mul_left_inv }
+
+-- to make `group` work, need the simp set for our group.
+-- long exercise. Is it interesting for the reader?
+-- reference for answer : see my Wednesday talk about algebra hierarchy
+-- at LFTCM. Then you can make your own `group` tactic.
+-- **TODO** make 

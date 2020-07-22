@@ -35,13 +35,19 @@ class comm_group (G : Type) extends group G :=
 (mul_comm : ∀ a b : G, a * b = b * a)
 
 -- definition of powers
-@[simp] def group_pow_nat {G : Type} [group G] : G → ℕ → G
-| g 0 := 1
-| g (n + 1) := group_pow_nat g n * g
+-- do we even want this?
+-- Jason let me know if you ever really need this
 
-instance group_has_pow_nat {G : Type} [group G] : has_pow G ℕ := ⟨group_pow_nat⟩
+--@[simp] def group_pow_nat {G : Type} [group G] : G → ℕ → G
+--| g 0 := 1
+--| g (n + 1) := group_pow_nat g n * g
 
-@[simp] def group_pow {G : Type} [group G] : G → ℤ → G
+--instance group_has_pow_nat {G : Type} [group G] : has_pow G ℕ := ⟨group_pow_nat⟩
+
+
+#exit
+
+@[simp] def group_pow {G : Type} [group G] : G → ℤ → G :=
 | g (int.of_nat n) := group_pow_nat g n
 | g -[1+ n] := (group_pow_nat g (n + 1))⁻¹
 
