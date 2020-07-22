@@ -118,7 +118,7 @@ instance : group (quotient R) :=
 the equivalence relation ~ : (g, k) ↦ g H = k H on G is a group congruence if 
 and only if H is normal. -/
 
-open mygroup.subgroup
+open mygroup.subgroup lagrange
 
 variables {H : subgroup G} 
 
@@ -136,14 +136,54 @@ begin
   intros _ _ _ hxy hyz, unfold lcoset_rel at *, rw [hxy, hyz]
 end 
 
-def lcoset_setoid (H : subgroup G) : setoid G :=
+/-- If `H` is normal, then `lcoset_rel H` is a group congruence -/
+def con_of_normal (H : normal G) : group_con G :=
 { r := lcoset_rel H,
-  iseqv := lcoset_iseqv H}
+  iseqv := lcoset_iseqv H, 
+  mul' := -- Should move mul' and inv' into individual lemmas about normal
+    begin
+      intros x₀ x₁ y₀ y₁ hx hy,
+      unfold lcoset_rel at *,
+      rw lcoset_eq at *,
+      have := H.conj_mem _ hx y₁⁻¹, 
+      rw group.inv_inv at this,
+      replace this := H.mul_mem' this hy,
+      rw [←group.mul_assoc, group.mul_assoc (y₁⁻¹ * (x₁⁻¹ * x₀)), 
+        group.mul_right_inv, group.mul_one, ←group.mul_assoc] at this,
+      rwa [group.inv_mul, ←group.mul_assoc],
+    end,
+  inv' := 
+    begin
+      dsimp, intros x y hxy,
+      unfold lcoset_rel at *,
+      rw lcoset_eq at *, rw ←group.inv_mul,
+      apply H.inv_mem',
+      convert H.conj_mem _ hxy y,
+      simp [←group.mul_assoc]
+    end }
+
+lemma con_one_of_mem : ∀ h ∈ H, h ~ 1 :=
+begin
+  intros h hh,
+  unfold lcoset_rel,
+  rw lcoset_eq, simpa  
+end
+
+lemma mem_of_con_one (g : G) (hg : g ~ 1) : g ∈ H :=
+begin
+  unfold lcoset_rel at hg,
+  rwa [lcoset_eq, group.one_inv, group.one_mul] at hg
+end
 
 /-- If `lcoset_rel H` is a congruence then `H` is normal -/
-def normal_of_con 
-  (hmul : ∀ x₀ x₁ y₀ y₁ : G, x₀ ~ x₁ → y₀ ~ y₁ → x₀ * y₀ ~ x₁ * y₁) 
-  (hinv : ∀ x y : G, x ~ y → x⁻¹ ~ y⁻¹) : normal G := sorry
+def normal_of_con (H : subgroup G) {R : group_con G} 
+  (hR : R.r = lcoset_rel H) : normal G := 
+{ conj_mem := λ n hn g, mem_of_con_one _ $
+    begin
+      rw [←hR, (show (1 : G) = g * 1* g⁻¹, by simp)],
+      refine R.mul' (R.mul' (R.iseqv.1 _) _) (R.iseqv.1 _),
+       { rw hR, exact con_one_of_mem _ hn }
+    end .. H }
 
 end quotient
 
