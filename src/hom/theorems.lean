@@ -162,7 +162,25 @@ begin
       exact ⟨x, hx⟩ }
 end
 
+namespace quotient
 
+open lagrange mygroup.quotient
+
+/-- The natrual map from a group `G` to its quotient `G / N` is a homomorphism -/
+def map (N : normal G) : G →* G /ₘ N := 
+{ to_fun := λ g, g,
+  map_mul' := λ _ _, by apply quotient.sound; refl }
+
+variable {N : normal G}
+
+-- A useful lemma is `quotient.exist_rep`
+
+/-- The natrual homomorphism from a group `G` to its quotient `G / N` is a 
+  surjection -/
+theorem is_surjective : function.surjective $ map N :=
+  @quotient.exists_rep G (con_of_normal G N)
+
+end quotient
 
 end group_hom
 
