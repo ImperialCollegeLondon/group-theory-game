@@ -189,6 +189,10 @@ def normal_of_con (H : subgroup G) {R : group_con G}
 -- a group `G` over a normal group `N`, we write `quotient (con_of_normal N)`
 notation G ` /ₘ `:70 N := quotient (con_of_normal G N)
 
+/-- For all elements `c : G /ₘ N`, there is some `g : G` such that `⟦g⟧ = c`-/
+lemma exists_mk {N : normal G} (c : G /ₘ N) : ∃ g : G, (g : G /ₘ N) = c := 
+  @quotient.exists_rep G (con_of_normal G N) c
+
 end quotient
 
 end mygroup
