@@ -70,6 +70,19 @@ def iso_comp (f : G ≅ H) (g : H ≅ K) : G ≅ K :=
 { is_bijective := function.bijective.comp g.is_bijective f.is_bijective,
   .. (g : group_hom H K) ∘* (f : group_hom G H) }
 
+/-- An equiv between two groups that preserves multiplication forms an isomorphism -/
+def iso_of_mul_equiv (f : G ≃* H) : G ≅ H := 
+{ to_fun := f, map_mul' := f.map_mul',
+  is_bijective := equiv.bijective f.to_equiv }
+
+/-- An isomorphism between two groups from an mul_equiv -/
+noncomputable def mul_equiv_of_iso (f : G ≅ H) : G ≃* H := 
+{ map_mul' := map_mul f, .. equiv.of_bijective _ f.is_bijective }
+
+/-- If the group `G` is isomorphic to the group `H`, then `H` is isomorphic to `G`-/
+noncomputable def iso_symm (f : G ≅ H) : H ≅ G := 
+  iso_of_mul_equiv $ mul_equiv.symm $ mul_equiv_of_iso f
+
 end group_hom -- namespace for group homs
 
 end mygroup -- namespace for the project
