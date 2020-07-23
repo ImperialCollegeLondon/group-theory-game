@@ -164,7 +164,7 @@ end
 
 namespace quotient
 
-open lagrange mygroup.quotient
+open lagrange mygroup.quotient function
 
 /-- The natrual map from a group `G` to its quotient `G / N` is a homomorphism -/
 def map (N : normal G) : G →* G /ₘ N := 
@@ -175,15 +175,31 @@ variable {N : normal G}
 
 /-- The natrual homomorphism from a group `G` to its quotient `G / N` is a 
   surjection -/
-theorem is_surjective : function.surjective $ map N := exists_mk
+theorem is_surjective : surjective $ map N := exists_mk
 
 -- The first isomorphism theorem states that for all `f : G →* H`, 
 -- `G /ₘ kernel f ≅ image f`, we will prove this here.
 
+private structure extract_struc (f : G →* H) :=
+(to_fun : (G /ₘ kernel f) → G) 
+(prop : ∀ x, ((to_fun x) : G /ₘ kernel f) = x)
+
+private noncomputable def extract_fun (f : G →* H): extract_struc f := 
+  ⟨classical.some (classical.skolem.1 $ @exists_mk G _ $ kernel f),
+  classical.some_spec (classical.skolem.1 $ @exists_mk G _ $ kernel f)⟩
+
+@[reducible] private noncomputable 
+def aux_hom (f : G →* H) : (G /ₘ kernel f) →* image f := 
+{ to_fun := λ q, ⟨f $ (extract_fun f).1 q, 
+    mem_image.2 ⟨((extract_fun f).to_fun q), rfl⟩⟩,
+  map_mul' := sorry }
+
 /-- The first isomorphism theorem: `G /ₘ kernel f ≅ image f` for `f : G →* H` 
   a group homomorphism -/
-def quotient_kernel_iso_image {f : G →* H} : G /ₘ kernel f ≅ image f := 
-sorry
+noncomputable def quotient_kernel_iso_image {f : G →* H} : 
+  G /ₘ kernel f ≅ image f := 
+  { is_bijective := sorry,
+  .. aux_hom f }
 
 end quotient
 
