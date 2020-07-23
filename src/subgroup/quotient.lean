@@ -187,7 +187,7 @@ def normal_of_con (H : subgroup G) {R : group_con G}
 
 -- So now, whenever we would like to work with "normal" quotient groups of 
 -- a group `G` over a normal group `N`, we write `quotient (con_of_normal N)`
-notation G ` /ₘ ` N := quotient (con_of_normal G N)
+notation G ` /ₘ `:70 N := quotient (con_of_normal G N)
 
 end quotient
 
