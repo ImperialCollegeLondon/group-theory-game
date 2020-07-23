@@ -173,12 +173,17 @@ def map (N : normal G) : G →* G /ₘ N :=
 
 variable {N : normal G}
 
--- A useful lemma is `quotient.exist_rep`
-
 /-- The natrual homomorphism from a group `G` to its quotient `G / N` is a 
   surjection -/
-theorem is_surjective : function.surjective $ map N :=
-  @quotient.exists_rep G (con_of_normal G N)
+theorem is_surjective : function.surjective $ map N := exists_mk
+
+-- The first isomorphism theorem states that for all `f : G →* H`, 
+-- `G /ₘ kernel f ≅ image f`, we will prove this here.
+
+/-- The first isomorphism theorem: `G /ₘ kernel f ≅ image f` for `f : G →* H` 
+  a group homomorphism -/
+def quotient_kernel_iso_image {f : G →* H} : G /ₘ kernel f ≅ image f := 
+sorry
 
 end quotient
 
