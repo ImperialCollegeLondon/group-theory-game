@@ -101,13 +101,30 @@ def image (f : G →* H) : subgroup H :=
       rw [←hx₁, map_inv]
     end }
 
+variables {f : G →* H}
+
+lemma mem_kernel {g : G} : g ∈ kernel f ↔ f g = 1 := 
+  ⟨λ h, mem_singleton_iff.1 $ mem_preimage.1 h, λ h, h⟩
+    
+lemma mem_image {h : H} : h ∈ image f ↔ ∃ g, f g = h := 
+begin
+  refine ⟨λ himg, _, λ himg, _⟩,
+    { rcases (mem_image f univ h).1 himg with ⟨g, _, hg⟩,
+      exact ⟨g, hg⟩ },
+    { rcases himg with ⟨g, hg⟩,
+      show h ∈ f '' univ,
+      refine (mem_image f _ _).2 ⟨g, mem_univ g, hg⟩ }
+end
+
+attribute [simp] mem_kernel mem_image
+
 -- We will prove the classic results about injective homomorphisms that a 
 -- homomorphism is injective if and only if it have the trivial kernel
 
 open function
 
 /-- A homomorphism `f` is injective iff. `f` has kernel `{1}` -/
-theorem injective_iff_ker_eq_one {f : G →* H} : 
+theorem injective_iff_ker_eq_one : 
   injective f ↔ (kernel f : set G) = {1} :=
 begin -- Should we split this up into maby smaller proofs or should we keep it?
   split; intro hf,
@@ -130,11 +147,8 @@ begin -- Should we split this up into maby smaller proofs or should we keep it?
       rw [this, group.mul_right_inv] }
 end
 
--- Do we want that a homomorphism is surjective iff the image is the whole group?
--- The proof might be too trivial to be a level
-
 /-- A homomorphism `f : G →* H` is surjective iff. the image of `f` is `H` -/
-theorem surjective_iff_max_img {f : G →* H} : 
+theorem surjective_iff_max_img : 
   surjective f ↔ (image f : set H) = univ :=
 begin
   split; intro hf,
