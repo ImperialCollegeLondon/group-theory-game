@@ -193,6 +193,10 @@ notation G ` /ₘ `:70 N := quotient (con_of_normal G N)
 lemma exists_mk {N : normal G} (c : G /ₘ N) : ∃ g : G, (g : G /ₘ N) = c := 
   @quotient.exists_rep G (con_of_normal G N) c
 
+/-- `(⟦p⟧ : G /ₘ N) = ⟦q⟧` iff `p • N = q • N` where `p q : G` -/
+lemma mk_eq {p q : G} : (p : G /ₘ N) = q ↔ p • N = q • N :=
+  ⟨λ h, quotient.eq.1 h, λ h, quotient.eq.2 h⟩
+
 end quotient
 
 end mygroup
