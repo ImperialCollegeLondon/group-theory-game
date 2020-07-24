@@ -244,15 +244,21 @@ begin
     rwa hxy
 end
 
+@[simp] lemma inv_mul_cancel_left (a b : G) : a⁻¹ * (a * b) = b :=
+begin
+  rw ←mul_assoc, simp
+end
+
+@[simp] lemma mul_inv_cancel_left (a b : G) : a * (a⁻¹ * b) = b :=
+begin
+  rw ←mul_assoc,
+  simp
+end
+
 lemma inv_mul (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹ :=
 begin
-  apply mul_right_cancel (a * b),
-  rw [mul_left_inv, 
-    ←mul_left_cancel_iff b,
-    mul_assoc, ←mul_assoc,
-    mul_right_inv,
-    one_mul, mul_one,
-    ←mul_assoc, mul_left_inv, one_mul]
+  apply mul_left_cancel (a * b),
+  rw mul_right_inv, simp [mul_assoc]
 end
 
 lemma one_inv : (1 : G)⁻¹ = 1 :=
