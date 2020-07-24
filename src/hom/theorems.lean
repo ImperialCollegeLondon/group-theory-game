@@ -52,7 +52,6 @@ begin
   -- refl
 end
 
--- TODO: map and comap, kernel and image
 -- We prove the theorems here (only);
 -- definitions need to go elsewhere
 
@@ -60,7 +59,7 @@ end
 -- as a subgroup of the domain is better
 
 /-- The kernel of a homomorphism `f : G →* H` is the normal subgroup of `G` whos 
-carrier is the preimage of `{1}`, i.e. `f ⁻¹' {1}` -/
+  carrier is the preimage of `{1}`, i.e. `f ⁻¹' {1}` -/
 def kernel (f : G →* H) : normal G := 
 { carrier := f ⁻¹' {1},
   one_mem' := map_one _, 
@@ -84,7 +83,7 @@ def kernel (f : G →* H) : normal G :=
     end }
 
 /-- The image of a homomorphism `f : G →* H` is the subgroup of `H` whos carrier 
-is the image of `univ : set G`, i.e. `f '' univ` -/
+  is the image of `univ : set G`, i.e. `f '' univ` -/
 def image (f : G →* H) : subgroup H :=
 { carrier := f '' univ, 
   one_mem' := ⟨1, mem_univ _, map_one _⟩,
@@ -188,8 +187,14 @@ theorem is_surjective : surjective $ map N := exists_mk
 -- The first isomorphism theorem states that for all `f : G →* H`, 
 -- `G /ₘ kernel f ≅ image f`, we will prove this here.
 
+-- We will use `quotient.lift_on'`
+-- Given an equivalence relation `R` on some type `α`, and a function `f : α → β`
+-- `λ (a : quotient R), quotient.lift_on' a f h` is the function that maps `⟦x⟧` 
+-- to `f x` where `h` is a proof that this function is well defined, i.e. 
+-- `∀ x y : α, ⟦x⟧ = ⟦y⟧ → f x = f y`.
+
 /-- Given a group homomorphism `f : G →* H`, `kernel_lift f` is a mapping from 
-  the quotient `G /ₘ kernel f` to `H` such that `⟦x⟧ ↦ f x` -/
+  the quotient `G /ₘ kernel f` to `H` such that `x • kernel f ↦ f x` -/
 def kernel_lift (f : G →* H) (x : G /ₘ kernel f) := 
   quotient.lift_on' x f $
 begin
