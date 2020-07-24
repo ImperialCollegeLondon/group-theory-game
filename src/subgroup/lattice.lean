@@ -50,7 +50,7 @@ begin
   split,
     { intro h, refine subset.trans (le_closure _) h },
     { intros h y,
-      unfold closure, unfold Inf, unfold has_Inf.Inf,
+      unfold closure, unfold Inf, 
       rw mem_bInter_iff, intro hy,
       exact hy H h,
     }
@@ -75,7 +75,7 @@ We do this because galois_insertion requires preorders and partial orders
 extends preoders.
 -/
 instance : partial_order (subgroup G) := 
-{.. partial_order.lift (coe : subgroup G → set G) (λ x y, subgroup.ext') (by apply_instance)}
+{.. partial_order.lift (coe : subgroup G → set G) (λ x y, subgroup.ext')}
 
 /-
 Finially we prove that subgroups form a galois_insertion with the coercion 

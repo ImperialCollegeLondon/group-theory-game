@@ -75,22 +75,33 @@ instance (K : subgroup G) : group ↥K :=
 { mul := λ a b, ⟨a.1 * b.1, K.mul_mem' a.2 b.2⟩,
   one := ⟨1, K.one_mem'⟩,
   inv := λ a, ⟨a⁻¹, K.inv_mem' a.2⟩,
-  mul_assoc := λ a b c, by {cases a, cases b, cases c, rw subtype.ext, apply group.mul_assoc},
-  one_mul := λ a, by {cases a, rw subtype.ext, apply group.one_mul},
-  mul_left_inv := λ a, by {cases a, rw subtype.ext, apply group.mul_left_inv}
-  } 
+  mul_assoc := λ a b c, by { cases a, cases b, cases c, refine subtype.ext _, 
+    apply group.mul_assoc },
+  one_mul := λ a, by { cases a, apply subtype.ext, apply group.one_mul },
+  mul_left_inv := λ a, by { cases a, apply subtype.ext, 
+    apply group.mul_left_inv } } 
 
--- Defintion of normal subgroup
-class normal (K : subgroup G) :=
-(conjugate : ∀ g : G, ∀ k ∈ K, (g * k * g⁻¹) ∈ K)
+-- Defintion of normal subgroup (in a bundled form)
+structure normal (G : Type) [group G] extends subgroup G :=
+(conj_mem : ∀ n, n ∈ carrier → ∀ g : G, g * n * g⁻¹ ∈ carrier)
+
+-- This is so I can write K : subgroup G
+instance normal_to_subgroup : has_coe (normal G) (subgroup G) := 
+  ⟨λ K, K.to_subgroup⟩
+
+-- This saves me from writting m ∈ (K : subgroup G) every time
+instance normal_has_mem : has_mem G (normal G) := ⟨λ m K, m ∈ K.carrier⟩
 
 -- Defining cosets thats used in some lemmas
-def left_coset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = g * k}
-def right_coset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = k * g}
+def lcoset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = g * k}
+def rcoset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = k * g}
+notation g ` • ` :70 H :70 := lcoset g H
+notation H ` • ` :70 g :70 := rcoset g H
 
-attribute [reducible] left_coset right_coset
+attribute [reducible] lcoset rcoset
 
 -- Defining the the center of a group is a subgroup
+/- Should probably define it as a normal subgroup
 def center (G : Type) [group G] : subgroup G :=
 { carrier  := {g : G | ∀ k : G, k * g = g * k},
   one_mem' := λ k, by simp,
@@ -101,7 +112,7 @@ def center (G : Type) [group G] : subgroup G :=
     iterate 2 {rw ←group.mul_assoc},
     rw [←hx, group.mul_right_inv, group.mul_assoc, group.mul_right_inv], simp
   end
-}
+} -/
 
 
 

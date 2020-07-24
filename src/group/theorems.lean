@@ -6,6 +6,10 @@ class group (G : Type) extends has_group_notation G :=
 (mul_assoc : ∀ (a b c : G), a * b * c = a * (b * c))
 (one_mul : ∀ (a : G), 1 * a = a)
 (mul_left_inv : ∀ (a : G), a⁻¹ * a = 1)
+
+-- IMPORTANT; KB has some much slicker proofs of these in 
+-- the Wednesday solutions to his LFTCM talk. Feel
+-- free to steal
 -/
 
 -- This entire project takes place in the mygroup namespace
@@ -76,9 +80,9 @@ begin
   ...           = a⁻¹ * y     : by rw h  
 end
 
--- Alternatively, get the simplifier to do some of the work for us
 attribute [simp] one_mul mul_left_inv
 
+-- Alternatively, get the simplifier to do some of the work for us
 lemma mul_eq_of_eq_inv_mul'' {a x y : G} : x = a⁻¹ * y → a * x = y :=
 λ h, mul_left_cancel a⁻¹ _ _ $ by rw ←mul_assoc; simp [h]
 
@@ -140,6 +144,11 @@ by rw [←h, mul_assoc, mul_right_inv, mul_one]
 lemma eq_mul_inv_of_mul_eq'' {a b c : G} (h : a * c = b) : a = b * c⁻¹ :=
 by simp [h.symm, mul_assoc]
 
+lemma eq_inv_mul_of_mul_eq {a b c : G} (h : b * a = c) : a = b⁻¹ * c :=
+begin
+  rw [←h, ←mul_assoc, mul_left_inv b, one_mul]
+end
+
 -- Another useful lemma for the interface:
 lemma mul_left_eq_self {a b : G} : a * b = b ↔ a = 1 :=
 begin
@@ -153,6 +162,16 @@ begin
     rw h,
     rw one_mul
   }
+end
+
+lemma mul_right_eq_self {a b : G} : a * b = a ↔ b = 1 :=
+begin
+  split,
+    intro h,
+    from calc b = a⁻¹ * a : by apply eq_inv_mul_of_mul_eq h
+           ...  = 1 : by rw mul_left_inv,
+    intro h,
+    rw [h, mul_one]
 end
 
 -- Another useful lemma for the interface.
@@ -188,6 +207,66 @@ begin
   rw inv_inv,
 end
 
+lemma unique_id {e : G} (h : ∀ x : G, e * x = x) : e = 1 :=
+calc e = e * 1 : by rw mul_one
+  ...  = 1 : by rw h 1
+
+-- Maybe add unique_id but with x * e = x
+
+lemma unique_inv {a b : G} (h : a * b = 1) : b = a⁻¹ :=
+begin
+  apply mul_left_cancel a,
+  rw [h, mul_right_inv]
+end
+
+lemma mul_right_cancel (a x y : G) (Habac : x * a = y * a) : x = y := 
+calc x = x * 1 : by rw mul_one
+  ...  = x * (a * a⁻¹) : by rw mul_right_inv
+  ...  = x * a * a⁻¹ : by rw mul_assoc
+  ...  = y * a * a⁻¹ : by rw Habac
+  ...  = y * (a * a⁻¹) : by rw mul_assoc
+  ...  = y * 1 : by rw mul_right_inv
+  ...  = y : by rw mul_one
+
+lemma mul_left_cancel_iff (a x y : G) : a * x = a * y ↔ x = y :=
+begin
+  split,
+    from mul_left_cancel a x y,
+    intro hxy,
+    rwa hxy
+end
+
+lemma mul_right_cancel_iff (a x y : G) : x * a = y * a ↔ x = y :=
+begin
+  split,
+    from mul_right_cancel a x y,
+    intro hxy,
+    rwa hxy
+end
+
+@[simp] lemma inv_mul_cancel_left (a b : G) : a⁻¹ * (a * b) = b :=
+begin
+  rw ←mul_assoc, simp
+end
+
+@[simp] lemma mul_inv_cancel_left (a b : G) : a * (a⁻¹ * b) = b :=
+begin
+  rw ←mul_assoc,
+  simp
+end
+
+lemma inv_mul (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹ :=
+begin
+  apply mul_left_cancel (a * b),
+  rw mul_right_inv, simp [mul_assoc]
+end
+
+lemma one_inv : (1 : G)⁻¹ = 1 :=
+by conv_rhs { rw [←(mul_left_inv (1 : G)), mul_one] }
+
+attribute [simp] mul_left_cancel_iff mul_right_cancel_iff inv_mul inv_inv 
+  one_inv
+
 end group
 
 end mygroup
@@ -207,3 +286,9 @@ end mygroup
 --   mul_one := mul_one,
 --   inv := inv,
 --   mul_left_inv := mul_left_inv }
+
+-- to make `group` work, need the simp set for our group.
+-- long exercise. Is it interesting for the reader?
+-- reference for answer : see my Wednesday talk about algebra hierarchy
+-- at LFTCM. Then you can make your own `group` tactic.
+-- **TODO** make 
