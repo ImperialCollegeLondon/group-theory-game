@@ -105,6 +105,14 @@ variables {f : G →* H}
 
 lemma mem_kernel {g : G} : g ∈ kernel f ↔ f g = 1 := 
   ⟨λ h, mem_singleton_iff.1 $ mem_preimage.1 h, λ h, h⟩
+
+lemma mem_kernel_of_eq {f : G →* H} {a b : G} (h : f a = f b) : 
+  b⁻¹ * a ∈ kernel f := 
+begin
+  rw [mem_kernel, map_mul, map_inv, 
+    ←group.mul_left_cancel_iff (f b)],
+  simp [←mul_assoc, h]
+end
     
 lemma mem_image {h : H} : h ∈ image f ↔ ∃ g, f g = h := 
 begin
@@ -180,26 +188,63 @@ theorem is_surjective : surjective $ map N := exists_mk
 -- The first isomorphism theorem states that for all `f : G →* H`, 
 -- `G /ₘ kernel f ≅ image f`, we will prove this here.
 
-private structure extract_struc (f : G →* H) :=
-(to_fun : (G /ₘ kernel f) → G) 
-(prop : ∀ x, ((to_fun x) : G /ₘ kernel f) = x)
+def kernel_lift (f : G →* H) (x : G /ₘ kernel f) := 
+  quotient.lift_on' x f $
+begin
+  intros a b hab,
+  change a • kernel f = b • kernel f at hab,
+  rw [←group.mul_left_cancel_iff (f b)⁻¹, 
+      ←map_inv, ←map_mul, map_inv, group.mul_left_inv,
+      ←mem_kernel],
+  exact lcoset_eq.1 hab
+end 
 
-private noncomputable def extract_fun (f : G →* H): extract_struc f := 
-  ⟨classical.some (classical.skolem.1 $ @exists_mk G _ $ kernel f),
-  classical.some_spec (classical.skolem.1 $ @exists_mk G _ $ kernel f)⟩
+@[simp] lemma kernel_lift_mk {f : G →* H} (g : G) :
+  kernel_lift f (g : G /ₘ kernel f) = f g := rfl
 
-@[reducible] private noncomputable 
-def aux_hom (f : G →* H) : (G /ₘ kernel f) →* image f := 
-{ to_fun := λ q, ⟨f $ (extract_fun f).1 q, 
-    mem_image.2 ⟨((extract_fun f).to_fun q), rfl⟩⟩,
-  map_mul' := sorry }
+def kernel_lift_hom (f : G →* H) : (G /ₘ kernel f) →* H := 
+{ to_fun := kernel_lift f,
+  map_mul' := λ x y, quotient.induction_on₂' x y $ λ _ _,
+    by simp only [quotient.coe, quotient.coe_mul, kernel_lift_mk, map_mul] }
+
+lemma injective_of_kernel_lift_hom {f : G →* H} : 
+  injective $ kernel_lift_hom f :=
+begin
+  intros x y,
+  apply quotient.induction_on₂' x y,
+  intros _ _ hab,
+  change kernel_lift f a₁ = kernel_lift f a₂ at hab,
+  iterate 2 { rw kernel_lift_mk at hab, rw quotient.coe },
+  rw [mk_eq, lcoset_eq],
+  exact mem_kernel_of_eq hab 
+end
+
+def kernel_lift_hom' (f : G →* H) : (G /ₘ kernel f) →* image f :=
+{ to_fun := λ q, ⟨kernel_lift f q, quotient.induction_on' q $ 
+    λ a, show f a ∈ image f, by exact ⟨a, mem_univ _, rfl⟩⟩,
+  map_mul' := λ x y, quotient.induction_on₂' x y $ λ _ _,
+    by simpa only [quotient.coe, quotient.coe_mul, kernel_lift_mk, map_mul] }
+
+lemma kernel_lift_hom'_eq_kernel_lift_hom {f : G →* H} (q : G /ₘ kernel f) : 
+  (kernel_lift_hom' f q : H) = kernel_lift_hom f q := rfl
+
+lemma injective_of_kernel_lift_hom' {f : G →* H} : 
+  injective $ kernel_lift_hom' f := λ x y hxy, injective_of_kernel_lift_hom $
+by iterate 2 { rw ←kernel_lift_hom'_eq_kernel_lift_hom }; rw hxy
+
+lemma surjective_of_kernel_lift_hom' {f : G →* H} : 
+  surjective $ kernel_lift_hom' f := λ ⟨_, x, _, rfl⟩, ⟨x, kernel_lift_mk x⟩
+
+lemma bijective_of_kernel_lift_hom' {f : G →* H} :
+  bijective $ kernel_lift_hom' f := 
+⟨injective_of_kernel_lift_hom', surjective_of_kernel_lift_hom'⟩
 
 /-- The first isomorphism theorem: `G /ₘ kernel f ≅ image f` for `f : G →* H` 
   a group homomorphism -/
-noncomputable def quotient_kernel_iso_image {f : G →* H} : 
+def quotient_kernel_iso_image {f : G →* H} : 
   G /ₘ kernel f ≅ image f := 
-  { is_bijective := sorry,
-  .. aux_hom f }
+{ is_bijective := bijective_of_kernel_lift_hom',
+  .. kernel_lift_hom' f }
 
 end quotient
 
