@@ -188,6 +188,8 @@ theorem is_surjective : surjective $ map N := exists_mk
 -- The first isomorphism theorem states that for all `f : G →* H`, 
 -- `G /ₘ kernel f ≅ image f`, we will prove this here.
 
+/-- Given a group homomorphism `f : G →* H`, `kernel_lift f` is a mapping from 
+  the quotient `G /ₘ kernel f` to `H` such that `⟦x⟧ ↦ f x` -/
 def kernel_lift (f : G →* H) (x : G /ₘ kernel f) := 
   quotient.lift_on' x f $
 begin
@@ -202,11 +204,14 @@ end
 @[simp] lemma kernel_lift_mk {f : G →* H} (g : G) :
   kernel_lift f (g : G /ₘ kernel f) = f g := rfl
 
+/-- Given a group homomorphism `f : G →* H`, `kernel_lift f` form a homomorphism 
+  `kernel_lift_hom f` from `(G /ₘ kernel f) →* H` -/
 def kernel_lift_hom (f : G →* H) : (G /ₘ kernel f) →* H := 
 { to_fun := kernel_lift f,
   map_mul' := λ x y, quotient.induction_on₂' x y $ λ _ _,
     by simp only [quotient.coe, quotient.coe_mul, kernel_lift_mk, map_mul] }
 
+/-- `kernel_lift_hom f` is an injective homomorphism -/
 lemma injective_of_kernel_lift_hom {f : G →* H} : 
   injective $ kernel_lift_hom f :=
 begin
@@ -219,6 +224,8 @@ begin
   exact mem_kernel_of_eq hab 
 end
 
+/-- An alternative to `kernel_lift_hom` in which the range is restricted to the 
+  image of `f` so that the homomorphism is also surjective -/
 def kernel_lift_hom' (f : G →* H) : (G /ₘ kernel f) →* image f :=
 { to_fun := λ q, ⟨kernel_lift f q, quotient.induction_on' q $ 
     λ a, show f a ∈ image f, by exact ⟨a, mem_univ _, rfl⟩⟩,
@@ -235,6 +242,7 @@ by iterate 2 { rw ←kernel_lift_hom'_eq_kernel_lift_hom }; rw hxy
 lemma surjective_of_kernel_lift_hom' {f : G →* H} : 
   surjective $ kernel_lift_hom' f := λ ⟨_, x, _, rfl⟩, ⟨x, kernel_lift_mk x⟩
 
+/-- Given a group homomorphism `f`, `kernel_lift_hom' f` is a bijection -/
 lemma bijective_of_kernel_lift_hom' {f : G →* H} :
   bijective $ kernel_lift_hom' f := 
 ⟨injective_of_kernel_lift_hom', surjective_of_kernel_lift_hom'⟩
