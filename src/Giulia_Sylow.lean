@@ -24,19 +24,11 @@ def orbit_rel : setoid S :=
    rw μ.map_one,
   end, 
   begin
-   unfold symmetric,
-   intros a b,
-   intro h,
-   unfold orbit at h,
-   dsimp at h,
+   intros a b h,
    cases h with g hg,
    rw hg,
-   unfold orbit,
-   dsimp,
    use g⁻¹ ,
-   rw μ.map_assoc,
-   rw mul_left_inv,
-   rw μ.map_one,
+   rw [μ.map_assoc, mul_left_inv, μ.map_one],
   end,
   begin
    intros a b c ha hb,
@@ -68,7 +60,7 @@ begin
   ext x, 
   simp * at *, 
 end
-
+#exit
 --If S is a finite group then card S = card fixed_points G S + Σcard Oᵢ , 
 --where the sum runs over orbits of size > 1.
 lemma card_set_eq_card_fixed_points_sum_card_orbits (μ : laction G S)
