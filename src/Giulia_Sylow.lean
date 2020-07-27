@@ -68,7 +68,7 @@ begin
   ext x, 
   simp * at *, 
 end
-#exit
+
 --If S is a finite group then card S = card fixed_points G S + Σcard Oᵢ , 
 --where the sum runs over orbits of size > 1.
 lemma card_set_eq_card_fixed_points_sum_card_orbits (μ : laction G S)
@@ -78,7 +78,7 @@ lemma card_set_eq_card_fixed_points_sum_card_orbits (μ : laction G S)
 
 --If G is a group with card pⁿ, where p is prime and n ≥ 1, S is a finite set acted upon by G, 
 --then card S cong card fixed points of S mod p.
-lemma card_set_congr_card_fixed_points_mod_prime {g : G}{s : S}(μ : laction G S) 
+lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S) 
  [fintype S] [fintype G] (p : ℕ) (hp : p.prime) (n : ℕ) (hn : n ≥ 1) (hG: card G = p^n):
  nat.modeq p (card S) (card (fixed_points μ) ) := sorry
 
