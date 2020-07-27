@@ -60,11 +60,14 @@ begin
   ext x, 
   simp * at *, 
 end
+--hello , I will try to save this comment and push it
+--but now it's not even showing anything after I click on the + on the Changes bar
+
 #exit
 --If S is a finite group then card S = card fixed_points G S + Σcard Oᵢ , 
 --where the sum runs over orbits of size > 1.
 lemma card_set_eq_card_fixed_points_sum_card_orbits (μ : laction G S)
- [fintype S] (ι : Type) (i : ι ): 
+ [fintype S] (ι : Type) : 
  card S = card(fixed_points μ) + sum(card(orbit μ s)) := sorry
 --TODO: write adequate indexing and express sum correctly
 
