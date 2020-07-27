@@ -1,9 +1,12 @@
 import group_theory.subgroup data.fintype.basic
 import tactic -- remove once library_search bug is fixed
 import group_theory.group_action
+import data.nat.prime
+import data.nat.modeq
 noncomputable theory
 
 open set classical
+open function fintype
 local attribute [instance] prop_decidable
 
 structure partition (S : Type*) :=
@@ -59,7 +62,7 @@ end
 {s : S | ∀ g : G, μ.1 g s = s }
 
 #check @fixed_points
---Dependant instance doesn't work
+--Dependent instance doesn't work
 --instance : has_scalar G S := ⟨ λ g s, μ.1 g s ⟩
 --#print notation • #exit 
 local notation g ` • ` s := μ.1 g s 
@@ -78,6 +81,26 @@ begin
   ext x, 
   simp * at *, 
 end
+
+--If S is a finite group then card S = card fixed_points G S + Σcard Oᵢ , 
+--where the sum runs over orbits of size > 1.
+lemma card_set_eq_card_fixed_points_sum_card_orbits (μ : laction G S) (s : S)
+ [fintype S] (O : orbit μ s) (x_g : fixed_points μ): 
+ card S = card(fixed_points μ) + \sum(card(orbit μ s)) := sorry
+--TODO: write adequate indexing and express sum correctly
+
+--If G is a group with card pⁿ, where p is prime and n ≥ 1, S is a finite set acted upon by G, 
+--then card S cong card fixed points of S mod p.
+lemma card_set_congr_card_fixed_points_mod_prime {g : G}{s : S}(μ : laction G S) 
+ [fintype S] [fintype G] (p : ℕ) (hp : p.prime) (n : ℕ) (hn : n ≥ 1) (hG: card G = p^n):
+ nat.modeq p (card S) (card (fixed_points μ) ) := sorry
+
+--A p-group is a group s.t. all its elements have order a power of p, p prime
+--def p_group (g : G) (p : ℕ ) (h : prime p) : sorry 
+/-OR SHOULD I MAKE IT A CLASS? Using previous definition of group structure-/
+
+theorem cauchy_theorem [group G][G fintype]( p : ℕ ) (hp : p.prime) (h : p ∣ (card G)): sorry
+ --∃ (g : G) /-order of g is p-/ := sorry
 
 
 /-- The set of orbits of a set forms a partition -/
