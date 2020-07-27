@@ -60,20 +60,29 @@ begin
   ext x, 
   simp * at *, 
 end
-#exit
+--#exit
 --If S is a finite group then card S = card fixed_points G S + Σcard Oᵢ , 
 --where the sum runs over orbits of size > 1.
 lemma card_set_eq_card_fixed_points_sum_card_orbits (μ : laction G S)
  [fintype S] (ι : Type) (i : ι ): 
  card S = card(fixed_points μ) + sum(card(orbit μ s)) := sorry
 --TODO: write adequate indexing and express sum correctly
-
+--set_option pp.implicit true 
 --If G is a group with card pⁿ, where p is prime and n ≥ 1, S is a finite set acted upon by G, 
 --then card S cong card fixed points of S mod p.
 lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S) 
  [fintype S] [fintype G] (p : ℕ) (hp : p.prime) (n : ℕ) (hn : n ≥ 1) (hG: card G = p^n):
- nat.modeq p (card S) (card (fixed_points μ) ) := sorry
-
+ nat.modeq p (card S) (card (fixed_points μ) ) := 
+ begin
+  -- we want to show that card (orbit μ s) ∣ p^n for all s : S by orbit-stabilizer
+  -- note that since G is finite we have finite orbits
+  have claim : ∀ s : S, card( orbit μ s ) ∣ p^n , 
+    {intro s, rw ← hG,
+    use (card (stabilizer μ s)),
+    rw @orbit_stabilizer G _ S _ s μ , congr,
+    },
+  sorry  
+ end
 --A p-group is a group s.t. all its elements have order a power of p, p prime
 --def p_group (g : G) (p : ℕ ) (h : prime p) : sorry 
 /-OR SHOULD I MAKE IT A CLASS? Using previous definition of group structure-/
