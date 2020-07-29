@@ -1,5 +1,4 @@
 import group.theorems -- basic interface for groups
-import group.group_powers
 
 /-!
 
@@ -114,6 +113,8 @@ def center (G : Type) [group G] : subgroup G :=
     rw [←hx, group.mul_right_inv, group.mul_assoc, group.mul_right_inv], simp
   end
 } -/
+
+
 
 end subgroup
 

@@ -6,6 +6,10 @@ class group (G : Type) extends has_group_notation G :=
 (mul_assoc : ∀ (a b c : G), a * b * c = a * (b * c))
 (one_mul : ∀ (a : G), 1 * a = a)
 (mul_left_inv : ∀ (a : G), a⁻¹ * a = 1)
+
+-- IMPORTANT; KB has some much slicker proofs of these in 
+-- the Wednesday solutions to his LFTCM talk. Feel
+-- free to steal
 -/
 
 -- This entire project takes place in the mygroup namespace
@@ -240,15 +244,21 @@ begin
     rwa hxy
 end
 
+@[simp] lemma inv_mul_cancel_left (a b : G) : a⁻¹ * (a * b) = b :=
+begin
+  rw ←mul_assoc, simp
+end
+
+@[simp] lemma mul_inv_cancel_left (a b : G) : a * (a⁻¹ * b) = b :=
+begin
+  rw ←mul_assoc,
+  simp
+end
+
 lemma inv_mul (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹ :=
 begin
-  apply mul_right_cancel (a * b),
-  rw [mul_left_inv, 
-    ←mul_left_cancel_iff b,
-    mul_assoc, ←mul_assoc,
-    mul_right_inv,
-    one_mul, mul_one,
-    ←mul_assoc, mul_left_inv, one_mul]
+  apply mul_left_cancel (a * b),
+  rw mul_right_inv, simp [mul_assoc]
 end
 
 lemma one_inv : (1 : G)⁻¹ = 1 :=
@@ -276,3 +286,9 @@ end mygroup
 --   mul_one := mul_one,
 --   inv := inv,
 --   mul_left_inv := mul_left_inv }
+
+-- to make `group` work, need the simp set for our group.
+-- long exercise. Is it interesting for the reader?
+-- reference for answer : see my Wednesday talk about algebra hierarchy
+-- at LFTCM. Then you can make your own `group` tactic.
+-- **TODO** make 
