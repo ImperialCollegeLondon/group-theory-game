@@ -10,7 +10,7 @@ open set classical
 open function fintype
 local attribute [instance] prop_decidable
 
-namespace sylow
+namespace action
 
 variables {G : Type*} [group G] {S : Type*}
 variables {μ : laction G S}
@@ -135,4 +135,4 @@ lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S)
 theorem cauchy_theorem [group G][G fintype]( p : ℕ ) (hp : p.prime) (h : p ∣ (card G)): sorry
  --∃ (g : G) /-order of g is p-/ := sorry
 
-end sylow
+end action
