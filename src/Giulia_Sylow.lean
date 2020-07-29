@@ -53,13 +53,24 @@ notation g ` •[` μ `] ` s := μ.1 g s
 @[simp]lemma mem_fixed_points_iff : s ∈ fixed_points μ ↔ ∀ (g : G) , (g • s) = s := by refl 
 
 --Want to show that if s is in the set of fixed points of μ, then the orbit of s contains only s.#check
-lemma orbit_eq_singleton {g : G}{s : S} (μ : laction G S) : 
+lemma orbit_eq_singleton {s : S} (μ : laction G S) : 
 (s ∈ fixed_points μ) → orbit μ s = {s} := 
 begin
   intro h,
   ext x, 
   simp * at *, 
 end
+
+--Is it worth proving? Should make iff?
+/-lemma singleton_eq_orbit  {s : S} (μ : laction G S) : (orbit μ s = {s}) → s ∈ fixed_points μ :=
+begin
+intro h, 
+unfold orbit at h,
+unfold fixed_points,
+intro g,
+sorry
+end-/
+
 localized "notation `∑` binders `, ` r:(scoped:67 f, finset.sum finset.univ f) := r" in big_operators
 localized "notation `∑` binders ` in ` s `, ` r:(scoped:67 f, finset.sum s f) := r" in big_operators
 variable [fintype G]
@@ -74,20 +85,34 @@ begin
       rintro x ⟨g, rfl⟩,
       refine ⟨g, rfl⟩ }
 end
+
+--The idea is to define the set of elements in S whose orbit has cardinality greater than 1
 def foo  := {o | ∃ (s : S) (h : @card(orbit μ s) finite_orbit.fintype > 1), 
 @card (orbit μ s) finite_orbit.fintype = o}
 def foo2 := {o | ∃ s : S, orbit μ s = o}
 def foo3 (o) [h : fintype o] := card o  > 1
 #check foo
+
 lemma finite_foo : @finite ℕ (foo) := sorry
+
+--WAS TRYING TO IMPLEMENT SIMILAR PROCEDURE AS ABOVE, BUT DEFINING foo' : set S.
+--def foo' := {s : S |  @card(orbit μ s) finite_orbit.fintype > 1}
+--#check foo'
+--lemma finite_foo' : finite (foo') := sorry
+/-lemma card_set_eq_card_fixed_points_sum_card_orbits' (μ : laction G S) 
+ [fintype S] : card S = card(fixed_points μ) + ∑ card(orbit μ (s in foo') ) := sorry -/
+
+
+
 --If S is a finite group then card S = card fixed_points G S + Σcard Oᵢ , 
 --where the sum runs over orbits of size > 1.
+
 lemma card_set_eq_card_fixed_points_sum_card_orbits (μ : laction G S)
- [fintype S] : --how to write the different s_i in S? How to specify I only want the s_i 
- --whose orbit has size > 1?
- card S = card(fixed_points μ) + ∑ o in foo , id o := sorry
+ [fintype S] : card S = card(fixed_points μ) + ∑ o in foo , id o := sorry
 --TODO: write adequate indexing and express sum correctly
---set_option pp.implicit true 
+
+
+
 --If G is a group with card pⁿ, where p is prime and n ≥ 1, S is a finite set acted upon by G, 
 --then card S cong card fixed points of S mod p.
 lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S) 
