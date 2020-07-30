@@ -79,7 +79,7 @@ def kernel (f : G →* H) : normal G :=
     begin
       intros _ hn _,
       rw [mem_preimage, mem_singleton_iff] at *,
-      simp [hn]
+      simp [hn],
     end }
 
 /-- The image of a homomorphism `f : G →* H` is the subgroup of `H` whos carrier 
@@ -103,18 +103,36 @@ def image (f : G →* H) : subgroup H :=
 variables {f : G →* H}
 
 lemma mem_kernel {g : G} : g ∈ kernel f ↔ f g = 1 := 
-  ⟨λ h, mem_singleton_iff.1 $ mem_preimage.1 h, λ h, h⟩
+  begin 
+    split, intro h,
+    apply mem_singleton_iff.1,
+    apply mem_preimage.1,
+    exact h,
+    intro h,
+    apply mem_singleton_iff.1,
+    apply mem_singleton_iff.2, exact h,
+  end
+ -- ⟨λ h, mem_singleton_iff.1 $ mem_preimage.1 h, λ h, h⟩
 
 lemma mem_kernel_of_eq {f : G →* H} {a b : G} (h : f a = f b) : 
   b⁻¹ * a ∈ kernel f := 
 begin
-  rw [mem_kernel, map_mul, map_inv, 
+  rw [← group.mul_left_cancel_iff (f b⁻¹), ← map_mul] at h,
+  symmetry' at h, 
+  rw ← map_mul at h, 
+  rw [group.mul_left_inv, map_one] at h,
+  apply mem_singleton_iff.1,
+  apply mem_preimage.1, 
+  apply mem_singleton_iff.2,
+  symmetry, exact h,
+--original proof
+  /-rw [mem_kernel, map_mul, map_inv, 
     ←group.mul_left_cancel_iff (f b)],
-  simp [←mul_assoc, h]
+  simp [←mul_assoc, h]-/
 end
     
 lemma mem_image {h : H} : h ∈ image f ↔ ∃ g, f g = h := 
-begin
+begin 
   refine ⟨λ himg, _, λ himg, _⟩,
     { rcases (mem_image f univ h).1 himg with ⟨g, _, hg⟩,
       exact ⟨g, hg⟩ },
@@ -134,6 +152,16 @@ open function
 theorem injective_iff_ker_eq_one : 
   injective f ↔ (kernel f : set G) = {1} :=
 begin -- Should we split this up into maby smaller proofs or should we keep it?
+
+ --Was trying to rewrite proof differently, need to ask some things
+/-split; intro hf,
+  unfold injective at hf,
+  have h : ∀ {a b : G},  f a = f b → (b⁻¹*a) ∈ kernel f,
+    { intros a b h1,
+      apply mem_kernel_of_eq,
+      exact h1,
+    }, -/
+  
   split; intro hf,
     { show f ⁻¹' {1} = {1},
       ext, split; intro hx,
@@ -180,7 +208,7 @@ def map (N : normal G) : G →* G /ₘ N :=
 
 variable {N : normal G}
 
-/-- The natrual homomorphism from a group `G` to its quotient `G / N` is a 
+/-- The natural homomorphism from a group `G` to its quotient `G / N` is a 
   surjection -/
 theorem is_surjective : surjective $ map N := exists_mk
 
