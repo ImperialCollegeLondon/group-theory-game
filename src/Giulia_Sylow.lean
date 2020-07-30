@@ -69,6 +69,7 @@ unfold orbit at h,
 unfold fixed_points,
 intro g,
 apply mem_singleton_iff.1 ,
+rw ← mem_singleton_iff at h,
 sorry
 end
 
