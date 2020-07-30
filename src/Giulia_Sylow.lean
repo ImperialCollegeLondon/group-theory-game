@@ -62,14 +62,15 @@ begin
 end
 
 --Is it worth proving? Should make iff?
-/-lemma singleton_eq_orbit  {s : S} (μ : laction G S) : (orbit μ s = {s}) → s ∈ fixed_points μ :=
+lemma singleton_eq_orbit  {s : S} (μ : laction G S) : (orbit μ s = {s}) → s ∈ fixed_points μ :=
 begin
 intro h, 
 unfold orbit at h,
 unfold fixed_points,
 intro g,
+apply mem_singleton_iff.1 ,
 sorry
-end-/
+end
 
 localized "notation `∑` binders `, ` r:(scoped:67 f, finset.sum finset.univ f) := r" in big_operators
 localized "notation `∑` binders ` in ` s `, ` r:(scoped:67 f, finset.sum s f) := r" in big_operators
