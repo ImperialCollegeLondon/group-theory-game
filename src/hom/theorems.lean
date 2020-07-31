@@ -287,6 +287,77 @@ def quotient_kernel_iso_image {f : G →* H} :
 { is_bijective := bijective_of_kernel_lift_hom',
   .. kernel_lift_hom' f }
 
+--Need to convert definition into theorem
+theorem first_iso_theorem {f : G →* H}:
+  G /ₘ kernel f ≅ image f := quotient_kernel_iso_image
+ /-begin
+  apply quotient_kernel_iso_image,
+ end-/
+
+/-theorem first_iso_theorem' {φ : G →* H} :
+ ∃ (μ : G /ₘ kernel φ →* image φ ) ∧  (G /ₘ kernel φ ≅ image φ) := sorry-/
+
+
+--The inclusion map is a homomorphism
+ def 𝒾 (T : subgroup G) : T →* G := 
+{ to_fun := λ t, (t : G),
+  map_mul' :=
+  begin
+  intros x y,
+  refl,
+  end} 
+
+
+
+--The preimage of a normal subgroup is normal
+def preimage_of_normal (N : normal G) (T : subgroup G): normal T := 
+{carrier := 𝒾 T ⁻¹' N,
+ one_mem' := 
+    begin
+      rw [mem_preimage, map_one],
+      exact N.one_mem', 
+    end,
+ mul_mem' :=
+    begin
+      intros x y h1 h2,
+      rw mem_preimage at *,
+      rw map_mul,
+      exact N.mul_mem' h1 h2,
+    end,
+ inv_mem' := 
+    begin
+      intros x h,
+      rw [mem_preimage] at *,
+      rw map_inv,
+      exact N.inv_mem' h,
+    end,
+ conj_mem := 
+    begin
+      intros n h t ,
+      rw [mem_preimage, map_mul, map_mul],
+      rw mem_preimage at h,
+      apply N.conj_mem, 
+      assumption,      
+    end, 
+}
+
+theorem foo (N : normal G) (T : subgroup G) : 
+(inter_subgroup T N).carrier = (𝒾 T) '' (preimage_of_normal N T).carrier :=
+  begin
+  ext x,
+  split,
+  intro h,
+  --rw mem_image ,
+  sorry
+  end
+
+
+/-theorem second_iso_theorem (T : subgroup G)( N : subgroup G) : 
+N.normal → T /ₘ inter_subgroup T N ≅  T • N /ₘ N := sorry-/
+
+/-theorem third_iso_theorem [T : subgroup G][N : subgroup G] [ T : normal G] [N : normal G]
+ (h: T.carrier ⊆ N.carrier): (G /ₘ N) /ₘ ( T /ₘ N) ≅ G /ₘ T := sorry-/
+
 end quotient
 
 end group_hom
