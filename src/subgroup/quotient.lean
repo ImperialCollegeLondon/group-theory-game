@@ -112,7 +112,8 @@ instance : group (quotient R) :=
 
 -- But this is not how most of us learnt quotient groups. For us, quotient groups 
 -- are defined by creating a group structure on the set of coests of a normal 
--- subgroup. We will show that these two definitions are, in fact, the same.
+-- subgroup. We will show that the equivalence relation `lcoset_rel H` in which 
+-- `x ~ y ↔ x • H = y • H` is a group congruence if and only if H is normal.
 
 /- The main proposition we will prove is that given a subgroup H of the group G, 
 the equivalence relation ~ : (g, k) ↦ g H = k H on G is a group congruence if 
@@ -127,8 +128,9 @@ variables {H : subgroup G} {N : normal G}
 notation g ` • ` :70 H :70 := lcoset g H
 notation H ` • ` :70 g :70 := rcoset g H
 
-def lcoset_rel (H : subgroup G) := λ x y, x • H = y • H 
-local notation x ` ~ ` y := lcoset_rel H x y
+def lcoset_rel (H : subgroup G) := λ x y, x • H = y • H
+local notation x ` ~ ` y := lcoset_rel H x y 
+local notation x ` ~[ ` H ` ] ` y := lcoset_rel H x y
 
 def lcoset_iseqv (H : subgroup G) : equivalence (lcoset_rel H) := 
 begin
@@ -136,31 +138,34 @@ begin
   intros _ _ _ hxy hyz, unfold lcoset_rel at *, rw [hxy, hyz]
 end 
 
+lemma lcoset_mul {x₀ x₁ y₀ y₁ : G} 
+  (hx : x₀ ~[↑N] x₁) (hy : y₀ ~[↑N] y₁) : (x₀ * y₀) ~[↑N] (x₁ * y₁) := 
+begin
+  unfold lcoset_rel at *,
+  rw lcoset_eq at *,
+  have := N.conj_mem _ hx y₁⁻¹, 
+  rw group.inv_inv at this,
+  replace this := N.mul_mem' this hy,
+  rw [←group.mul_assoc, group.mul_assoc (y₁⁻¹ * (x₁⁻¹ * x₀)), 
+      group.mul_right_inv, group.mul_one, ←group.mul_assoc] at this,
+  rwa [group.inv_mul, ←group.mul_assoc],
+end
+
+lemma lcoset_inv {x y : G} (hxy : x ~[↑N] y) : (x⁻¹ ~[↑N] y⁻¹) := 
+begin
+  unfold lcoset_rel at *,
+  rw lcoset_eq at *, rw ←group.inv_mul,
+  apply N.inv_mem',
+  convert N.conj_mem _ hxy y,
+  simp [←group.mul_assoc]
+end
+
 /-- If `H` is normal, then `lcoset_rel H` is a group congruence -/
 def con_of_normal (G : Type) [group G] (N : normal G) : group_con G :=
 { r := lcoset_rel N,
   iseqv := lcoset_iseqv N, 
-  mul' := -- Should move mul' and inv' into individual lemmas about normal
-    begin
-      intros x₀ x₁ y₀ y₁ hx hy,
-      unfold lcoset_rel at *,
-      rw lcoset_eq at *,
-      have := N.conj_mem _ hx y₁⁻¹, 
-      rw group.inv_inv at this,
-      replace this := N.mul_mem' this hy,
-      rw [←group.mul_assoc, group.mul_assoc (y₁⁻¹ * (x₁⁻¹ * x₀)), 
-        group.mul_right_inv, group.mul_one, ←group.mul_assoc] at this,
-      rwa [group.inv_mul, ←group.mul_assoc],
-    end,
-  inv' := 
-    begin
-      dsimp, intros x y hxy,
-      unfold lcoset_rel at *,
-      rw lcoset_eq at *, rw ←group.inv_mul,
-      apply N.inv_mem',
-      convert N.conj_mem _ hxy y,
-      simp [←group.mul_assoc]
-    end }
+  mul' := λ x₀ x₁ y₀ y₁ hx hy, lcoset_mul hx hy,
+  inv' := λ x y hxy, lcoset_inv hxy }
 
 lemma con_one_of_mem : ∀ h ∈ H, h ~ 1 :=
 begin
