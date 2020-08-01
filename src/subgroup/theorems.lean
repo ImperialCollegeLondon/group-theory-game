@@ -23,11 +23,12 @@ max and min (and even sup and inf).
 -- This entire project takes place in the `mygroup` namespace
 namespace mygroup
 
--- TODO: prove subgroups are a lattice/semilattice-sup-bot/complete lattice/ whatever
-
 variables {G : Type} [group G]
 
 namespace subgroup
+
+-- The two definitions below should be deleted since we have the lattice 
+-- definitions in subgroup.lattice file (Should probably move that over)
 
 -- The intersect of two subgroups is also a subgroup
 def inter_subgroup (H K : subgroup G) : subgroup G :=
@@ -48,9 +49,6 @@ def Inter_subgroup (H : ι → subgroup G) : subgroup G :=
   mul_mem' := λ _ _ hx hy, mem_Inter.mpr $ λ i, 
   by {rw mem_Inter at *, from mul_mem (H i) (hx i) (hy i)},
   inv_mem' := λ x hx, mem_Inter.mpr $ λ i, (H i).inv_mem $ by apply mem_Inter.mp hx }
-
--- Change the above to has_inf and has_Inf respectively so we can use them for 
--- proving they are lattices?
 
 end subgroup
 
