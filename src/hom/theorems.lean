@@ -265,7 +265,7 @@ def 𝒾 (H : subgroup G) : H →* G :=
   map_mul' := λ _ _, rfl } 
 
 -- The inclusion map is injective 
-lemma injective_𝒾 {H : subgroup G} : injective $ 𝒾 H := λ x y hxy, subtype.eq hxy
+lemma injective_𝒾 {H : subgroup G} : injective $ 𝒾 H := λ _ _ hxy, subtype.eq hxy
 
 -- The image of a surjective function is isomorphic to the group its mapped to
 def iso_of_surjective {f : G →* H} (hf : surjective f) : image f ≅ H :=
