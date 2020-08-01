@@ -21,6 +21,10 @@ structure subgroup (G : Type) [group G] :=
 (mul_mem' {x y} : x ∈ carrier → y ∈ carrier → x * y ∈ carrier)
 (inv_mem' {x} : x ∈ carrier → x⁻¹ ∈ carrier)
 
+-- Defintion of normal subgroup (in a bundled form)
+structure normal (G : Type) [group G] extends subgroup G :=
+(conj_mem : ∀ n, n ∈ carrier → ∀ g : G, g * n * g⁻¹ ∈ carrier)
+
 -- we put dashes in all the names, because we'll define
 -- non-dashed versions which don't mention `carrier` at all
 -- and just talk about elements of the subgroup.
@@ -81,16 +85,14 @@ instance (K : subgroup G) : group ↥K :=
   mul_left_inv := λ a, by { cases a, apply subtype.ext, 
     apply group.mul_left_inv } } 
 
--- Defintion of normal subgroup (in a bundled form)
-structure normal (G : Type) [group G] extends subgroup G :=
-(conj_mem : ∀ n, n ∈ carrier → ∀ g : G, g * n * g⁻¹ ∈ carrier)
-
 -- This is so I can write K : subgroup G
 instance normal_to_subgroup : has_coe (normal G) (subgroup G) := 
   ⟨λ K, K.to_subgroup⟩
 
 -- This saves me from writting m ∈ (K : subgroup G) every time
 instance normal_has_mem : has_mem G (normal G) := ⟨λ m K, m ∈ K.carrier⟩
+
+instance normal_to_set : has_coe (normal G) (set G) := ⟨λ K, K.carrier⟩
 
 -- Defining cosets thats used in some lemmas
 def lcoset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = g * k}
