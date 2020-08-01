@@ -254,10 +254,30 @@ lemma bijective_of_kernel_lift_hom' {f : G →* H} :
 
 /-- The first isomorphism theorem: `G /ₘ kernel f ≅ image f` for `f : G →* H` 
   a group homomorphism -/
-def quotient_kernel_iso_image {f : G →* H} : 
+def quotient_kernel_iso_image (f : G →* H) : 
   G /ₘ kernel f ≅ image f := 
 { is_bijective := bijective_of_kernel_lift_hom',
   .. kernel_lift_hom' f }
+
+-- Inclusion map from a subgroup to the group
+def 𝒾 (H : subgroup G) : H →* G := 
+{ to_fun := λ h, (h : G),
+  map_mul' := λ _ _, rfl } 
+
+-- The inclusion map is injective 
+lemma injective_𝒾 {H : subgroup G} : injective $ 𝒾 H := λ x y hxy, subtype.eq hxy
+
+-- The image of a surjective function is isomorphic to the group its mapped to
+def iso_of_surjective {f : G →* H} (hf : surjective f) : image f ≅ H :=
+{ is_bijective := ⟨ injective_𝒾, λ y,
+    ⟨⟨y, show y ∈ f '' univ, by simp [hf y]⟩, by simp [𝒾]⟩ ⟩,
+  .. 𝒾 $ image f }
+
+/-- The first isomorphism theorem with a surjective homomorphism: 
+  `G /ₘ kernel f ≅ H` for `f : G →* H` a surjective group homomorphism-/
+def quotient_kernel_iso_of_surjective {f : G →* H} (hf : surjective f): 
+  G /ₘ kernel f ≅ H := 
+iso_comp (quotient_kernel_iso_image f) $ iso_of_surjective hf
 
 end quotient
 
