@@ -173,16 +173,7 @@ namespace quotient
 
 open lagrange mygroup.quotient function
 
-/-- The natrual map from a group `G` to its quotient `G / N` is a homomorphism -/
-def map (N : normal G) : G →* G /ₘ N := 
-{ to_fun := λ g, g,
-  map_mul' := λ _ _, by apply quotient.sound; refl }
-
 variable {N : normal G}
-
-/-- The natrual homomorphism from a group `G` to its quotient `G / N` is a 
-  surjection -/
-theorem is_surjective : surjective $ map N := exists_mk
 
 -- The first isomorphism theorem states that for all `f : G →* H`, 
 -- `G /ₘ kernel f ≅ image f`, we will prove this here.
@@ -193,17 +184,20 @@ theorem is_surjective : surjective $ map N := exists_mk
 -- to `f x` where `h` is a proof that this function is well defined, i.e. 
 -- `∀ x y : α, ⟦x⟧ = ⟦y⟧ → f x = f y`.
 
-/-- Given a group homomorphism `f : G →* H`, `kernel_lift f` is a mapping from 
-  the quotient `G /ₘ kernel f` to `H` such that `x • kernel f ↦ f x` -/
-def kernel_lift (f : G →* H) (x : G /ₘ kernel f) := lift_on x f $
+-- First we prove such a map is well defined 
+lemma map_of_lcoset_eq {f : G →* H} {x y : G} 
+  (hxy : x • kernel f = y • kernel f) : f x = f y :=
 begin
-  intros a b hab,
-  change a • kernel f = b • kernel f at hab,
-  rw [←group.mul_left_cancel_iff (f b)⁻¹, 
+  rw [←group.mul_left_cancel_iff (f y)⁻¹, 
       ←map_inv, ←map_mul, map_inv, group.mul_left_inv,
       ←mem_kernel],
-  exact lcoset_eq.1 hab
+  exact lcoset_eq.1 hxy
 end 
+
+/-- Given a group homomorphism `f : G →* H`, `kernel_lift f` is a mapping from 
+  the quotient `G /ₘ kernel f` to `H` such that `x • kernel f ↦ f x` -/
+def kernel_lift (f : G →* H) (x : G /ₘ kernel f) := lift_on x f $ 
+  λ _ _, map_of_lcoset_eq
 
 @[simp] lemma kernel_lift_mk {f : G →* H} (g : G) :
   kernel_lift f (g : G /ₘ kernel f) = f g := rfl
@@ -262,6 +256,8 @@ def quotient_kernel_iso_image (f : G →* H) :
 def 𝒾 (H : subgroup G) : H →* G := 
 { to_fun := λ h, (h : G),
   map_mul' := λ _ _, rfl } 
+
+@[simp] lemma 𝒾_def {H : subgroup G} {h} (hh : h ∈ H) : 𝒾 H ⟨h, hh⟩ = h := rfl
 
 -- The inclusion map is injective 
 lemma injective_𝒾 {H : subgroup G} : injective $ 𝒾 H := λ _ _ hxy, subtype.eq hxy

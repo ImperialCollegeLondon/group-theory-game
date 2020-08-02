@@ -119,7 +119,7 @@ instance : group (quotient R) :=
 the equivalence relation ~ : (g, k) ↦ g H = k H on G is a group congruence if 
 and only if H is normal. -/
 
-open mygroup.subgroup lagrange
+open mygroup.subgroup lagrange function
 
 variables {H : subgroup G} {N : normal G}
 
@@ -198,6 +198,15 @@ lemma exists_mk {N : normal G} (c : G /ₘ N) : ∃ g : G, (g : G /ₘ N) = c :=
 /-- `(⟦p⟧ : G /ₘ N) = ⟦q⟧` iff `p • N = q • N` where `p q : G` -/
 lemma mk_eq {p q : G} : (p : G /ₘ N) = q ↔ p • N = q • N :=
   ⟨λ h, quotient.eq.1 h, λ h, quotient.eq.2 h⟩
+
+/-- The coercion from a group `G` to its quotient `G / N` is a homomorphism -/
+def mk' (N : normal G) : G →* G /ₘ N := 
+{ to_fun := λ g, g,
+  map_mul' := λ _ _, by apply quotient.sound; refl }
+
+/-- The homomorphism of the coercion from a group `G` to its quotient `G / N` 
+  is a surjection -/
+theorem is_surjective : surjective $ mk' N := exists_mk
 
 end quotient
 
