@@ -187,7 +187,7 @@ theorem is_surjective : surjective $ map N := exists_mk
 -- The first isomorphism theorem states that for all `f : G →* H`, 
 -- `G /ₘ kernel f ≅ image f`, we will prove this here.
 
--- We will use `quotient.lift_on'`
+-- We will use `lift_on` which is the same as `quotient.lift_on'`
 -- Given an equivalence relation `R` on some type `α`, and a function `f : α → β`
 -- `λ (a : quotient R), quotient.lift_on' a f h` is the function that maps `⟦x⟧` 
 -- to `f x` where `h` is a proof that this function is well defined, i.e. 
@@ -195,8 +195,7 @@ theorem is_surjective : surjective $ map N := exists_mk
 
 /-- Given a group homomorphism `f : G →* H`, `kernel_lift f` is a mapping from 
   the quotient `G /ₘ kernel f` to `H` such that `x • kernel f ↦ f x` -/
-def kernel_lift (f : G →* H) (x : G /ₘ kernel f) := 
-  quotient.lift_on' x f $
+def kernel_lift (f : G →* H) (x : G /ₘ kernel f) := lift_on x f $
 begin
   intros a b hab,
   change a • kernel f = b • kernel f at hab,
@@ -267,7 +266,7 @@ def 𝒾 (H : subgroup G) : H →* G :=
 -- The inclusion map is injective 
 lemma injective_𝒾 {H : subgroup G} : injective $ 𝒾 H := λ _ _ hxy, subtype.eq hxy
 
--- The image of a surjective function is isomorphic to the group its mapped to
+-- The image of a surjective homomorphism is isomorphic to the group its mapped to
 def iso_of_surjective {f : G →* H} (hf : surjective f) : image f ≅ H :=
 { is_bijective := ⟨ injective_𝒾, λ y,
     ⟨⟨y, show y ∈ f '' univ, by simp [hf y]⟩, by simp [𝒾]⟩ ⟩,
