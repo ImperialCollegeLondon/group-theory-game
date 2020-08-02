@@ -1,4 +1,4 @@
-import hom.definitions
+import hom.quotient
 
 local attribute [instance] classical.prop_decidable -- I hope we don't mind this
 
