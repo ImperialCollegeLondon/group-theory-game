@@ -76,7 +76,7 @@ def kernel (f : G →* H) : normal G :=
       rw [mem_preimage, mem_singleton_iff] at *,
       rw [map_inv f, hx, group.one_inv]
     end,
-  conj_mem :=
+  conj_mem' :=
     begin
       intros _ hn _,
       rw [mem_preimage, mem_singleton_iff] at *,
@@ -352,7 +352,7 @@ open group_hom function mygroup.quotient
 
 variables {G H : Type} [group G] [group H]
 
---The preimage of a normal subgroup is normal
+/-- The preimage of a normal subgroup is normal -/
 def comap (f : G →* H) (N : normal H) : normal G := 
 {carrier := f⁻¹' N,
  one_mem' := 
@@ -382,36 +382,39 @@ def comap (f : G →* H) (N : normal H) : normal G :=
       show _ ∈ N,
       convert N.conj_mem (f n) h (f t), 
       apply f.map_inv
-    end, 
-}
+    end }
 
+/-- The surjective image of a normal subgroup is normal -/
 def nmap {f : G →* H} (hf : surjective f) (N : normal G) : normal H := 
-{ carrier := f '' N.carrier,
+{ carrier := f '' N,
   one_mem' := ⟨1, N.to_subgroup.one_mem, f.map_one⟩,
-  mul_mem' := begin
-    rintros _ _ ⟨a, ha, rfl⟩ ⟨b, hb, rfl⟩,
-    refine ⟨a * b, N.to_subgroup.mul_mem ha hb, f.map_mul a b⟩,
-  end,
-  inv_mem' := begin
-    rintros _ ⟨a, ha, rfl⟩,
-    refine ⟨a⁻¹, N.to_subgroup.inv_mem ha, f.map_inv⟩,    
-  end,
-  conj_mem' := begin
-    rintro _ ⟨b, hb, rfl⟩,
-    intro h,
-    dsimp,
-    rcases hf h with ⟨g, rfl⟩,
-    use g*b*g⁻¹,
-    split,
-    { exact N.conj_mem b hb g},
-    { simp [f.map_mul] }
-  end }
+  mul_mem' := 
+    begin
+      rintros _ _ ⟨a, ha, rfl⟩ ⟨b, hb, rfl⟩,
+      refine ⟨a * b, N.to_subgroup.mul_mem ha hb, f.map_mul a b⟩,
+    end,
+  inv_mem' := 
+    begin
+      rintros _ ⟨a, ha, rfl⟩,
+      refine ⟨a⁻¹, N.to_subgroup.inv_mem ha, f.map_inv⟩,    
+    end,
+  conj_mem' := 
+    begin
+      rintro _ ⟨b, hb, rfl⟩,
+      intro h,
+      dsimp,
+      rcases hf h with ⟨g, rfl⟩,
+      use g * b * g⁻¹,
+      split,
+      { exact N.conj_mem b hb g},
+      { simp [f.map_mul] }
+    end }
 
 /-- Intersection of T and N is the pushforward to G of (the pullback to T of N) 
 along the natural map T → G -/
 theorem subgroup_inf (N : normal G) (T : subgroup G) : 
-(T ⊓ N) = (N.comap (𝒾 T)).to_subgroup.map (𝒾 T) :=
-  begin
+  (T ⊓ N) = subgroup.map (𝒾 T) (comap (𝒾 T) N) :=
+begin
   ext x,
   split,
   { intro h,
@@ -420,8 +423,7 @@ theorem subgroup_inf (N : normal G) (T : subgroup G) :
     cases h with hxt hxn,
     use ⟨x, hxt⟩,
     split,
-    { dsimp,
-      show _ ∈ ⇑(𝒾 T) ⁻¹' ↑N,
+    { show _ ∈ ⇑(𝒾 T) ⁻¹' ↑N,
       exact hxn },
     { refl } },
   { rintro ⟨⟨g, hgt⟩, ht1, rfl⟩,
@@ -430,7 +432,7 @@ theorem subgroup_inf (N : normal G) (T : subgroup G) :
     split,
     { exact hgt },
     { exact ht1 } }
-  end
+end
 
 end normal
 
@@ -438,8 +440,51 @@ namespace quotient
 open mygroup.subgroup
 variables {G H : Type} [group G] [group H]
 
-def second_iso_theorem (T : subgroup G)( N : normal G) : 
-  T /ₘ (N.comap (𝒾 T)) ≅ ↥(T ⊔ N) /ₘ N.comap (𝒾 (T ⊔ N)) :=
+open normal
+
+/-
+  The way to think about the formulation of the second isomorphism theorem is 
+  think about the individual mappings.
+
+  First let us think about what `comap (𝒾 T) N` represents.
+  `comap f N` is the normal subgroup whose underlying set is the preimage of `N` 
+  alongside `f`, so `comap (𝒾 T) N` is the normal subgroup of `T` that gets 
+  mapped into `N` under the inclusion map, i.e. elements in `T ∩ N`.
+
+  Now let us consider `comap (𝒾 (T ⊔ N)) N` which is similar.
+
+                                        +----------------------+
+                                        |                      |
+          +------------+   `𝒾 (T ⊔ N)`    | +------------+       |
+          |          +---------------------->          |       |
+          | +--------+ |                | | +--------+ |       |
+          | |        | |                | | |        | |       |
+          | |  `N`   <-----------------------+  `N`  | |       |
+          | |        | |    `comap`     | | |        | |       |
+          | |        | |                | | |        | |       |
+          | +--------+ |                | | +--------+ |       |
+          |            |                | |            |       |
+          |  `T ⊔ N`   |                   | |  `T ⊔ N`   |       |
+          +------------+                | +------------+       |
+                                        |                      |
+                                        |         `G`          | 
+                                        +----------------------+
+
+  Again the the `comap (𝒾 (T ⊔ N)) N` is the preimage along the inclusion map 
+  `𝒾 (T ⊔ N)`. But this this time we see that `N ⊆ T ⊔ N`so their intersection 
+  are is just `N`. 
+  
+  So why are we going through this trouble just to get back to `N`? The reason 
+  is that we have defined quotients to be an operation on a group and its normal 
+  subgroups. Notice that `comap (𝒾 (T ⊔ N)) N` does not have the same type as `N`. 
+  While `N` has type `normal G`, `comap (𝒾 (T ⊔ N)) N` has type `normal (T ⊔ N)` 
+  as demonstrated by the diagramme above. This is the type we need since we 
+  can only quotient `T ⊔ N` by one of its normal subgroups.
+-/
+
+
+def second_iso_theorem (T : subgroup G) (N : normal G) : 
+  T /ₘ comap (𝒾 T) N ≅ ↥(T ⊔ N) /ₘ comap (𝒾 (T ⊔ N)) N :=
 { to_fun := sorry,
   map_mul' := sorry,
   is_bijective := sorry }
@@ -447,8 +492,8 @@ def second_iso_theorem (T : subgroup G)( N : normal G) :
 -- to state this one we need to be able to push forward (`map`) a normal
 -- subgroup along a surjection
 
-definition third_iso_theorem [ T : normal G] [N : normal G]
-  (h: T.carrier ⊆ N.carrier):
+def third_iso_theorem (T : normal G) (N : normal G)
+  (h : T.carrier ⊆ N.carrier) :
   let NmodT : normal (G /ₘ T) := N.nmap (quotient.is_surjective) in  
    (G /ₘ T) /ₘ NmodT ≅ G /ₘ N := sorry
 

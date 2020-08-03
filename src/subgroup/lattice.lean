@@ -1,4 +1,4 @@
-import subgroup.definitions
+import subgroup.theorems
 
 /-
 Let G be a group. The type of subgroups of G is `subgroup G`. 
@@ -73,16 +73,21 @@ form a galois_insertion with the coercion to set-/
 lemma le_closure (S : set G) : S ≤ closure S :=
 λ s hs H ⟨y, hy⟩, by rw ←hy; simp; exact λ hS, hS hs
 
-lemma closure_le (S : set G) (H : subgroup G) : closure S ≤ H ↔ S ≤ (H : set G) :=
+lemma closure_le (S : set G) (H : subgroup G) : closure S ≤ H ↔ S ≤ H :=
 begin
   split,
     { intro h, refine subset.trans (le_closure _) h },
     { intros h y,
       unfold closure, unfold Inf, 
       rw mem_bInter_iff, intro hy,
-      exact hy H h,
-    }
+      exact hy H h }
 end
+
+lemma closure_le' (S : set G) (H : subgroup G) : 
+  (closure S : set G) ⊆ H ↔ S ⊆ H := closure_le S H
+
+lemma closure_le'' (S : set G) (H : subgroup G) : 
+  (∀ x, x ∈ closure S → x ∈ H) ↔ (∀ x, x ∈ S → x ∈ H) := closure_le S H
 
 lemma closure_self {H : subgroup G} : closure (H : set G) = H :=
 begin
@@ -112,11 +117,11 @@ to set.
 def gi : @galois_insertion (set G) (subgroup G) _ _ closure (λ H, H.carrier) :=
 { choice := λ S _, closure S,
   gc := λ H K,
-  begin
-    split; intro h,
-      { exact subset.trans (le_closure H) h },
-      { exact (closure_le _ _).2 h },
-  end,
+    begin
+      split; intro h,
+        { exact subset.trans (le_closure H) h },
+        { exact (closure_le _ _).2 h },
+    end,
   le_l_u := λ H, le_closure (H : set G),
   choice_eq := λ _ _, rfl }
 
@@ -144,9 +149,63 @@ example (H K : subgroup G) : subgroup G := H ⊔ K
 
 -- theorem: if K is normal in G then H ⊔ K is just 
 -- literally {hk : h ∈ H, k ∈ K}
-def product_of_two_subgroups (H : subgroup G) (K : subgroup G) (h : H) (k : K): 
-set G := {h*k | (h : H) ∧ (k : K)}
---why is it giving an error? Is there a way to take out (h : H) (k : K) from the parameters?
+
+variables {H K}
+
+open normal
+
+/-- The supremum of two subgroups induced by the Galois insertion is the closure 
+  of the union of their carriers -/
+lemma sup_def : H ⊔ K = closure (H.carrier ⊔ K.carrier) := rfl
+
+/-- The supremum of two subgroups is larger then their union -/
+lemma mem_sup_of_mem {x} (hx : x ∈ H ∨ x ∈ K) : x ∈ H ⊔ K :=
+begin
+  rw sup_def,
+  change x ∈ ⋂ (t : subgroup G) (H : H.carrier ∪ K.carrier ⊆ t), ↑t,
+  refine mem_bInter (λ S hS, hS hx)
+end
+
+lemma mem_sup_of_mem_left {x} (hx : x ∈ H) : x ∈ H ⊔ K :=
+by { apply mem_sup_of_mem, left, assumption }
+
+lemma mem_sup_of_mem_right {x} (hx : x ∈ K) : x ∈ H ⊔ K :=
+by { apply mem_sup_of_mem, right, assumption }
+
+/-- The product of a subgroup and a normal subgroup form a subgroup -/
+def product_subgroup (H : subgroup G) (K : normal G) : subgroup G := 
+{ carrier := { g | ∃ h ∈ H, ∃ k ∈ K, g = h * k },
+  one_mem' := ⟨1, one_mem H, 1, one_mem K, (group.one_mul _).symm⟩,
+  mul_mem' := λ x y ⟨h₀, hh₀, k₀, hk₀, hx⟩ ⟨h₁, hh₁, k₁, hk₁, hy⟩,
+    begin
+      rw [hx, hy],
+      refine ⟨h₀ * h₁, mul_mem H hh₀ hh₁, h₁⁻¹ * k₀ * h₁ * k₁, _, _⟩,
+        { refine mul_mem K (mem_normal'.2 ⟨h₁, k₀, hk₀, rfl⟩) hk₁ },
+        { simp [group.mul_assoc] }
+    end,
+  inv_mem' := λ x ⟨h, hh, k, hk, hx⟩,
+    begin
+      rw [hx, group.inv_mul],
+      rw (show k⁻¹ * h⁻¹ = h⁻¹ * (h * k⁻¹ * h⁻¹), by simp [group.mul_assoc]),
+      refine ⟨h⁻¹, inv_mem H hh, h * k⁻¹ * h⁻¹, 
+        mem_normal.2 ⟨h, k⁻¹, inv_mem K hk, rfl⟩, by simp [group.mul_assoc]⟩      
+    end } 
+notation H ` ⨯ `:70 K:70 := product_subgroup H K
+
+lemma mem_product {H : subgroup G} {K : normal G} {x} : 
+  x ∈ H ⨯ K ↔ ∃ (h ∈ H) (k ∈ K), x = h * k := iff.rfl
+
+theorem product_eq_sup (H : subgroup G) (K : normal G) : H ⨯ K = H ⊔ K :=
+begin
+  ext, split,
+    { intro hx, rcases mem_product.1 hx with ⟨h, hh, k, hk, rfl⟩,
+      exact mul_mem _ (mem_sup_of_mem_left hh) (mem_sup_of_mem_right hk) },
+    { revert x, 
+      simp_rw [sup_def, closure_le'', mem_product],
+      intros x hx, cases hx, 
+        exact ⟨x, hx, 1, one_mem K, (group.mul_one x).symm⟩,
+        exact ⟨1, one_mem H, x, hx, (group.one_mul x).symm⟩ }
+end 
 
 end subgroup
 

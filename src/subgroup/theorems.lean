@@ -108,6 +108,23 @@ end lagrange
 
 namespace normal
 
+lemma mem_normal {x} {N : normal G} : 
+  x ∈ N ↔ ∃ (g : G) (n ∈ N), x = g * n * g⁻¹ :=
+begin
+  split; intro h, 
+    { exact ⟨1, x, h, by simp⟩ },
+    { rcases h with ⟨g, n, hn, rfl⟩,
+      exact conj_mem _ _ hn _ }
+end
+
+lemma mem_normal' {x} {N : normal G} : 
+  x ∈ N ↔ ∃ (g : G) (n ∈ N), x = g⁻¹ * n * g :=
+begin
+  rw mem_normal,
+  split; rintro ⟨g, n, hn, rfl⟩;
+    { exact ⟨g⁻¹, n, hn, by simp⟩ }
+end
+
 -- Some equivalent definitions for normal groups from wikipedia
 
 open subgroup 
