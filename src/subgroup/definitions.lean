@@ -23,7 +23,7 @@ structure subgroup (G : Type) [group G] :=
 
 -- Defintion of normal subgroup (in a bundled form)
 structure normal (G : Type) [group G] extends subgroup G :=
-(conj_mem : ∀ n, n ∈ carrier → ∀ g : G, g * n * g⁻¹ ∈ carrier)
+(conj_mem' : ∀ n, n ∈ carrier → ∀ g : G, g * n * g⁻¹ ∈ carrier)
 
 -- we put dashes in all the names, because we'll define
 -- non-dashed versions which don't mention `carrier` at all
@@ -116,8 +116,13 @@ def center (G : Type) [group G] : subgroup G :=
   end
 } -/
 
-
-
 end subgroup
+
+namespace normal
+
+def conj_mem {G : Type} [group G] (N : normal G) (n : G) (hn : n ∈ N) (g : G) :
+  g * n * g⁻¹ ∈ N := N.conj_mem' n hn g
+
+end normal
 
 end mygroup

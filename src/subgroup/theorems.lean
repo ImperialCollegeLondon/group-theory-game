@@ -25,33 +25,6 @@ namespace mygroup
 
 variables {G : Type} [group G]
 
-namespace subgroup
-
--- The two definitions below should be deleted since we have the lattice 
--- definitions in subgroup.lattice file (Should probably move that over)
-
--- The intersect of two subgroups is also a subgroup
-def inter_subgroup (H K : subgroup G) : subgroup G :=
-{ carrier := H ∩ K,
-  one_mem' := ⟨H.one_mem, K.one_mem⟩,
-  mul_mem' := λ _ _ ⟨hhx, hkx⟩ ⟨hhy, hky⟩, 
-  ⟨H.mul_mem hhx hhy, K.mul_mem hkx hky⟩,
-  inv_mem' := λ x ⟨hhx, hhy⟩,
-  ⟨H.inv_mem hhx, K.inv_mem hhy⟩}
-
-open set
-variable {ι : Sort}
-
--- The intersect of a set of subgroups is a subgroup
-def Inter_subgroup (H : ι → subgroup G) : subgroup G := 
-{ carrier := ⋂ i, H i,
-  one_mem' := mem_Inter.mpr $ λ i, (H i).one_mem,
-  mul_mem' := λ _ _ hx hy, mem_Inter.mpr $ λ i, 
-  by {rw mem_Inter at *, from mul_mem (H i) (hx i) (hy i)},
-  inv_mem' := λ x hx, mem_Inter.mpr $ λ i, (H i).inv_mem $ by apply mem_Inter.mp hx }
-
-end subgroup
-
 namespace lagrange
 
 variables {H : subgroup G}

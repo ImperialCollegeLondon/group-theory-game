@@ -1,4 +1,5 @@
 import hom.definitions
+import subgroup.lattice
 
 local attribute [instance] classical.prop_decidable -- I hope we don't mind this
 
@@ -75,7 +76,7 @@ def kernel (f : G →* H) : normal G :=
       rw [mem_preimage, mem_singleton_iff] at *,
       rw [map_inv f, hx, group.one_inv]
     end,
-  conj_mem :=
+  conj_mem' :=
     begin
       intros _ hn _,
       rw [mem_preimage, mem_singleton_iff] at *,
@@ -197,11 +198,53 @@ begin
       exact ⟨x, hx⟩ }
 end
 
+end group_hom
+
+-- pushforward and pullback of subgroups
+
+namespace subgroup
+
+open set
+
+variables {G : Type} [group G] {H : Type} [group H]
+
+/-- image of a subgroup is a subgroup -/
+def map (f : G →* H) (K : subgroup G) : subgroup H :=
+{ carrier := f '' (K.carrier),
+  one_mem' := begin
+    rw mem_image,
+    use 1,
+    split,
+    { exact K.one_mem},
+    { exact f.map_one}
+  end,
+  mul_mem' := begin
+    rintros _ _ ⟨a, ha, rfl⟩ ⟨b, hb, rfl⟩,
+    refine ⟨a*b, K.mul_mem ha hb, f.map_mul _ _⟩,
+  end,
+  inv_mem' := begin
+    rintros _ ⟨a, ha, rfl⟩,
+    refine ⟨a⁻¹, K.inv_mem ha, f.map_inv⟩,
+  end }
+
+lemma mem_map (f : G →* H) (K : subgroup G) (a : H) :
+  a ∈ K.map f ↔ ∃ g : G, g ∈ K ∧ f g = a := iff.rfl
+
+-- TODO -- `comap`, the pre-image of a subgroup is a subgroup
+
+end subgroup
+
 namespace quotient
+
+open group_hom
+
+variables {G H K : Type} [group G] [group H] [group K]
+
+variable {f : G →* H}
 
 open lagrange mygroup.quotient function
 
-/-- The natrual map from a group `G` to its quotient `G / N` is a homomorphism -/
+/-- The natural map from a group `G` to its quotient `G / N` is a homomorphism -/
 def map (N : normal G) : G →* G /ₘ N := 
 { to_fun := λ g, g,
   map_mul' := λ _ _, by apply quotient.sound; refl }
@@ -259,9 +302,9 @@ end
 
 /-- An alternative to `kernel_lift_hom` in which the range is restricted to the 
   image of `f` so that the homomorphism is also surjective -/
-def kernel_lift_hom' (f : G →* H) : (G /ₘ kernel f) →* image f :=
+def kernel_lift_hom' (f : G →* H) : (G /ₘ kernel f) →* f.image :=
 { to_fun := λ q, ⟨kernel_lift f q, quotient.induction_on' q $ 
-    λ a, show f a ∈ image f, by exact ⟨a, mem_univ _, rfl⟩⟩,
+    λ a, show f a ∈ f.image, by exact ⟨a, mem_univ _, rfl⟩⟩,
   map_mul' := λ x y, quotient.induction_on₂' x y $ λ _ _,
     by simpa only [quotient.coe, quotient.coe_mul, kernel_lift_mk, map_mul] }
 
@@ -289,14 +332,16 @@ def quotient_kernel_iso_image (f : G →* H) :
 
 --Need to convert definition into theorem
 theorem first_iso_theorem {f : G →* H}:
-  G /ₘ kernel f ≅ image f := quotient_kernel_iso_image
- /-begin
-  apply quotient_kernel_iso_image,
- end-/
+  G /ₘ kernel f ≅ image f := quotient_kernel_iso_image f
 
 /-theorem first_iso_theorem' {φ : G →* H} :
  ∃ (μ : G /ₘ kernel φ →* image φ ) ∧  (G /ₘ kernel φ ≅ image φ) := sorry-/
 
+end quotient
+
+variables {G : Type} [group G] {H : Type} [group H]
+
+namespace group_hom
 
 --The inclusion map is a homomorphism
  def 𝒾 (T : subgroup G) : T →* G := 
@@ -307,11 +352,15 @@ theorem first_iso_theorem {f : G →* H}:
   refl,
   end} 
 
+end group_hom
 
-#where
+namespace normal
+
+open group_hom
+
 --The preimage of a normal subgroup is normal
-def preimage_of_normal (N : normal G) (T : subgroup G): normal T := 
-{carrier := 𝒾 T ⁻¹' N,
+def comap (f : G →* H) (N : normal H) : normal G := 
+{carrier := f⁻¹' N,
  one_mem' := 
     begin
       rw [mem_preimage, map_one],
@@ -331,35 +380,55 @@ def preimage_of_normal (N : normal G) (T : subgroup G): normal T :=
       rw map_inv,
       exact N.inv_mem' h,
     end,
- conj_mem := 
+ conj_mem' := 
     begin
       intros n h t ,
       rw [mem_preimage, map_mul, map_mul],
       rw mem_preimage at h,
-      apply N.conj_mem, 
-      assumption,      
+      show _ ∈ N,
+      convert N.conj_mem (f n) h (f t), 
+      apply f.map_inv
     end, 
 }
-#where
+
+/-- Intersection of T and N is the pushforward to G of (the pullback to T of N) 
+along the natural map T → G -/
 theorem subgroup_inf (N : normal G) (T : subgroup G) : 
-(inter_subgroup T N).carrier = (𝒾 T) '' (preimage_of_normal N T).carrier :=
+(T ⊓ N) = (N.comap (𝒾 T)).to_subgroup.map (𝒾 T) :=
   begin
   ext x,
   split,
-  intro h,
-  --rw mem_image ,
-  sorry
+  { intro h,
+    rw mem_inf at h,
+    rw subgroup.mem_map,
+    cases h with hxt hxn,
+    use ⟨x, hxt⟩,
+    split,
+    { dsimp,
+      show _ ∈ ⇑(𝒾 T) ⁻¹' ↑N,
+      exact hxn },
+    { refl } },
+  { rintro ⟨⟨g, hgt⟩, ht1, rfl⟩,
+    change g ∈ T at hgt,
+    rw mem_inf,
+    split,
+    { exact hgt },
+    { exact ht1 } }
   end
 
+end normal
 
-/-theorem second_iso_theorem (T : subgroup G)( N : subgroup G) : 
-N.normal → T /ₘ inter_subgroup T N ≅  T • N /ₘ N := sorry-/
+open group_hom
 
-/-theorem third_iso_theorem [T : subgroup G][N : subgroup G] [ T : normal G] [N : normal G]
- (h: T.carrier ⊆ N.carrier): (G /ₘ N) /ₘ ( T /ₘ N) ≅ G /ₘ T := sorry-/
+def second_iso_theorem (T : subgroup G)( N : normal G) : 
+  T /ₘ (N.comap (𝒾 T)) ≅ ↥(T ⊔ N) /ₘ N.comap (𝒾 (T ⊔ N)) :=
+{ to_fun := sorry,
+  map_mul' := sorry,
+  is_bijective := sorry }
 
-end quotient
-
-end group_hom
+definition third_iso_theorem [ T : normal G] [N : normal G]
+  (h: T.carrier ⊆ N.carrier):
+  let NmodT : normal (G /ₘ T) := sorry in  
+   (G /ₘ T) /ₘ NmodT ≅ G /ₘ N := sorry
 
 end mygroup
