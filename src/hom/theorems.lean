@@ -340,7 +340,7 @@ def preimage_of_normal (N : normal G) (T : subgroup G): normal T :=
       assumption,      
     end, 
 }
-
+#where
 theorem subgroup_inf (N : normal G) (T : subgroup G) : 
 (inter_subgroup T N).carrier = (𝒾 T) '' (preimage_of_normal N T).carrier :=
   begin
