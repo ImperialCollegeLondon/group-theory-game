@@ -144,6 +144,10 @@ example (H K : subgroup G) : subgroup G := H ⊔ K
 
 -- theorem: if K is normal in G then H ⊔ K is just 
 -- literally {hk : h ∈ H, k ∈ K}
+def product_of_two_subgroups (H : subgroup G) (K : subgroup G) (h : H) (k : K): 
+set G := {h*k | (h : H) ∧ (k : K)}
+--why is it giving an error? Is there a way to take out (h : H) (k : K) from the parameters?
+
 end subgroup
 
 end mygroup

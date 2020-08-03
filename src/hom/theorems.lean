@@ -374,7 +374,7 @@ def comap (f : G →* H) (N : normal H) : normal G :=
       rw map_inv,
       exact N.inv_mem' h,
     end,
- conj_mem := 
+ conj_mem' := 
     begin
       intros n h t ,
       rw [mem_preimage, map_mul, map_mul],
@@ -396,7 +396,7 @@ def nmap {f : G →* H} (hf : surjective f) (N : normal G) : normal H :=
     rintros _ ⟨a, ha, rfl⟩,
     refine ⟨a⁻¹, N.to_subgroup.inv_mem ha, f.map_inv⟩,    
   end,
-  conj_mem := begin
+  conj_mem' := begin
     rintro _ ⟨b, hb, rfl⟩,
     intro h,
     dsimp,
@@ -435,7 +435,7 @@ theorem subgroup_inf (N : normal G) (T : subgroup G) :
 end normal
 
 namespace quotient
-
+open mygroup.subgroup
 variables {G H : Type} [group G] [group H]
 
 def second_iso_theorem (T : subgroup G)( N : normal G) : 
