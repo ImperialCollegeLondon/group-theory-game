@@ -26,6 +26,9 @@ infixr ` →* `:25 := group_hom
 instance {G H : Type} [group G] [group H] :
   has_coe_to_fun (G →* H) := ⟨_, group_hom.to_fun⟩
 
+-- the identity homomorphism
+def id_hom {G : Type} [group G] : G →* G := ⟨id, λ x y, rfl⟩
+
 /-- Group isomorphism as a bijective group homomorphism -/
 structure group_iso (G H : Type) [group G] [group H] extends group_hom G H :=
 (is_bijective : function.bijective to_fun)
@@ -64,6 +67,10 @@ def map_comp (f : G →* H) (g : H →* K) : G →* K :=
 { to_fun   := g ∘ f, 
   map_mul' := λ x y, by simp }
 notation g ` ∘* ` f := map_comp f g
+
+/-- A group is isomorphic to itself by the identity homomorphism -/
+def iso_refl : G ≅ G := 
+{ is_bijective := function.bijective_id, .. id_hom }
 
 /-- The composition of two group isomorphisms form a group isomorphism -/
 def iso_comp (f : G ≅ H) (g : H ≅ K) : G ≅ K := 

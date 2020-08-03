@@ -282,7 +282,7 @@ lemma bijective_of_kernel_lift_hom' {f : G →* H} :
 
 /-- The first isomorphism theorem: `G /ₘ kernel f ≅ image f` for `f : G →* H` 
   a group homomorphism -/
-def quotient_kernel_iso_image {f : G →* H} : 
+def quotient_kernel_iso_image (f : G →* H) : 
   G /ₘ kernel f ≅ image f := 
 { is_bijective := bijective_of_kernel_lift_hom',
   .. kernel_lift_hom' f }
