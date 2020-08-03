@@ -352,7 +352,7 @@ open group_hom function mygroup.quotient
 
 variables {G H : Type} [group G] [group H]
 
---The preimage of a normal subgroup is normal
+/-- The preimage of a normal subgroup is normal -/
 def comap (f : G →* H) (N : normal H) : normal G := 
 {carrier := f⁻¹' N,
  one_mem' := 
@@ -382,36 +382,39 @@ def comap (f : G →* H) (N : normal H) : normal G :=
       show _ ∈ N,
       convert N.conj_mem (f n) h (f t), 
       apply f.map_inv
-    end, 
-}
+    end }
 
+/-- The surjective image of a normal subgroup is normal -/
 def nmap {f : G →* H} (hf : surjective f) (N : normal G) : normal H := 
-{ carrier := f '' N.carrier,
+{ carrier := f '' N,
   one_mem' := ⟨1, N.to_subgroup.one_mem, f.map_one⟩,
-  mul_mem' := begin
-    rintros _ _ ⟨a, ha, rfl⟩ ⟨b, hb, rfl⟩,
-    refine ⟨a * b, N.to_subgroup.mul_mem ha hb, f.map_mul a b⟩,
-  end,
-  inv_mem' := begin
-    rintros _ ⟨a, ha, rfl⟩,
-    refine ⟨a⁻¹, N.to_subgroup.inv_mem ha, f.map_inv⟩,    
-  end,
-  conj_mem' := begin
-    rintro _ ⟨b, hb, rfl⟩,
-    intro h,
-    dsimp,
-    rcases hf h with ⟨g, rfl⟩,
-    use g*b*g⁻¹,
-    split,
-    { exact N.conj_mem b hb g},
-    { simp [f.map_mul] }
-  end }
+  mul_mem' := 
+    begin
+      rintros _ _ ⟨a, ha, rfl⟩ ⟨b, hb, rfl⟩,
+      refine ⟨a * b, N.to_subgroup.mul_mem ha hb, f.map_mul a b⟩,
+    end,
+  inv_mem' := 
+    begin
+      rintros _ ⟨a, ha, rfl⟩,
+      refine ⟨a⁻¹, N.to_subgroup.inv_mem ha, f.map_inv⟩,    
+    end,
+  conj_mem' := 
+    begin
+      rintro _ ⟨b, hb, rfl⟩,
+      intro h,
+      dsimp,
+      rcases hf h with ⟨g, rfl⟩,
+      use g * b * g⁻¹,
+      split,
+      { exact N.conj_mem b hb g},
+      { simp [f.map_mul] }
+    end }
 
 /-- Intersection of T and N is the pushforward to G of (the pullback to T of N) 
 along the natural map T → G -/
 theorem subgroup_inf (N : normal G) (T : subgroup G) : 
-(T ⊓ N) = (N.comap (𝒾 T)).to_subgroup.map (𝒾 T) :=
-  begin
+  (T ⊓ N) = subgroup.map (𝒾 T) (comap (𝒾 T) N) :=
+begin
   ext x,
   split,
   { intro h,
@@ -420,8 +423,7 @@ theorem subgroup_inf (N : normal G) (T : subgroup G) :
     cases h with hxt hxn,
     use ⟨x, hxt⟩,
     split,
-    { dsimp,
-      show _ ∈ ⇑(𝒾 T) ⁻¹' ↑N,
+    { show _ ∈ ⇑(𝒾 T) ⁻¹' ↑N,
       exact hxn },
     { refl } },
   { rintro ⟨⟨g, hgt⟩, ht1, rfl⟩,
@@ -430,7 +432,7 @@ theorem subgroup_inf (N : normal G) (T : subgroup G) :
     split,
     { exact hgt },
     { exact ht1 } }
-  end
+end
 
 end normal
 
@@ -438,7 +440,7 @@ namespace quotient
 
 variables {G H : Type} [group G] [group H]
 
-def second_iso_theorem (T : subgroup G)( N : normal G) : 
+def second_iso_theorem (T : subgroup G) (N : normal G) : 
   T /ₘ (N.comap (𝒾 T)) ≅ ↥(T ⊔ N) /ₘ N.comap (𝒾 (T ⊔ N)) :=
 { to_fun := sorry,
   map_mul' := sorry,
@@ -448,7 +450,7 @@ def second_iso_theorem (T : subgroup G)( N : normal G) :
 -- subgroup along a surjection
 
 def third_iso_theorem (T : normal G) (N : normal G)
-  (h : T.carrier ⊆ N.carrier):
+  (h : T.carrier ⊆ N.carrier) :
   let NmodT : normal (G /ₘ T) := N.nmap (quotient.is_surjective) in  
    (G /ₘ T) /ₘ NmodT ≅ G /ₘ N := sorry
 
