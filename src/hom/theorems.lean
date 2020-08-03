@@ -83,7 +83,7 @@ def kernel (f : G →* H) : normal G :=
       simp [hn],
     end }
 
-/-- The image of a homomorphism `f : G →* H` is the subgroup of `H` whos carrier 
+/-- The image of a homomorphism `f : G →* H` is the subgroup of `H` whose carrier 
   is the image of `univ : set G`, i.e. `f '' univ` -/
 def image (f : G →* H) : subgroup H :=
 { carrier := f '' univ, 
@@ -443,7 +443,7 @@ end
 end normal
 
 namespace quotient
-
+open mygroup.subgroup
 variables {G H : Type} [group G] [group H]
 
 open normal
