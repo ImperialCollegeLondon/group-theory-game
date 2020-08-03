@@ -308,7 +308,7 @@ theorem first_iso_theorem {f : G →* H}:
   end} 
 
 
-
+#where
 --The preimage of a normal subgroup is normal
 def preimage_of_normal (N : normal G) (T : subgroup G): normal T := 
 {carrier := 𝒾 T ⁻¹' N,
@@ -341,7 +341,7 @@ def preimage_of_normal (N : normal G) (T : subgroup G): normal T :=
     end, 
 }
 
-theorem foo (N : normal G) (T : subgroup G) : 
+theorem subgroup_inf (N : normal G) (T : subgroup G) : 
 (inter_subgroup T N).carrier = (𝒾 T) '' (preimage_of_normal N T).carrier :=
   begin
   ext x,
