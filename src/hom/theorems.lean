@@ -440,8 +440,51 @@ namespace quotient
 
 variables {G H : Type} [group G] [group H]
 
+open normal
+
+/-
+  The way to think about the formulation of the second isomorphism theorem is 
+  think about the individual mappings.
+
+  First let us think about what `comap (𝒾 T) N` represents.
+  `comap f N` is the normal subgroup whose underlying set is the preimage of `N` 
+  alongside `f`, so `comap (𝒾 T) N` is the normal subgroup of `T` that gets 
+  mapped into `N` under the inclusion map, i.e. elements in `T ∩ N`.
+
+  Now let us consider `comap (𝒾 (T ⊔ N)) N` which is similar.
+
+                                        +----------------------+
+                                        |                      |
+          +------------+   `𝒾 (T ⊔ N)`    | +------------+       |
+          |          +---------------------->          |       |
+          | +--------+ |                | | +--------+ |       |
+          | |        | |                | | |        | |       |
+          | |  `N`   <-----------------------+  `N`  | |       |
+          | |        | |    `comap`     | | |        | |       |
+          | |        | |                | | |        | |       |
+          | +--------+ |                | | +--------+ |       |
+          |            |                | |            |       |
+          |  `T ⊔ N`   |                   | |  `T ⊔ N`   |       |
+          +------------+                | +------------+       |
+                                        |                      |
+                                        |         `G`          | 
+                                        +----------------------+
+
+  Again the the `comap (𝒾 (T ⊔ N)) N` is the preimage along the inclusion map 
+  `𝒾 (T ⊔ N)`. But this this time we see that `N ⊆ T ⊔ N`so their intersection 
+  are is just `N`. 
+  
+  So why are we going through this trouble just to get back to `N`? The reason 
+  is that we have defined quotients to be an operation on a group and its normal 
+  subgroups. Notice that `comap (𝒾 (T ⊔ N)) N` does not have the same type as `N`. 
+  While `N` has type `normal G`, `comap (𝒾 (T ⊔ N)) N` has type `normal (T ⊔ N)` 
+  as demonstrated by the diagramme above. This is the type we need since we 
+  can only quotient `T ⊔ N` by one of its normal subgroups.
+-/
+
+
 def second_iso_theorem (T : subgroup G) (N : normal G) : 
-  T /ₘ (N.comap (𝒾 T)) ≅ ↥(T ⊔ N) /ₘ N.comap (𝒾 (T ⊔ N)) :=
+  T /ₘ comap (𝒾 T) N ≅ ↥(T ⊔ N) /ₘ comap (𝒾 (T ⊔ N)) N :=
 { to_fun := sorry,
   map_mul' := sorry,
   is_bijective := sorry }
