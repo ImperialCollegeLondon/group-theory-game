@@ -157,7 +157,7 @@ begin
   rw [lcoset_rel_def, lcoset_eq] at *,
   rw ←group.inv_mul,
   apply N.inv_mem',
-  convert N.conj_mem _ hxy y,
+  convert N.conj_mem' _ hxy y,
   simp [←group.mul_assoc]
 end
 
@@ -180,7 +180,7 @@ by rwa [lcoset_rel_def, lcoset_eq, group.one_inv, group.one_mul] at hg
 /-- If `lcoset_rel H` is a congruence then `H` is normal -/
 def normal_of_con (H : subgroup G) {R : group_con G} 
   (hR : R.r = lcoset_rel H) : normal G := 
-{ conj_mem := λ n hn g, mem_of_con_one $
+{ conj_mem' := λ n hn g, mem_of_con_one $
     begin
       rw [←hR, (show (1 : G) = g * 1 * g⁻¹, by simp)],
       refine R.mul' (R.mul' (R.iseqv.1 _) _) (R.iseqv.1 _),
@@ -198,15 +198,6 @@ lemma exists_mk {N : normal G} (c : G /ₘ N) : ∃ g : G, (g : G /ₘ N) = c :=
 /-- `(⟦p⟧ : G /ₘ N) = ⟦q⟧` iff `p • N = q • N` where `p q : G` -/
 lemma mk_eq {p q : G} : (p : G /ₘ N) = q ↔ p • N = q • N :=
   ⟨λ h, quotient.eq.1 h, λ h, quotient.eq.2 h⟩
-
-/-- The coercion from a group `G` to its quotient `G / N` is a homomorphism -/
-def mk' (N : normal G) : G →* G /ₘ N := 
-{ to_fun := λ g, g,
-  map_mul' := λ _ _, by apply quotient.sound; refl }
-
-/-- The homomorphism of the coercion from a group `G` to its quotient `G / N` 
-  is a surjection -/
-theorem is_surjective : surjective $ mk' N := exists_mk
 
 end quotient
 
