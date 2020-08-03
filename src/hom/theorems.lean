@@ -76,7 +76,7 @@ def kernel (f : G →* H) : normal G :=
       rw [mem_preimage, mem_singleton_iff] at *,
       rw [map_inv f, hx, group.one_inv]
     end,
-  conj_mem' :=
+  conj_mem :=
     begin
       intros _ hn _,
       rw [mem_preimage, mem_singleton_iff] at *,
@@ -378,7 +378,7 @@ def comap (f : G →* H) (N : normal H) : normal G :=
       rw map_inv,
       exact N.inv_mem' h,
     end,
- conj_mem' := 
+ conj_mem := 
     begin
       intros n h t ,
       rw [mem_preimage, map_mul, map_mul],
@@ -402,7 +402,7 @@ def nmap {f : G →* H} (hf : surjective f) (N : normal G) : normal H :=
     rintros _ ⟨a, ha, rfl⟩,
     refine ⟨a⁻¹, N.to_subgroup.inv_mem ha, f.map_inv⟩,    
   end,
-  conj_mem' := begin
+  conj_mem := begin
     rintro _ ⟨b, hb, rfl⟩,
     intro h,
     dsimp,
