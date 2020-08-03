@@ -123,7 +123,7 @@ end
 
 def normal_of_mem_comm {K : subgroup G} 
   (h : ∀ g k : G, g * k ∈ K → k * g ∈ K) : normal G :=
-{ conj_mem := 
+{ conj_mem' := 
   begin
     intros n hn g,
     suffices : g * (n * g⁻¹) ∈ K,
@@ -151,7 +151,7 @@ end
 
 def normal_of_coset_eq {K : subgroup G} 
   (h : ∀ g : G, g • K = K • g) : normal G :=
-{ conj_mem := 
+{ conj_mem' := 
   begin
     intros n hn g,
     have : ∃ s ∈ K • g, s = g * n,
@@ -178,7 +178,7 @@ end
 
 def normal_of_prod_in_coset {K : subgroup G} 
   (h : ∀ x y g h : G, x ∈ g • K → y ∈ h • K → x * y ∈ (g * h) • K) : normal G :=
-{ conj_mem := 
+{ conj_mem' := 
   begin
     intros n hn g,
     rcases h (g * n) (g⁻¹ * n) g g⁻¹ 

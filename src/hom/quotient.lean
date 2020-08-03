@@ -1,4 +1,4 @@
-import subgroup.theorems group_theory.congruence
+import hom.definitions group_theory.congruence
 
 namespace mygroup
 
@@ -119,7 +119,7 @@ instance : group (quotient R) :=
 the equivalence relation ~ : (g, k) ↦ g H = k H on G is a group congruence if 
 and only if H is normal. -/
 
-open mygroup.subgroup lagrange
+open mygroup.subgroup lagrange function
 
 variables {H : subgroup G} {N : normal G}
 
@@ -132,7 +132,9 @@ def lcoset_rel (H : subgroup G) := λ x y, x • H = y • H
 local notation x ` ~ ` y := lcoset_rel H x y 
 local notation x ` ~[ ` H ` ] ` y := lcoset_rel H x y
 
-def lcoset_iseqv (H : subgroup G) : equivalence (lcoset_rel H) := 
+lemma lcoset_rel_def (x y : G) : x ~ y ↔ x • H = y • H := iff.rfl
+
+lemma lcoset_iseqv (H : subgroup G) : equivalence (lcoset_rel H) := 
 begin
   refine ⟨by tauto, λ _ _ hxy, hxy.symm, _⟩,
   intros _ _ _ hxy hyz, unfold lcoset_rel at *, rw [hxy, hyz]
@@ -141,8 +143,7 @@ end
 lemma lcoset_mul {x₀ x₁ y₀ y₁ : G} 
   (hx : x₀ ~[↑N] x₁) (hy : y₀ ~[↑N] y₁) : (x₀ * y₀) ~[↑N] (x₁ * y₁) := 
 begin
-  unfold lcoset_rel at *,
-  rw lcoset_eq at *,
+  rw [lcoset_rel_def, lcoset_eq] at *,
   have := N.conj_mem _ hx y₁⁻¹, 
   rw group.inv_inv at this,
   replace this := N.mul_mem' this hy,
@@ -153,8 +154,8 @@ end
 
 lemma lcoset_inv {x y : G} (hxy : x ~[↑N] y) : (x⁻¹ ~[↑N] y⁻¹) := 
 begin
-  unfold lcoset_rel at *,
-  rw lcoset_eq at *, rw ←group.inv_mul,
+  rw [lcoset_rel_def, lcoset_eq] at *,
+  rw ←group.inv_mul,
   apply N.inv_mem',
   convert N.conj_mem' _ hxy y,
   simp [←group.mul_assoc]
@@ -170,15 +171,11 @@ def con_of_normal (G : Type) [group G] (N : normal G) : group_con G :=
 lemma con_one_of_mem : ∀ h ∈ H, h ~ 1 :=
 begin
   intros h hh,
-  unfold lcoset_rel,
-  rw lcoset_eq, simpa  
+  rw [lcoset_rel_def, lcoset_eq], simpa  
 end
 
 lemma mem_of_con_one {g : G} (hg : g ~ 1) : g ∈ H :=
-begin
-  unfold lcoset_rel at hg,
-  rwa [lcoset_eq, group.one_inv, group.one_mul] at hg
-end
+by rwa [lcoset_rel_def, lcoset_eq, group.one_inv, group.one_mul] at hg
 
 /-- If `lcoset_rel H` is a congruence then `H` is normal -/
 def normal_of_con (H : subgroup G) {R : group_con G} 
@@ -205,11 +202,3 @@ lemma mk_eq {p q : G} : (p : G /ₘ N) = q ↔ p • N = q • N :=
 end quotient
 
 end mygroup
-
-
-
-
-
-
-
-
