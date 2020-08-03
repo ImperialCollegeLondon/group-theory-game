@@ -156,7 +156,7 @@ begin
   unfold lcoset_rel at *,
   rw lcoset_eq at *, rw ←group.inv_mul,
   apply N.inv_mem',
-  convert N.conj_mem _ hxy y,
+  convert N.conj_mem' _ hxy y,
   simp [←group.mul_assoc]
 end
 
@@ -183,7 +183,7 @@ end
 /-- If `lcoset_rel H` is a congruence then `H` is normal -/
 def normal_of_con (H : subgroup G) {R : group_con G} 
   (hR : R.r = lcoset_rel H) : normal G := 
-{ conj_mem := λ n hn g, mem_of_con_one $
+{ conj_mem' := λ n hn g, mem_of_con_one $
     begin
       rw [←hR, (show (1 : G) = g * 1 * g⁻¹, by simp)],
       refine R.mul' (R.mul' (R.iseqv.1 _) _) (R.iseqv.1 _),
@@ -205,3 +205,11 @@ lemma mk_eq {p q : G} : (p : G /ₘ N) = q ↔ p • N = q • N :=
 end quotient
 
 end mygroup
+
+
+
+
+
+
+
+

@@ -230,8 +230,6 @@ def map (f : G →* H) (K : subgroup G) : subgroup H :=
 lemma mem_map (f : G →* H) (K : subgroup G) (a : H) :
   a ∈ K.map f ↔ ∃ g : G, g ∈ K ∧ f g = a := iff.rfl
 
--- TODO -- `comap`, the pre-image of a subgroup is a subgroup
-
 end subgroup
 
 namespace quotient
@@ -245,7 +243,7 @@ variable {f : G →* H}
 open lagrange mygroup.quotient function
 
 /-- The natural map from a group `G` to its quotient `G / N` is a homomorphism -/
-def map (N : normal G) : G →* G /ₘ N := 
+def mk (N : normal G) : G →* G /ₘ N := 
 { to_fun := λ g, g,
   map_mul' := λ _ _, by apply quotient.sound; refl }
 
@@ -253,7 +251,7 @@ variable {N : normal G}
 
 /-- The natural homomorphism from a group `G` to its quotient `G / N` is a 
   surjection -/
-theorem is_surjective : surjective $ map N := exists_mk
+theorem is_surjective : surjective $ mk N := exists_mk
 
 -- The first isomorphism theorem states that for all `f : G →* H`, 
 -- `G /ₘ kernel f ≅ image f`, we will prove this here.
@@ -391,6 +389,30 @@ def comap (f : G →* H) (N : normal H) : normal G :=
     end, 
 }
 
+open function
+
+def nmap {f : G →* H} (hf : surjective f) (N : normal G) : normal H := 
+{ carrier := f '' N.carrier,
+  one_mem' := ⟨1, N.to_subgroup.one_mem, f.map_one⟩,
+  mul_mem' := begin
+    rintros _ _ ⟨a, ha, rfl⟩ ⟨b, hb, rfl⟩,
+    refine ⟨a * b, N.to_subgroup.mul_mem ha hb, f.map_mul a b⟩,
+  end,
+  inv_mem' := begin
+    rintros _ ⟨a, ha, rfl⟩,
+    refine ⟨a⁻¹, N.to_subgroup.inv_mem ha, f.map_inv⟩,    
+  end,
+  conj_mem' := begin
+    rintro _ ⟨b, hb, rfl⟩,
+    intro h,
+    dsimp,
+    rcases hf h with ⟨g, rfl⟩,
+    use g*b*g⁻¹,
+    split,
+    { exact N.conj_mem b hb g},
+    { simp [f.map_mul] }
+  end }
+
 /-- Intersection of T and N is the pushforward to G of (the pullback to T of N) 
 along the natural map T → G -/
 theorem subgroup_inf (N : normal G) (T : subgroup G) : 
@@ -426,9 +448,14 @@ def second_iso_theorem (T : subgroup G)( N : normal G) :
   map_mul' := sorry,
   is_bijective := sorry }
 
+-- to state this one we need to be able to push forward (`map`) a normal
+-- subgroup along a surjection
+
+open function
+
 definition third_iso_theorem [ T : normal G] [N : normal G]
   (h: T.carrier ⊆ N.carrier):
-  let NmodT : normal (G /ₘ T) := sorry in  
+  let NmodT : normal (G /ₘ T) := N.nmap (quotient.is_surjective) in  
    (G /ₘ T) /ₘ NmodT ≅ G /ₘ N := sorry
 
 end mygroup
