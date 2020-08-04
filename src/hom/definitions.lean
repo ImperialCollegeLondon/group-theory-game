@@ -1,5 +1,5 @@
 import tactic
-import subgroup.theorems
+import subgroup.lattice
 
 /-!
 
@@ -25,6 +25,10 @@ infixr ` →* `:25 := group_hom
 -- coercion to a function
 instance {G H : Type} [group G] [group H] :
   has_coe_to_fun (G →* H) := ⟨_, group_hom.to_fun⟩
+
+@[simp] lemma to_fun_eq_coe {G H : Type} [group G] [group H]
+  (f : G →* H) : f.to_fun = f := rfl
+
 
 -- the identity homomorphism
 def id_hom {G : Type} [group G] : G →* G := ⟨id, λ x y, rfl⟩
@@ -68,6 +72,9 @@ def map_comp (f : G →* H) (g : H →* K) : G →* K :=
   map_mul' := λ x y, by simp }
 notation g ` ∘* ` f := map_comp f g
 
+@[simp] lemma coe_map_comp (f : G →* H) (g : H →* K) : ((g ∘* f) : G → K) =
+  g ∘ f := rfl
+
 /-- A group is isomorphic to itself by the identity homomorphism -/
 def iso_refl : G ≅ G := 
 { is_bijective := function.bijective_id, .. id_hom }
@@ -89,6 +96,19 @@ noncomputable def mul_equiv_of_iso (f : G ≅ H) : G ≃* H :=
 /-- If the group `G` is isomorphic to the group `H`, then `H` is isomorphic to `G`-/
 noncomputable def iso_symm (f : G ≅ H) : H ≅ G := 
   iso_of_mul_equiv $ mul_equiv.symm $ mul_equiv_of_iso f
+
+
+def to_prod (H : subgroup G) (N : normal G) : H →* H ⨯ N :=
+{ to_fun := λ h, ⟨h.1, h.1, h.2, 1, subgroup.one_mem N, (group.mul_one _).symm⟩,
+  map_mul' := λ ⟨x, hx⟩ ⟨y, hy⟩, subtype.val_injective rfl }
+
+@[simp] lemma to_prod_apply (H : subgroup G) (N : normal G) (h : H) :
+  to_prod H N h = ⟨h.1, h.1, h.2, 1, subgroup.one_mem N, (group.mul_one _).symm⟩ :=
+rfl
+
+def to_prod' (H : subgroup G) (N : normal G) : N.to_subgroup →* H ⨯ N :=
+{ to_fun := λ n, ⟨n.1, 1, H.one_mem, n.1, n.2, (group.one_mul _).symm⟩,
+  map_mul' := λ ⟨x, hx⟩ ⟨y, hy⟩, subtype.val_injective rfl }
 
 end group_hom -- namespace for group homs
 

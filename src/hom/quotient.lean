@@ -69,7 +69,7 @@ instance : has_one (quotient R) := ⟨((1 : G) : quotient R)⟩
 lemma coe     (x : G)   : quotient.mk' x = (x : quotient R) := rfl 
 lemma coe_mul (x y : G) : (x : quotient R) * y = ((x * y : G) : quotient R) := rfl  
 lemma coe_inv (x : G)   : (x : quotient R)⁻¹ = ((x⁻¹ : G ): quotient R) := rfl
-lemma coe_one           : 1 = ((1 : G) : quotient R) := rfl
+lemma coe_one           : ((1 : G) : quotient R) = 1 := rfl
 
 -- I think the rhs is more desirable in most cases so I will make simp use them
 attribute [simp] coe coe_mul coe_inv coe_one
@@ -94,7 +94,7 @@ end
 lemma one_mul' {a : quotient R} : 1 * a = a := 
 begin
   apply quotient.induction_on' a,
-  intro x, rw [coe, coe_one, coe_mul, group.one_mul]  
+  intro x, rw [coe, ←coe_one, coe_mul, group.one_mul]  
 end
 
 lemma mul_left_inv' {a : quotient R} : a⁻¹ * a = 1 := 
@@ -129,8 +129,13 @@ notation g ` • ` :70 H :70 := lcoset g H
 notation H ` • ` :70 g :70 := rcoset g H
 
 def lcoset_rel (H : subgroup G) := λ x y, x • H = y • H
-local notation x ` ~ ` y := lcoset_rel H x y 
-local notation x ` ~[ ` H ` ] ` y := lcoset_rel H x y
+local notation x ` ~ `:70 y := lcoset_rel H x y 
+local notation x ` ~[ `:70 H:70 ` ] `:0 y:0 := lcoset_rel H x y
+
+/-
+infixr ` →ₗ `:25 := linear_map _
+notation M ` →ₗ[`:25 R:25 `] `:0 M₂:0 := linear_map R M M₂
+-/
 
 lemma lcoset_rel_def (x y : G) : x ~ y ↔ x • H = y • H := iff.rfl
 
@@ -168,6 +173,9 @@ def con_of_normal (G : Type) [group G] (N : normal G) : group_con G :=
   mul' := λ x₀ x₁ y₀ y₁ hx hy, lcoset_mul hx hy,
   inv' := λ x y hxy, lcoset_inv hxy }
 
+lemma con_of_normal_def {G : Type} [group G] {N : normal G} (x y : G) : 
+con_of_normal G N x y ↔ x ~[↑N] y := iff.rfl
+
 lemma con_one_of_mem : ∀ h ∈ H, h ~ 1 :=
 begin
   intros h hh,
@@ -187,9 +195,11 @@ def normal_of_con (H : subgroup G) {R : group_con G}
        { rw hR, exact con_one_of_mem _ hn }
     end .. H }
 
+lemma con_one_iff_mem (h : G) : h ~ 1 ↔ h ∈ H := ⟨mem_of_con_one, con_one_of_mem h⟩
+
 -- So now, whenever we would like to work with "normal" quotient groups of 
 -- a group `G` over a normal group `N`, we write `quotient (con_of_normal N)`
-notation G ` /ₘ `:70 N := quotient (con_of_normal G N)
+notation G ` /ₘ `:70 N:70 := quotient (con_of_normal G N)
 
 /-- For all elements `c : G /ₘ N`, there is some `g : G` such that `⟦g⟧ = c`-/
 lemma exists_mk {N : normal G} (c : G /ₘ N) : ∃ g : G, (g : G /ₘ N) = c := 
@@ -198,6 +208,13 @@ lemma exists_mk {N : normal G} (c : G /ₘ N) : ∃ g : G, (g : G /ₘ N) = c :=
 /-- `(⟦p⟧ : G /ₘ N) = ⟦q⟧` iff `p • N = q • N` where `p q : G` -/
 lemma mk_eq {p q : G} : (p : G /ₘ N) = q ↔ p • N = q • N :=
   ⟨λ h, quotient.eq.1 h, λ h, quotient.eq.2 h⟩
+
+lemma mk_eq' {p q : G} : (p : G /ₘ N) = q ↔ q⁻¹ * p ∈ N :=
+begin
+  rw mk_eq,
+  exact lcoset_eq
+end
+
 
 end quotient
 

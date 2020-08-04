@@ -190,7 +190,9 @@ def product_subgroup (H : subgroup G) (K : normal G) : subgroup G :=
       refine ⟨h⁻¹, inv_mem H hh, h * k⁻¹ * h⁻¹, 
         mem_normal.2 ⟨h, k⁻¹, inv_mem K hk, rfl⟩, by simp [group.mul_assoc]⟩      
     end } 
-notation H ` ⨯ `:70 K:70 := product_subgroup H K
+
+--notation H ` ⨯ `:70 K:70 := product_subgroup H K
+infix ` ⨯ `:70 := product_subgroup
 
 lemma mem_product {H : subgroup G} {K : normal G} {x} : 
   x ∈ H ⨯ K ↔ ∃ (h ∈ H) (k ∈ K), x = h * k := iff.rfl

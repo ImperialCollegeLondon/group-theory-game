@@ -120,8 +120,18 @@ end subgroup
 
 namespace normal
 
-def conj_mem {G : Type} [group G] (N : normal G) (n : G) (hn : n ∈ N) (g : G) :
+variables {G : Type} [group G]
+
+lemma conj_mem  (N : normal G) (n : G) (hn : n ∈ N) (g : G) :
   g * n * g⁻¹ ∈ N := N.conj_mem' n hn g
+
+@[ext] lemma ext (A B : normal G) (h : ∀ g, g ∈ A ↔ g ∈ B) : A = B :=
+begin
+  cases A with A, cases B with B, cases A with A, cases B with B,
+  suffices : A = B,
+    simp * at *,
+  ext x, exact h x
+end
 
 end normal
 
