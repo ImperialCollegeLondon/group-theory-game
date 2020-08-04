@@ -172,7 +172,7 @@ by { apply mem_sup_of_mem, left, assumption }
 lemma mem_sup_of_mem_right {x} (hx : x ∈ K) : x ∈ H ⊔ K :=
 by { apply mem_sup_of_mem, right, assumption }
 
-/-- The product of a subgroup and a normal subgroup form a subgroup -/
+/-- The product of a subgroup and a normal subgroup forms a subgroup -/
 def product_subgroup (H : subgroup G) (K : normal G) : subgroup G := 
 { carrier := { g | ∃ h ∈ H, ∃ k ∈ K, g = h * k },
   one_mem' := ⟨1, one_mem H, 1, one_mem K, (group.one_mul _).symm⟩,

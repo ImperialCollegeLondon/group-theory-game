@@ -484,8 +484,9 @@ open normal
 
 
 def second_iso_theorem (T : subgroup G) (N : normal G) : 
-  T /ₘ comap (𝒾 T) N ≅ ↥(T ⊔ N) /ₘ comap (𝒾 (T ⊔ N)) N :=
-{ to_fun := sorry,
+  T /ₘ comap (𝒾 T) N ≅ ↥(T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N :=
+{ to_fun := T → ↥(T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N,  --I want to prove this map is bijective
+-- and apply the first isomorphism theorem. Tried defining it as `λ (t : T), t • N`
   map_mul' := sorry,
   is_bijective := sorry }
 
