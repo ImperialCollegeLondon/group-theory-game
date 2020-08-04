@@ -344,6 +344,12 @@ def iso_of_surjective {f : G →* H} (hf : surjective f) : image f ≅ H :=
     ⟨⟨y, show y ∈ f '' univ, by simp [hf y]⟩, by simp [𝒾]⟩ ⟩,
   .. 𝒾 $ image f }
 
+/-- The first isomorphism theorem with a surjective homomorphism: 
+  `G /ₘ kernel f ≅ H` for `f : G →* H` a surjective group homomorphism-/
+def quotient_kernel_iso_of_surjective {f : G →* H} (hf : surjective f): 
+  G /ₘ kernel f ≅ H := 
+iso_comp (quotient_kernel_iso_image f) $ iso_of_surjective hf
+
 end quotient
 
 namespace normal
