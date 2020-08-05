@@ -196,9 +196,6 @@ instance : subgroup_of G (inter G H K) :=
       simpa using hxy
     end }
 
--- def inf := 
--- def inf (φ : H →* G) (ψ : K →* G)
-
 end subgroup
 
 end mygroup
