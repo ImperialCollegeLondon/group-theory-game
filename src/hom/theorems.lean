@@ -619,9 +619,6 @@ def second_iso_theorem (T : subgroup G) (N : normal G) :
     end),
 }
 
---T → ↥(T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N,  --I want to prove this map is bijective
--- and apply the first isomorphism theorem. Tried defining it as `λ (t : T), t • N`
-
 -- to state this one we need to be able to push forward (`map`) a normal
 -- subgroup along a surjection
 
