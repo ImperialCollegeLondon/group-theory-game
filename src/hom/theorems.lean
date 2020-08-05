@@ -24,7 +24,7 @@ namespace mygroup
 -- We're proving things about group homs so this all goes in the `group_hom`
 -- namespace
 
-open set mygroup.subgroup
+open set mygroup.subgroup function
 
 namespace group_hom
 
@@ -52,6 +52,16 @@ begin
   rw f.map_one,
   -- refl
 end
+
+-- Inclusion map as a homomorphism from a subgroup to the group
+def 𝒾 (H : subgroup G) : H →* G :=
+{ to_fun := λ h, (h : G),
+  map_mul' := λ _ _, rfl }
+
+@[simp] lemma 𝒾_def {H : subgroup G} {h} (hh : h ∈ H) : 𝒾 H ⟨h, hh⟩ = h := rfl
+
+-- The inclusion map is injective
+lemma injective_𝒾 {H : subgroup G} : injective $ 𝒾 H := λ _ _ hxy, subtype.eq hxy
 
 -- We prove the theorems here (only);
 -- definitions need to go elsewhere
@@ -182,8 +192,7 @@ begin
   simp_rw [←mem_kernel, set.ext_iff, mem_singleton_iff],
   split,
   { intros h a ha,
-    rwa ←h,
-  },
+    rwa ←h },
   { intros h a,
     split, apply h,
     rintro rfl,
@@ -217,13 +226,13 @@ variables {G : Type} [group G] {H : Type} [group H]
 
 /-- image of a subgroup is a subgroup -/
 def map (f : G →* H) (K : subgroup G) : subgroup H :=
-{ carrier := f '' (K.carrier),
+{ carrier := f '' K,
   one_mem' := begin
     rw mem_image,
     use 1,
     split,
-    { exact K.one_mem},
-    { exact f.map_one}
+    { exact K.one_mem },
+    { exact f.map_one }
   end,
   mul_mem' := begin
     rintros _ _ ⟨a, ha, rfl⟩ ⟨b, hb, rfl⟩,
@@ -244,8 +253,7 @@ namespace quotient
 open group_hom lagrange mygroup.quotient function
 
 variables {G H K : Type} [group G] [group H] [group K]
-
-variable {f : G →* H}
+variables {f : G →* H}
 
 /-- The natural map from a group `G` to its quotient `G / N` is a homomorphism -/
 def mk (N : normal G) : G →* G /ₘ N :=
@@ -254,17 +262,17 @@ def mk (N : normal G) : G →* G /ₘ N :=
 
 variable {N : normal G}
 
+-- The coercion from `G` to `G /ₘ N` is exactly our `mk` group hom
 @[simp] lemma coe_eq_mk (g : G) : (g : G /ₘ N) = mk N g := rfl
 
+-- The kernel of `mk N` is `N` 
 lemma kernel_mk {N : normal G} : kernel (mk N) = N :=
 begin
   ext x,
   show (x : G /ₘ N) = (1 : G) ↔ x ∈ N.to_subgroup,
-  rw mk_eq,
-  rw ←con_one_iff_mem,
+  rw [mk_eq, ←con_one_iff_mem],
   refl,
 end
-
 
 /-- The natural homomorphism from a group `G` to its quotient `G / N` is a
   surjection -/
@@ -279,6 +287,40 @@ theorem is_surjective : surjective $ mk N := exists_mk
 -- to `f x` where `h` is a proof that this function is well defined, i.e.
 -- `∀ x y : α, ⟦x⟧ = ⟦y⟧ → f x = f y`.
 
+/- Given a group hom `f : G →* H` and a normal subgroup `N` of `G`
+with `N ⊆ kernel f`, there's an induced hom `G /ₘ N → H` -/
+def lift (f : G →* H) (N : normal G) (h : N.to_subgroup ≤ kernel f) :
+G /ₘ N →* H :=
+{ to_fun := λ x, lift_on x f 
+  begin
+    intros x y h1,
+    rw [con_of_normal_def, lcoset_rel_def, lcoset_eq] at h1,
+    specialize h h1,
+    change y⁻¹ * x ∈ f.kernel at h,
+    rw mem_kernel at h,
+    rw [map_mul, map_inv] at h,
+    apply group.mul_left_cancel (f y)⁻¹,
+    rw h, simp
+  end,
+  map_mul' := λ a b, quotient.induction_on₂' a b f.map_mul }
+
+@[simp] lemma lift_mk {f : G →* H} (N : normal G) (h : N.to_subgroup ≤ kernel f)
+  (g : G) : lift f N h (mk N g) = f g := rfl
+
+lemma lift_image {f : G →* H} {N : normal G} (h : N.to_subgroup ≤ kernel f) :
+  (lift f N h).image = f.image :=
+begin
+  ext x, split,
+  { rintro ⟨a, rfl⟩,
+    rcases exists_mk a with ⟨g, rfl⟩,
+    exact group_hom.mem_image.2 ⟨g, rfl⟩ },
+  { rintro ⟨a, rfl⟩,
+    exact ⟨(mk N a), rfl⟩ }
+end
+
+-- For the first isomorphism theorem, we will define a specific version of the
+-- `lift` homomorphism above with `N = kernel f` 
+
 -- First we prove such a map is well defined
 lemma map_of_lcoset_eq {f : G →* H} {x y : G}
   (hxy : x • kernel f = y • kernel f) : f x = f y :=
@@ -287,47 +329,6 @@ begin
       ←map_inv, ←map_mul, map_inv, group.mul_left_inv,
       ←mem_kernel],
   exact lcoset_eq.1 hxy
-end
-
-/- Given a group hom `f : G →* H` and a normal subgroup `N` of `G`
-with `N ⊆ ker(f)`, there's an induced hom `G/N → H`
--/
-def lift (f : G →* H) (N : normal G) (h : N.to_subgroup ≤ kernel f) :
-G /ₘ N →* H :=
-{ to_fun := λ x, lift_on x f begin
-    intros x y h1,
-    rw con_of_normal_def at h1,
-    rw lcoset_rel_def at h1,
-    rw lcoset_eq at h1,
-    specialize h h1,
-    change y⁻¹ * x ∈ f.kernel at h,
-    rw mem_kernel at h,
-    rw f.map_mul at h,
-    rw f.map_inv at h,
-    apply group.mul_left_cancel (f y)⁻¹,
-    rw h,
-    simp
-  end,
-  map_mul' := λ a b, begin
-    apply quotient.induction_on₂' a b,
-    exact f.map_mul,
-  end }
-
-@[simp] lemma lift_mk {f : G →* H} (N : normal G) (h : N.to_subgroup ≤ kernel f)
-  (g : G) : lift f N h (mk N g) = f g := rfl
-
-lemma lift_image {f : G →* H} {N : normal G} (h : N.to_subgroup ≤ kernel f) :
-  (lift f N h).image = f.image :=
-begin
-  ext x,
-  split,
-  { rintro ⟨a, rfl⟩,
-    rcases a,
-    use a,
-    refl },
-  { rintro ⟨a, rfl⟩,
-    use (mk N a),
-    refl }
 end
 
 /-- Given a group homomorphism `f : G →* H`, `kernel_lift f` is a mapping from
@@ -388,16 +389,6 @@ def quotient_kernel_iso_image (f : G →* H) :
 { is_bijective := bijective_of_kernel_lift_hom',
   .. kernel_lift_hom' f }
 
--- Inclusion map as a homomorphism from a subgroup to the group
-def 𝒾 (H : subgroup G) : H →* G :=
-{ to_fun := λ h, (h : G),
-  map_mul' := λ _ _, rfl }
-
-@[simp] lemma 𝒾_def {H : subgroup G} {h} (hh : h ∈ H) : 𝒾 H ⟨h, hh⟩ = h := rfl
-
--- The inclusion map is injective
-lemma injective_𝒾 {H : subgroup G} : injective $ 𝒾 H := λ _ _ hxy, subtype.eq hxy
-
 -- The image of a surjective homomorphism is isomorphic to the group its mapped to
 def iso_of_surjective {f : G →* H} (hf : surjective f) : image f ≅ H :=
 { is_bijective := ⟨ injective_𝒾, λ y,
@@ -406,21 +397,32 @@ def iso_of_surjective {f : G →* H} (hf : surjective f) : image f ≅ H :=
 
 /-- The first isomorphism theorem with a surjective homomorphism:
   `G /ₘ kernel f ≅ H` for `f : G →* H` a surjective group homomorphism-/
-def quotient_kernel_iso_of_surjective {f : G →* H} (hf : surjective f):
+def quotient_kernel_iso_of_surjective {f : G →* H} (hf : surjective f) :
   G /ₘ kernel f ≅ H :=
 iso_comp (quotient_kernel_iso_image f) $ iso_of_surjective hf
+
+def subst_iso {A B : normal G} (h : A = B) : G /ₘ A ≅ G /ₘ B :=
+{ is_bijective := begin subst h, convert bijective_id, ext x, rcases x, refl end,
+  ..(lift (mk B) A (by {rw [h, kernel_mk], refl'})) }
+
+def subst_iso' {A B : normal G} (h : A = B) (f : G /ₘ A ≅ H) : G /ₘ B ≅ H := 
+iso_comp (subst_iso h.symm) f
+
+def quotient_kernel_iso_of_surjective' {f : G →* H} (hf : surjective f) 
+{N : normal G} (hN : kernel f = N) :
+  G /ₘ N ≅ H := subst_iso' hN $ quotient_kernel_iso_of_surjective hf
 
 end quotient
 
 namespace normal
 
-open group_hom function mygroup.quotient
+open group_hom function mygroup.quotient mygroup.subgroup
 
 variables {G H : Type} [group G] [group H]
 
 /-- The preimage of a normal subgroup is normal -/
 def comap (f : G →* H) (N : normal H) : normal G :=
-{carrier := f⁻¹' N,
+{carrier := f ⁻¹' N,
  one_mem' :=
     begin
       rw [mem_preimage, map_one],
@@ -450,6 +452,10 @@ def comap (f : G →* H) (N : normal H) : normal G :=
       apply f.map_inv
     end }
 
+@[simp] lemma mem_comap {f : G →* H} {N : normal H} (x) : 
+  x ∈ comap f N ↔ f x ∈ N := 
+show x ∈ f ⁻¹' N ↔ f x ∈ N, by exact mem_preimage
+
 /-- The surjective image of a normal subgroup is normal -/
 def nmap {f : G →* H} (hf : surjective f) (N : normal G) : normal H :=
 { carrier := f '' N,
@@ -472,14 +478,18 @@ def nmap {f : G →* H} (hf : surjective f) (N : normal G) : normal H :=
       rcases hf h with ⟨g, rfl⟩,
       use g * b * g⁻¹,
       split,
-      { exact N.conj_mem b hb g},
+      { exact N.conj_mem b hb g },
       { simp [f.map_mul] }
     end }
+
+@[simp] lemma mem_nmap {f : G →* H} (hf : surjective f) {N : normal G} (y) : 
+  y ∈ nmap hf N ↔ ∃ x ∈ N, f x = y := 
+  show y ∈ f '' N ↔ _, by rw mem_image_iff_bex; refl
 
 /-- Intersection of T and N is the pushforward to G of (the pullback to T of N)
 along the natural map T → G -/
 theorem subgroup_inf (N : normal G) (T : subgroup G) :
-  (T ⊓ N) = subgroup.map (𝒾 T) (comap (𝒾 T) N) :=
+  (T ⊓ N) = map (𝒾 T) (comap (𝒾 T) N) :=
 begin
   ext x,
   split,
@@ -510,7 +520,8 @@ variables {G H : Type} [group G] [group H]
 
 open normal
 
-/-- If N ⊆ ker(f) then the kernel of induced map fbar : G/N → H is image of ker(f) -/
+/-- If `N ⊆ kernel f` then the kernel of induced map `lift f N h` is 
+  image of `kernel f` -/
 lemma lift_kernel {f : G →* H} {N : normal G} (h : N.to_subgroup ≤ kernel f) :
   kernel (lift f N h) = nmap is_surjective (kernel f) :=
 begin
@@ -531,7 +542,6 @@ begin
     rw lift_mk,
     assumption }
 end
-
 
 /-
   The way to think about the formulation of the second isomorphism theorem is
@@ -580,6 +590,9 @@ end
 
 open mygroup.group_hom
 
+-- Proof of the second isomorphism theorem by directly constructing the 
+-- homomorphism and proving its bijective
+
 def second_iso_theorem (T : subgroup G) (N : normal G) :
   T /ₘ comap (𝒾 T) N ≅ ↥(T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N :=
 { is_bijective := begin
@@ -594,7 +607,7 @@ def second_iso_theorem (T : subgroup G) (N : normal G) :
       rw [kernel_mk, kernel_mk],
       exact id },
     { intro x,
-      rcases quotient.exists_mk x with ⟨g, rfl⟩,
+      rcases exists_mk x with ⟨g, rfl⟩,
       rcases g with ⟨_, t, ht, n, hn, rfl⟩,
       use mk (comap (𝒾 T) N) ⟨t, ht⟩,
       dsimp,
@@ -608,33 +621,54 @@ def second_iso_theorem (T : subgroup G) (N : normal G) :
     (comap (𝒾 T) N) begin
       intros x hxN,
       cases x with x hxT,
-      change x ∈ T at hxT,
-      change x ∈ N at hxN,
       show _ ∈ (kernel ((mk (comap (𝒾 (T ⨯ N)) N) ∘* to_prod T N))),
       rw mem_kernel,
       show mk (comap (𝒾 (T ⨯ N)) N) ⟨x, _⟩ = 1,
       rw ← mem_kernel,
       rw kernel_mk,
       exact hxN,
-    end),
-}
+    end) }
+
+-- An alternative proof of the second isomorphism theorem using the first 
+-- isomorphism theorem
+
+-- `aux_hom` is the natrual group homomorphism that maps `t : T` to 
+-- `(t : T ⨯ N) : (T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N`
+def aux_hom (T : subgroup G) (N : normal G) : 
+  T →* ↥(T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N := (mk _) ∘* (to_prod T N)
+
+@[simp] lemma aux_hom_def {T : subgroup G} {N : normal G} (g) : 
+  aux_hom T N g = (mk _) (to_prod T N g) := rfl
+
+-- `aux_hom` has kernel `comap (𝒾 T) N` or equivalently `T ⊓ N`
+lemma aux_hom_kernel {T : subgroup G} {N : normal G} : 
+  kernel (aux_hom T N) = comap (𝒾 T) N :=
+begin
+  ext, split; 
+    { rw [mem_kernel, aux_hom_def, ←coe_eq_mk, ←coe_one, mk_eq'],
+      intro hx, simpa using hx }
+end
+
+-- `aux_hom` is a surjective homomorphism
+lemma aux_hom_surjective (T : subgroup G) (N : normal G) : 
+  surjective $ aux_hom T N :=
+begin
+  intro y,
+  rcases exists_mk y with ⟨g, rfl⟩,
+  rcases g with ⟨_, t, ht, n, hn, rfl⟩,
+  refine ⟨⟨t, ht⟩, _⟩,
+  rw [aux_hom_def, ←coe_eq_mk, mk_eq'],
+  simpa [group.mul_assoc] using inv_mem ↑N hn,
+end
+
+def second_iso_theorem' (T : subgroup G) (N : normal G) :
+  T /ₘ comap (𝒾 T) N ≅ ↥(T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N := 
+quotient_kernel_iso_of_surjective' (aux_hom_surjective T N) aux_hom_kernel
 
 -- to state this one we need to be able to push forward (`map`) a normal
 -- subgroup along a surjection
 
 open function
-
-def dumb_type_theory_thing (A B : normal G) (h : A = B) : G /ₘ A ≅ G /ₘ B :=
-begin
-  cases h,
-  apply iso_refl,
-end
-
-def dumb_type_theory_thing' (A B : normal G) (h : A = B) : G /ₘ A ≅ G /ₘ B :=
-{ 
-  is_bijective := begin subst h, convert bijective_id, ext x, rcases x, refl end,
-  ..(lift (mk B) A (by {rw [h, kernel_mk], refl'})),
-}
 
 def third_iso_theorem (T : normal G) (N : normal G)
   (h : T.to_subgroup ≤ N) :
@@ -645,7 +679,8 @@ let f : G /ₘ T →* G /ₘ N := (lift (mk N) _ begin
     rw kernel_mk,
   end) in 
 iso_comp 
-  (dumb_type_theory_thing' _ _ begin
+  (subst_iso
+  begin
     show nmap is_surjective N = f.kernel,
     rw lift_kernel,
     rw kernel_mk
