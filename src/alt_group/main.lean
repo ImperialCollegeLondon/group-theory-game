@@ -4,6 +4,8 @@ import group.theorems
 
 namespace mygroup
 
+open set
+
 /- homomorphisms of groups -/
 
 /-- Bundled group homomorphisms -/
@@ -66,6 +68,24 @@ notation g ` ∘* ` f := map_comp f g
 @[simp] lemma coe_map_comp (f : G →* H) (g : H →* K) : ((g ∘* f) : G → K) =
   g ∘ f := rfl
 
+/-- If f is a group homomorphism then f 1 = 1. -/
+@[simp] lemma map_one (f : G →* H) : f 1 = 1 :=
+begin
+  have h : f 1 * f 1 = f 1,
+    rw ←f.map_mul,
+    rw group.one_mul, 
+  rwa group.mul_left_eq_self at h, 
+end
+
+/-- If f is a group homomorphism then f(x⁻¹) = f(x)⁻¹ -/
+@[simp] lemma map_inv (f : G →* H) {x : G} : f (x⁻¹) = (f x)⁻¹ :=
+begin
+  apply group.eq_inv_of_mul_eq_one,
+  rw ←f.map_mul,
+  rw group.mul_left_inv,
+  rw f.map_one,
+end
+
 /-- A group is isomorphic to itself by the identity homomorphism -/
 def iso_refl : G ≅ G := 
 { is_bijective := function.bijective_id, .. id_hom }
@@ -97,28 +117,88 @@ namespace subgroup
 
 -- First we will need to make this subgroups a complete lattice
 
-variables {G : Type} (H K : Type) [group G] [group H] [group K]
+variables {G : Type} [group G] {H K : Type} [group H] [group K] 
+variables [subgroup_of G H] [subgroup_of G K]
 
+/- 
 instance : has_mul (H × K) := ⟨λ ⟨h₀, k₀⟩ ⟨h₁, k₁⟩, ⟨h₀ * h₁, k₀ * k₁⟩⟩
 
 @[simp] lemma prod_mul (h₀ h₁ : H) (k₀ k₁ : K) : 
   (h₀, k₀) * (h₁, k₁) = (h₀ * h₁, k₀ * k₁) := rfl
 
-instance : has_one (H × K) := ⟨⟨1, 1⟩⟩
+instance : has_one (H × K) := ⟨(1, 1)⟩
 
-@[simp] lemma prod_one_mul (h : H) (k : K) : 1 * (h, k) = (h, k) := sorry
+@[simp] lemma prod_one_def : (1 : H × K) = (1, 1) := rfl
 
+@[simp] lemma prod_one_mul (h : H) (k : K) : 1 * (h, k) = (h, k) := by simp
+  
 instance : has_inv (H × K) := ⟨λ ⟨h, k⟩, ⟨h⁻¹, k⁻¹⟩⟩
+
+@[simp] lemma prod_inv_def (h : H) (k : K) : (h, k)⁻¹ = (h⁻¹, k⁻¹) := rfl
+
+@[simp] lemma prod_mul_left_inv (h : H) (k : K) : (h, k)⁻¹ * (h, k) = 1 := by simp
 
 instance : group (H × K) := 
 { mul := (*), one := (1), inv := has_inv.inv,
   mul_assoc := λ ⟨h₀, k₀⟩ ⟨h₁, k₁⟩ ⟨h₂, k₂⟩, by simp [group.mul_assoc],
-  one_mul := λ ⟨h, k⟩, by simp,
-  mul_left_inv := sorry }
+  one_mul := by simp,
+  mul_left_inv := by simp }
+-/
 
+-- The intersection of two subgroups is the elements of G that get hit by both homomorphisms
 
+inductive inter (G : Type) [group G] (H : Type) (K : Type) [group H] [group K] 
+  [hH : subgroup_of G H] [hK : subgroup_of G K] : Type
+| mk (g : G) : (g ∈ range hH.to_hom) → (g ∈ range hK.to_hom) → inter
 
+open inter group_hom
+
+instance : has_mul (inter G H K) := 
+⟨ λ ⟨a, haH, haK⟩ ⟨b, hbH, hbK⟩, mk (a * b) 
+  (by { rcases haH with ⟨h₀, rfl⟩, rcases hbH with ⟨h₁, rfl⟩,
+    refine ⟨h₀ * h₁, map_mul _ _ _⟩ })
+  (by { rcases haK with ⟨k₀, rfl⟩, rcases hbK with ⟨k₁, rfl⟩,
+    refine ⟨k₀ * k₁, map_mul _ _ _⟩ }) ⟩
+
+instance : has_one (inter G H K) := ⟨mk 1 ⟨1, map_one _⟩ ⟨1, map_one _⟩⟩
+
+instance : has_inv (inter G H K) := 
+⟨ λ ⟨a, haH, haK⟩, mk a⁻¹ 
+  (by { rcases haH with ⟨h, rfl⟩, exact ⟨h⁻¹, map_inv _⟩ })
+  (by { rcases haK with ⟨k, rfl⟩, exact ⟨k⁻¹, map_inv _⟩ }) ⟩
+
+instance : group (inter G H K) := 
+{ mul := (*), one := (1), inv := has_inv.inv,
+  mul_assoc := 
+    begin
+      rintros ⟨a, _⟩ ⟨b, _⟩ ⟨c, _⟩,
+      show mk (a * b * c) _ _ = mk (a * (b * c)) _ _,
+      simp [group.mul_assoc]
+    end,
+  one_mul := 
+    begin
+      rintro ⟨a, _⟩,
+      show mk (1 * a) _ _ = _, simp
+    end,
+  mul_left_inv := 
+    begin
+      rintro ⟨a, _⟩,
+      show mk (a⁻¹ * a) _ _ = _,
+      simpa [group.mul_left_inv]
+    end }
+
+instance : subgroup_of G (inter G H K) := 
+{ to_hom := ⟨λ ⟨g, _, _⟩, g, λ ⟨x, _, _⟩ ⟨y, _, _⟩, rfl⟩,
+  is_inj := 
+    begin
+      rintros ⟨x, _, _⟩ ⟨y, _, _⟩ hxy,
+      change x = y at hxy,
+      simpa using hxy
+    end }
+
+-- def inf := 
+-- def inf (φ : H →* G) (ψ : K →* G)
 
 end subgroup
 
-end mygroup -- namespace for the project
+end mygroup
