@@ -397,9 +397,20 @@ def iso_of_surjective {f : G →* H} (hf : surjective f) : image f ≅ H :=
 
 /-- The first isomorphism theorem with a surjective homomorphism:
   `G /ₘ kernel f ≅ H` for `f : G →* H` a surjective group homomorphism-/
-def quotient_kernel_iso_of_surjective {f : G →* H} (hf : surjective f):
+def quotient_kernel_iso_of_surjective {f : G →* H} (hf : surjective f) :
   G /ₘ kernel f ≅ H :=
 iso_comp (quotient_kernel_iso_image f) $ iso_of_surjective hf
+
+def subst_iso {A B : normal G} (h : A = B) : G /ₘ A ≅ G /ₘ B :=
+{ is_bijective := begin subst h, convert bijective_id, ext x, rcases x, refl end,
+  ..(lift (mk B) A (by {rw [h, kernel_mk], refl'})) }
+
+def subst_iso' {A B : normal G} (h : A = B) (f : G /ₘ A ≅ H) : G /ₘ B ≅ H := 
+iso_comp (subst_iso h.symm) f
+
+def quotient_kernel_iso_of_surjective' {f : G →* H} (hf : surjective f) 
+{N : normal G} (hN : kernel f = N) :
+  G /ₘ N ≅ H := subst_iso' hN $ quotient_kernel_iso_of_surjective hf
 
 end quotient
 
@@ -411,7 +422,7 @@ variables {G H : Type} [group G] [group H]
 
 /-- The preimage of a normal subgroup is normal -/
 def comap (f : G →* H) (N : normal H) : normal G :=
-{carrier := f⁻¹' N,
+{carrier := f ⁻¹' N,
  one_mem' :=
     begin
       rw [mem_preimage, map_one],
@@ -441,6 +452,10 @@ def comap (f : G →* H) (N : normal H) : normal G :=
       apply f.map_inv
     end }
 
+@[simp] lemma mem_comap {f : G →* H} {N : normal H} (x) : 
+  x ∈ comap f N ↔ f x ∈ N := 
+show x ∈ f ⁻¹' N ↔ f x ∈ N, by exact mem_preimage
+
 /-- The surjective image of a normal subgroup is normal -/
 def nmap {f : G →* H} (hf : surjective f) (N : normal G) : normal H :=
 { carrier := f '' N,
@@ -466,6 +481,10 @@ def nmap {f : G →* H} (hf : surjective f) (N : normal G) : normal H :=
       { exact N.conj_mem b hb g },
       { simp [f.map_mul] }
     end }
+
+@[simp] lemma mem_nmap {f : G →* H} (hf : surjective f) {N : normal G} (y) : 
+  y ∈ nmap hf N ↔ ∃ x ∈ N, f x = y := 
+  show y ∈ f '' N ↔ _, by rw mem_image_iff_bex; refl
 
 /-- Intersection of T and N is the pushforward to G of (the pullback to T of N)
 along the natural map T → G -/
@@ -571,6 +590,9 @@ end
 
 open mygroup.group_hom
 
+-- Proof of the second isomorphism theorem by directly constructing the 
+-- homomorphism and proving its bijective
+
 def second_iso_theorem (T : subgroup G) (N : normal G) :
   T /ₘ comap (𝒾 T) N ≅ ↥(T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N :=
 { is_bijective := begin
@@ -585,7 +607,7 @@ def second_iso_theorem (T : subgroup G) (N : normal G) :
       rw [kernel_mk, kernel_mk],
       exact id },
     { intro x,
-      rcases quotient.exists_mk x with ⟨g, rfl⟩,
+      rcases exists_mk x with ⟨g, rfl⟩,
       rcases g with ⟨_, t, ht, n, hn, rfl⟩,
       use mk (comap (𝒾 T) N) ⟨t, ht⟩,
       dsimp,
@@ -599,16 +621,49 @@ def second_iso_theorem (T : subgroup G) (N : normal G) :
     (comap (𝒾 T) N) begin
       intros x hxN,
       cases x with x hxT,
-      change x ∈ T at hxT,
-      change x ∈ N at hxN,
       show _ ∈ (kernel ((mk (comap (𝒾 (T ⨯ N)) N) ∘* to_prod T N))),
       rw mem_kernel,
       show mk (comap (𝒾 (T ⨯ N)) N) ⟨x, _⟩ = 1,
       rw ← mem_kernel,
       rw kernel_mk,
       exact hxN,
-    end),
-}
+    end) }
+
+-- An alternative proof of the second isomorphism theorem using the first 
+-- isomorphism theorem
+
+-- `aux_hom` is the natrual group homomorphism that maps `t : T` to 
+-- `(t : T ⨯ N) : (T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N`
+def aux_hom (T : subgroup G) (N : normal G) : 
+  T →* ↥(T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N := (mk _) ∘* (to_prod T N)
+
+@[simp] lemma aux_hom_def {T : subgroup G} {N : normal G} (g) : 
+  aux_hom T N g = (mk _) (to_prod T N g) := rfl
+
+-- `aux_hom` has kernel `comap (𝒾 T) N` or equivalently `T ⊓ N`
+lemma aux_hom_kernel {T : subgroup G} {N : normal G} : 
+  kernel (aux_hom T N) = comap (𝒾 T) N :=
+begin
+  ext, split; 
+    { rw [mem_kernel, aux_hom_def, ←coe_eq_mk, ←coe_one, mk_eq'],
+      intro hx, simpa using hx }
+end
+
+-- `aux_hom` is a surjective homomorphism
+lemma aux_hom_surjective (T : subgroup G) (N : normal G) : 
+  surjective $ aux_hom T N :=
+begin
+  intro y,
+  rcases exists_mk y with ⟨g, rfl⟩,
+  rcases g with ⟨_, t, ht, n, hn, rfl⟩,
+  refine ⟨⟨t, ht⟩, _⟩,
+  rw [aux_hom_def, ←coe_eq_mk, mk_eq'],
+  simpa [group.mul_assoc] using inv_mem ↑N hn,
+end
+
+def second_iso_theorem' (T : subgroup G) (N : normal G) :
+  T /ₘ comap (𝒾 T) N ≅ ↥(T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N := 
+quotient_kernel_iso_of_surjective' (aux_hom_surjective T N) aux_hom_kernel
 
 --T → ↥(T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N,  --I want to prove this map is bijective
 -- and apply the first isomorphism theorem. Tried defining it as `λ (t : T), t • N`
@@ -617,18 +672,6 @@ def second_iso_theorem (T : subgroup G) (N : normal G) :
 -- subgroup along a surjection
 
 open function
-
-def dumb_type_theory_thing (A B : normal G) (h : A = B) : G /ₘ A ≅ G /ₘ B :=
-begin
-  cases h,
-  apply iso_refl,
-end
-
-def dumb_type_theory_thing' (A B : normal G) (h : A = B) : G /ₘ A ≅ G /ₘ B :=
-{ 
-  is_bijective := begin subst h, convert bijective_id, ext x, rcases x, refl end,
-  ..(lift (mk B) A (by {rw [h, kernel_mk], refl'})),
-}
 
 def third_iso_theorem (T : normal G) (N : normal G)
   (h : T.to_subgroup ≤ N) :
@@ -639,7 +682,8 @@ let f : G /ₘ T →* G /ₘ N := (lift (mk N) _ begin
     rw kernel_mk,
   end) in 
 iso_comp 
-  (dumb_type_theory_thing' _ _ begin
+  (subst_iso
+  begin
     show nmap is_surjective N = f.kernel,
     rw lift_kernel,
     rw kernel_mk
