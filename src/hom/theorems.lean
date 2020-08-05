@@ -665,32 +665,24 @@ def second_iso_theorem' (T : subgroup G) (N : normal G) :
   T /ₘ comap (𝒾 T) N ≅ ↥(T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N := 
 quotient_kernel_iso_of_surjective' (aux_hom_surjective T N) aux_hom_kernel
 
+<<<<<<< HEAD
+=======
+-- T → ↥(T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N,  --I want to prove this map is bijective
+-- and apply the first isomorphism theorem. Tried defining it as `λ (t : T), t • N`
+
+>>>>>>> 7d6392ba1a66d9f9c26f025edde8768479d2e432
 -- to state this one we need to be able to push forward (`map`) a normal
 -- subgroup along a surjection
 
-open function
-
-def third_iso_theorem (T : normal G) (N : normal G)
-  (h : T.to_subgroup ≤ N) :
-  let NmodT : normal (G /ₘ T) := N.nmap (quotient.is_surjective) in
+def third_iso_theorem (T : normal G) (N : normal G) (h : T.to_subgroup ≤ N) :
+  let NmodT : normal (G /ₘ T) := N.nmap is_surjective in
    (G /ₘ T) /ₘ NmodT ≅ G /ₘ N :=
-let f : G /ₘ T →* G /ₘ N := (lift (mk N) _ begin
-    convert h,
-    rw kernel_mk,
-  end) in 
-iso_comp 
-  (subst_iso
-  begin
-    show nmap is_surjective N = f.kernel,
-    rw lift_kernel,
-    rw kernel_mk
-  end) $
-  quotient_kernel_iso_of_surjective (begin
-    rw surjective_iff_max_img,
-    rw lift_image,
-    rw ←surjective_iff_max_img,
-    exact is_surjective,
-  end : surjective f)
+let f : G /ₘ T →* G /ₘ N := (lift (mk N) _ (by { convert h, rw kernel_mk })) in 
+iso_comp (subst_iso $ 
+    show nmap is_surjective N = f.kernel, by rw [lift_kernel, kernel_mk]) $
+  quotient_kernel_iso_of_surjective 
+    (by { rw [surjective_iff_max_img, lift_image, ←surjective_iff_max_img],
+      exact is_surjective })
 
 end quotient
 
