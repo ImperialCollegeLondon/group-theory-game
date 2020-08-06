@@ -681,6 +681,14 @@ iso_comp (subst_iso $
     (by { rw [surjective_iff_max_img, lift_image, ←surjective_iff_max_img],
       exact is_surjective })
 
+/- Requires normal G to be a complete lattice! 
+inductive subgroup_ge (G : Type) [group G] (N : normal G) 
+| mk (H : subgroup G) : ((N : subgroup G) ≤ H) → subgroup_ge
+
+def biject_of_subgroup_ge (N : normal G) : 
+  subgroup_ge G N → subgroup_ge (G /ₘ N) ⊥ := sorry
+-/
+
 end quotient
 
 end mygroup
