@@ -720,13 +720,89 @@ def third_iso_theorem' (T : normal G) (N : normal G) (h : T.to_subgroup ≤ N) :
    (G /ₘ T) /ₘ NmodT ≅ G /ₘ N :=
 quotient_kernel_iso_of_surjective' (aux_hom_surjective' h) (aux_hom_kernel' h)
 
-/- Requires normal G to be a complete lattice! 
-inductive subgroup_ge (G : Type) [group G] (N : normal G) 
-| mk (H : subgroup G) : ((N : subgroup G) ≤ H) → subgroup_ge
+-- Option 1 -- I'm going to try out this option and see if there is any road blocks
+inductive subgroup_ge (G : Type) [group G] (K : subgroup G) 
+| mk (H : subgroup G) : (K ≤ H) → subgroup_ge
 
-def biject_of_subgroup_ge (N : normal G) : 
-  subgroup_ge G N → subgroup_ge (G /ₘ N) ⊥ := sorry
--/
+@[simp] lemma subgroup_ge_eq (H A B : subgroup G) {hA : H ≤ A} {hB : H ≤ B} : 
+  subgroup_ge.mk A hA = subgroup_ge.mk B hB ↔ A = B := ⟨subgroup_ge.mk.inj, by cc⟩
+
+-- Option 2
+def subgroup_ge' (G : Type) [group G] (N : subgroup G) :=
+  { H : subgroup G | N ≤ H }
+
+-- We would like to define `correspondence N : H ↦ H /ₘ N` so first we need to 
+-- show if `H : subgroup G` with `(N : subgroup G) ≤ H`, then `↑N` is a normal 
+-- subgroup of `H`
+
+-- I think what I need it a way to make a subgroup from a group, i.e. given `G` 
+-- and `H` both groups, if there is a map from `H` to `G`, `f` then there 
+-- is a induced subgroup of `G` from `H` using `image f`
+
+/-- `qmap` is a group homomorphism from `H /ₘ N → G /ₘ N` where `H : subgroup G` 
+  and `N : normal G` such that `h • N ↦ h • N` -/ 
+def qmap (H : subgroup G) (N : normal G) : H /ₘ comap (𝒾 H) N →* G /ₘ N :=
+  let φ : H →* G /ₘ N := ⟨λ h, mk N h.1, λ _ _, rfl⟩ in lift φ (comap (𝒾 H) N) $ 
+begin
+  rintro ⟨x, hx₀⟩ hx,
+  show _ ∈ kernel φ,
+  rw mem_kernel,
+  show mk N x = 1,
+  rw [←coe_eq_mk, ←coe_one, mk_eq'],
+  change _ ∈ comap (𝒾 H) N at hx,
+  simp * at *,
+end
+
+lemma injective_qmap {H : subgroup G} {N : normal G} : injective $ qmap H N :=
+begin
+  intros x y hxy,
+  rcases exists_mk x with ⟨x, rfl⟩,
+  rcases exists_mk y with ⟨y, rfl⟩,
+  change mk N x = mk N y at hxy,
+  rw [←coe_eq_mk, ←coe_eq_mk, mk_eq'] at hxy,
+  rw [mk_eq', mem_comap],
+  exact hxy 
+end
+
+lemma mem_qmap_image {H : subgroup G} {N : normal G} (x) : 
+  x ∈ H ↔ (x : G /ₘ N) ∈ (qmap H N).image :=
+begin
+  split; intro h,
+    refine ⟨((⟨x, h⟩ : H) : H /ₘ comap (𝒾 H) N), by simpa⟩,
+    cases h with g hg, 
+    rcases exists_mk g with ⟨g, rfl⟩, sorry
+end
+
+lemma eq_of_qmap_image_eq {H K : subgroup G} {N : normal G} 
+  (h : (qmap H N).image = (qmap K N).image) : H = K := 
+begin
+  simp [qmap] at h,
+  iterate 2 { rw lift_image at h },
+  sorry
+  
+  
+
+end
+
+def correspondence (N : normal G) : 
+  subgroup_ge G N → subgroup_ge (G /ₘ N) ⊥ := λ ⟨H, hH⟩,
+subgroup_ge.mk (image $ qmap H N) bot_le
+
+theorem bijective_correspondence {N : normal G} : 
+  bijective $ correspondence N := 
+begin
+  split,
+    { rintros ⟨x, hx⟩ ⟨y, hy⟩ hxy,
+      change subgroup_ge.mk (image $ qmap x N) _= 
+        subgroup_ge.mk (image $ qmap y N) _ at hxy,
+      rw subgroup_ge_eq at *,
+      exact eq_of_qmap_image_eq hxy },
+    { sorry }
+end
+
+noncomputable def correspondence_equiv (N : normal G) : 
+  subgroup_ge G N ≃ subgroup_ge (G /ₘ N) ⊥ := 
+equiv.of_bijective (correspondence N) bijective_correspondence
 
 end quotient
 
