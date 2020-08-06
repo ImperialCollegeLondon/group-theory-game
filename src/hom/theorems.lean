@@ -420,6 +420,7 @@ open group_hom function mygroup.quotient mygroup.subgroup
 
 variables {G H : Type} [group G] [group H]
 
+
 /-- The preimage of a normal subgroup is normal -/
 def comap (f : G →* H) (N : normal H) : normal G :=
 {carrier := f ⁻¹' N,
@@ -632,7 +633,7 @@ def second_iso_theorem (T : subgroup G) (N : normal G) :
 -- An alternative proof of the second isomorphism theorem using the first 
 -- isomorphism theorem
 
--- `aux_hom` is the natrual group homomorphism that maps `t : T` to 
+-- `aux_hom` is the natural group homomorphism that maps `t : T` to 
 -- `(t : T ⨯ N) : (T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N`
 def aux_hom (T : subgroup G) (N : normal G) : 
   T →* ↥(T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N := (mk _) ∘* (to_prod T N)
@@ -664,22 +665,78 @@ end
 def second_iso_theorem' (T : subgroup G) (N : normal G) :
   T /ₘ comap (𝒾 T) N ≅ ↥(T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N := 
 quotient_kernel_iso_of_surjective' (aux_hom_surjective T N) aux_hom_kernel
-
--- T → ↥(T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N,  --I want to prove this map is bijective
--- and apply the first isomorphism theorem. Tried defining it as `λ (t : T), t • N`
-
 -- to state this one we need to be able to push forward (`map`) a normal
 -- subgroup along a surjection
 
-def third_iso_theorem (T : normal G) (N : normal G) (h : T.to_subgroup ≤ N) :
-  let NmodT : normal (G /ₘ T) := N.nmap is_surjective in
+open function
+
+-- `aux_hom'` is the natural group homomorphism that maps `gT : G /ₘ T` to 
+-- `gN : G /ₘ N`
+def aux_hom' (T : normal G) (N : normal G)(h : T.to_subgroup ≤ N) : 
+  G /ₘ T →* G/ₘ N :=  (lift (mk N) _ 
+  begin  
+    rw kernel_mk,
+    exact h,
+  end)
+  
+@[simp] lemma aux_hom_def' {T : normal G} {N : normal G} (h : T.to_subgroup ≤ N) (g : G /ₘ T): 
+  (aux_hom' T N h g) = (lift (mk N) T (begin rw kernel_mk, exact h end)) (g) := rfl
+ 
+-- `aux_hom'` has kernel `N /ₘ T` 
+lemma aux_hom_kernel' {T : normal G} {N : normal G} (h : T.to_subgroup ≤ N): 
+ let NmodT : normal (G /ₘ T) := N.nmap is_surjective in kernel (aux_hom' T N h) = NmodT := 
+ begin
+  intro hn,
+  unfold aux_hom',
+  rw lift_kernel,
+  rw kernel_mk,  
+ end  
+
+-- `aux_hom'` is a surjective homomorphism
+lemma aux_hom_surjective' {T : normal G} {N : normal G} (h : T.to_subgroup ≤ N) : 
+  surjective $ aux_hom' T N h:=
+begin
+  unfold surjective,
+  intro y,
+  rcases exists_mk y with ⟨g, rfl⟩,
+  use g, 
+  refl,   
+end
+
+---Proving the third isomorphism theorem using the first 
+def third_iso_theorem' (T : normal G) (N : normal G) (h : T.to_subgroup ≤ N) :
+   let NmodT : normal (G /ₘ T) := N.nmap (quotient.is_surjective) in
    (G /ₘ T) /ₘ NmodT ≅ G /ₘ N :=
-let f : G /ₘ T →* G /ₘ N := (lift (mk N) _ (by { convert h, rw kernel_mk })) in 
-iso_comp (subst_iso $ 
-    show nmap is_surjective N = f.kernel, by rw [lift_kernel, kernel_mk]) $
-  quotient_kernel_iso_of_surjective 
-    (by { rw [surjective_iff_max_img, lift_image, ←surjective_iff_max_img],
-      exact is_surjective })
+   begin
+    simp,
+    refine quotient_kernel_iso_of_surjective' _ _,
+    exact aux_hom' T N h,
+    exact aux_hom_surjective' h,
+    exact aux_hom_kernel' h,
+   end  
+
+
+def third_iso_theorem (T : normal G) (N : normal G)
+  (h : T.to_subgroup ≤ N) :
+  let NmodT : normal (G /ₘ T) := N.nmap (quotient.is_surjective) in
+   (G /ₘ T) /ₘ NmodT ≅ G /ₘ N :=
+let f : G /ₘ T →* G /ₘ N := (lift (mk N) _ begin
+    convert h,
+    rw kernel_mk,
+  end) in 
+iso_comp 
+  (subst_iso
+  begin
+    show nmap is_surjective N = f.kernel,
+    rw lift_kernel,
+    rw kernel_mk
+  end) $
+  quotient_kernel_iso_of_surjective (begin
+    rw surjective_iff_max_img,
+    rw lift_image,
+    rw ←surjective_iff_max_img,
+    exact is_surjective,
+  end : surjective f)
 
 /- Requires normal G to be a complete lattice! 
 inductive subgroup_ge (G : Type) [group G] (N : normal G) 
