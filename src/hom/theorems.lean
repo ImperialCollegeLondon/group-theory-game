@@ -246,6 +246,13 @@ def map (f : G →* H) (K : subgroup G) : subgroup H :=
 lemma mem_map (f : G →* H) (K : subgroup G) (a : H) :
   a ∈ K.map f ↔ ∃ g : G, g ∈ K ∧ f g = a := iff.rfl
 
+def comap (f : G →* H) (K : subgroup H) : subgroup G := 
+{ carrier := f ⁻¹' K,
+  one_mem' := show f 1 ∈ K, by rw f.map_one; exact one_mem K,
+  mul_mem' := λ x y hx hy, show f (x * y) ∈ K, 
+    by rw f.map_mul; exact mul_mem K hx hy,
+  inv_mem' := λ x hx, show f x⁻¹ ∈ K, by rw f.map_inv; exact inv_mem K hx }
+
 end subgroup
 
 namespace quotient
@@ -419,7 +426,6 @@ namespace normal
 open group_hom function mygroup.quotient mygroup.subgroup
 
 variables {G H : Type} [group G] [group H]
-
 
 /-- The preimage of a normal subgroup is normal -/
 def comap (f : G →* H) (N : normal H) : normal G :=
@@ -749,9 +755,12 @@ begin
   rw mem_kernel,
   show mk N x = 1,
   rw [←coe_eq_mk, ←coe_one, mk_eq'],
-  change _ ∈ comap (𝒾 H) N at hx,
+  change _ ∈ normal.comap (𝒾 H) N at hx,
   simp * at *,
 end
+
+@[simp] lemma qmap_eq {H : subgroup G} {N : normal G} (h : H) : 
+  qmap H N h = mk N h := rfl
 
 lemma injective_qmap {H : subgroup G} {N : normal G} : injective $ qmap H N :=
 begin
@@ -770,23 +779,41 @@ subgroup_ge.mk (image $ qmap H N) bot_le
 
 def correspondence_inv (N : normal G) : 
   subgroup_ge (G /ₘ N) ⊥ → subgroup_ge G N := λ ⟨H, hH⟩,
-subgroup_ge.mk 
-  { carrier := sorry,
-    one_mem' := sorry,
-    mul_mem' := sorry,
-    inv_mem' := sorry } 
-  $
-  begin
-    sorry
-  end
+subgroup_ge.mk (subgroup.comap (mk N) H) $
+  λ n hn, show mk N n ∈ H, 
+  by { convert one_mem H, rw [←mem_kernel, kernel_mk], exact hn }
 
-
-theorem bijective_correspondence {N : normal G} : 
-  bijective $ correspondence N := sorry
-
-noncomputable def correspondence_equiv (N : normal G) : 
+def subgroups_of_quotient_equiv (N : normal G) : 
   subgroup_ge G N ≃ subgroup_ge (G /ₘ N) ⊥ := 
-equiv.of_bijective (correspondence N) bijective_correspondence
+{ to_fun := correspondence N,
+  inv_fun := correspondence_inv N,
+  left_inv := 
+    begin
+      rintro ⟨H, hH⟩,
+      suffices : comap (mk N) (qmap H N).image = H,
+        { simpa [correspondence, correspondence_inv] },
+      ext x, split; intro hx,
+        { cases hx with x' hx', rcases exists_mk x' with ⟨g, rfl⟩,
+          rw [qmap_eq, ←coe_eq_mk, ←coe_eq_mk, mk_eq'] at hx',
+          rw ←group.inv_inv x,
+          refine inv_mem H _,
+          rw [←group.mul_one x⁻¹, ←group.mul_right_inv (g : G), ←group.mul_assoc],
+          exact mul_mem H (hH hx') (inv_mem H g.2) },
+        { refine ⟨((⟨x, hx⟩ : H) : H /ₘ comap (𝒾 H) N), _⟩,
+          rw qmap_eq, refl }
+    end,
+  right_inv := 
+    begin
+      rintro ⟨H, _⟩,
+      suffices : (qmap (comap (mk N) H) N).image = H,
+        { simpa [correspondence, correspondence_inv] },
+      ext x, split; intro hx,
+        { rcases hx with ⟨x', rfl⟩,
+          rcases exists_mk x' with ⟨⟨g, hg⟩, rfl⟩,
+          exact hg },
+        { rcases exists_mk x with ⟨g, rfl⟩,
+          exact ⟨(mk (comap (𝒾 (comap (mk N) H)) N)) ⟨g, hx⟩, rfl⟩ }
+    end }
 
 end quotient
 
