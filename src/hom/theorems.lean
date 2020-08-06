@@ -739,7 +739,7 @@ def subgroup_ge' (G : Type) [group G] (N : subgroup G) :=
 -- and `H` both groups, if there is a map from `H` to `G`, `f` then there 
 -- is a induced subgroup of `G` from `H` using `image f`
 
-/-- `qmap` is a group homomorphism from `H /ₘ N → G /ₘ N` where `H : subgroup G` 
+/-- `qmap` is a group homomorphism from `H /ₘ N →* G /ₘ N` where `H : subgroup G` 
   and `N : normal G` such that `h • N ↦ h • N` -/ 
 def qmap (H : subgroup G) (N : normal G) : H /ₘ comap (𝒾 H) N →* G /ₘ N :=
   let φ : H →* G /ₘ N := ⟨λ h, mk N h.1, λ _ _, rfl⟩ in lift φ (comap (𝒾 H) N) $ 
@@ -764,41 +764,25 @@ begin
   exact hxy 
 end
 
-lemma mem_qmap_image {H : subgroup G} {N : normal G} (x) : 
-  x ∈ H ↔ (x : G /ₘ N) ∈ (qmap H N).image :=
-begin
-  split; intro h,
-    refine ⟨((⟨x, h⟩ : H) : H /ₘ comap (𝒾 H) N), by simpa⟩,
-    cases h with g hg, 
-    rcases exists_mk g with ⟨g, rfl⟩, sorry
-end
-
-lemma eq_of_qmap_image_eq {H K : subgroup G} {N : normal G} 
-  (h : (qmap H N).image = (qmap K N).image) : H = K := 
-begin
-  simp [qmap] at h,
-  iterate 2 { rw lift_image at h },
-  sorry
-  
-  
-
-end
-
 def correspondence (N : normal G) : 
   subgroup_ge G N → subgroup_ge (G /ₘ N) ⊥ := λ ⟨H, hH⟩,
 subgroup_ge.mk (image $ qmap H N) bot_le
 
+def correspondence_inv (N : normal G) : 
+  subgroup_ge (G /ₘ N) ⊥ → subgroup_ge G N := λ ⟨H, hH⟩,
+subgroup_ge.mk 
+  { carrier := sorry,
+    one_mem' := sorry,
+    mul_mem' := sorry,
+    inv_mem' := sorry } 
+  $
+  begin
+    sorry
+  end
+
+
 theorem bijective_correspondence {N : normal G} : 
-  bijective $ correspondence N := 
-begin
-  split,
-    { rintros ⟨x, hx⟩ ⟨y, hy⟩ hxy,
-      change subgroup_ge.mk (image $ qmap x N) _= 
-        subgroup_ge.mk (image $ qmap y N) _ at hxy,
-      rw subgroup_ge_eq at *,
-      exact eq_of_qmap_image_eq hxy },
-    { sorry }
-end
+  bijective $ correspondence N := sorry
 
 noncomputable def correspondence_equiv (N : normal G) : 
   subgroup_ge G N ≃ subgroup_ge (G /ₘ N) ⊥ := 
