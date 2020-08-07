@@ -770,37 +770,64 @@ subgroup_ge.mk (subgroup.comap (mk N) H) $
   λ n hn, show mk N n ∈ H, 
   by { convert one_mem H, rw [←mem_kernel, kernel_mk], exact hn }
 
+lemma correspondence_left_inv (N : normal G) : 
+  left_inverse (correspondence_inv N) (correspondence N) :=
+begin
+  rintro ⟨H, hH⟩,
+  suffices : comap (mk N) (qmap H N).image = H,
+   { simpa [correspondence, correspondence_inv] },
+  ext x, split; intro hx,
+   { cases hx with x' hx', rcases exists_mk x' with ⟨g, rfl⟩,
+     rw [qmap_eq, ←coe_eq_mk, ←coe_eq_mk, mk_eq'] at hx',
+     rw ←group.inv_inv x,
+     refine inv_mem H _,
+     rw [←group.mul_one x⁻¹, ←group.mul_right_inv (g : G), ←group.mul_assoc],
+     exact mul_mem H (hH hx') (inv_mem H g.2) },
+   { refine ⟨((⟨x, hx⟩ : H) : H /ₘ comap (𝒾 H) N), _⟩,
+     rw qmap_eq, refl }
+end
+
+lemma correspondence_right_inv (N : normal G) : 
+  right_inverse (correspondence_inv N) (correspondence N) :=
+begin
+  rintro ⟨H, _⟩,
+  suffices : (qmap (comap (mk N) H) N).image = H,
+    { simpa [correspondence, correspondence_inv] },
+  ext x, split; intro hx,
+    { rcases hx with ⟨x', rfl⟩,
+      rcases exists_mk x' with ⟨⟨g, hg⟩, rfl⟩,
+      exact hg },
+    { rcases exists_mk x with ⟨g, rfl⟩,
+      exact ⟨(mk (comap (𝒾 (comap (mk N) H)) N)) ⟨g, hx⟩, rfl⟩ }
+end
+
 def subgroups_of_quotient_equiv (N : normal G) : 
   subgroup_ge G N ≃ subgroup_ge (G /ₘ N) ⊥ := 
 { to_fun := correspondence N,
   inv_fun := correspondence_inv N,
-  left_inv := 
-    begin
-      rintro ⟨H, hH⟩,
-      suffices : comap (mk N) (qmap H N).image = H,
-        { simpa [correspondence, correspondence_inv] },
-      ext x, split; intro hx,
-        { cases hx with x' hx', rcases exists_mk x' with ⟨g, rfl⟩,
-          rw [qmap_eq, ←coe_eq_mk, ←coe_eq_mk, mk_eq'] at hx',
-          rw ←group.inv_inv x,
-          refine inv_mem H _,
-          rw [←group.mul_one x⁻¹, ←group.mul_right_inv (g : G), ←group.mul_assoc],
-          exact mul_mem H (hH hx') (inv_mem H g.2) },
-        { refine ⟨((⟨x, hx⟩ : H) : H /ₘ comap (𝒾 H) N), _⟩,
-          rw qmap_eq, refl }
-    end,
-  right_inv := 
-    begin
-      rintro ⟨H, _⟩,
-      suffices : (qmap (comap (mk N) H) N).image = H,
-        { simpa [correspondence, correspondence_inv] },
-      ext x, split; intro hx,
-        { rcases hx with ⟨x', rfl⟩,
-          rcases exists_mk x' with ⟨⟨g, hg⟩, rfl⟩,
-          exact hg },
-        { rcases exists_mk x with ⟨g, rfl⟩,
-          exact ⟨(mk (comap (𝒾 (comap (mk N) H)) N)) ⟨g, hx⟩, rfl⟩ }
-    end }
+  left_inv := correspondence_left_inv N,
+  right_inv := correspondence_right_inv N }
+
+def gc (N : normal G) : galois_connection (subgroups_of_quotient_equiv N).to_fun 
+  (subgroups_of_quotient_equiv N).inv_fun := 
+begin
+  intros A B,
+  cases A with A hA,
+  cases B with B _,
+  split; intros h a ha,
+    { exact h ⟨((⟨a, ha⟩ : A) : A /ₘ comap (𝒾 A) N), rfl⟩ },
+    { rcases ha with ⟨x, rfl⟩,
+      rcases exists_mk x with ⟨⟨g, hg⟩, rfl⟩,
+      exact h hg }
+end
+
+def gi (N : normal G) : galois_insertion (subgroups_of_quotient_equiv N).to_fun 
+  (subgroups_of_quotient_equiv N).inv_fun := 
+{ choice := λ x _, (subgroups_of_quotient_equiv N).to_fun x,
+  gc := gc N,
+  le_l_u := λ x, by { rw (subgroups_of_quotient_equiv N).right_inv, exact le_refl _ },
+  choice_eq := λ _ _, rfl }
+
 
 end quotient
 
