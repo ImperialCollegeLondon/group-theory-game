@@ -749,6 +749,9 @@ end
 @[simp] lemma qmap_eq {H : subgroup G} {N : normal G} (h : H) : 
   qmap H N h = mk N h := rfl
 
+lemma mem_qmap_image {H : subgroup G} {N : normal G} (h : H) : 
+  ↑h ∈ (qmap H N).image ↔ ∃ (g : H /ₘ comap (𝒾 H) N), qmap H N g = h := iff.rfl
+
 lemma injective_qmap {H : subgroup G} {N : normal G} : injective $ qmap H N :=
 begin
   intros x y hxy,
@@ -828,6 +831,27 @@ def gi (N : normal G) : galois_insertion (subgroups_of_quotient_equiv N).to_fun
   le_l_u := λ x, by { rw (subgroups_of_quotient_equiv N).right_inv, exact le_refl _ },
   choice_eq := λ _ _, rfl }
 
+#check order_iso
+
+def foo (N : normal G) : 
+  ((≤) : subgroup_ge G N → subgroup_ge G N → Prop) ≃o 
+  ((≤) : subgroup_ge (G /ₘ N) ⊥ → subgroup_ge (G /ₘ N) ⊥ → Prop) :=
+{ ord' := 
+    begin
+      rintros ⟨A, hA⟩ ⟨B, hB⟩,
+      change A ≤ B ↔ (qmap A N).image ≤ (qmap B N).image,
+      split; intro h,
+        { intros x hx,
+          change x ∈ (qmap B N).image,
+          rw group_hom.mem_image,
+          rcases hx with ⟨a, rfl⟩,
+          rcases exists_mk a with ⟨⟨g, hg⟩, rfl⟩,
+          refine ⟨((⟨g, h hg⟩ : B) : B /ₘ comap (𝒾 B) N), rfl⟩ },
+        { intros a ha,
+          -- We use the reverse here
+          sorry }
+    end,
+  .. subgroups_of_quotient_equiv N }
 
 end quotient
 

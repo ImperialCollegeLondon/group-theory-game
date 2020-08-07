@@ -213,6 +213,12 @@ end
 
 end product
 
+-- We make a inductive type `subgroup_ge G H` which is the the type whose terms 
+-- are subgroups of `G` greater than `H : subgroup G` (this makes sense since we 
+-- created a lattice structure on subgroups). 
+
+/-- `subgroup_ge G H` is the inductive type of subgroups of `G` thats greater 
+  than `H`-/
 inductive subgroup_ge (G : Type) [group G] (K : subgroup G) 
 | mk (H : subgroup G) : (K ≤ H) → subgroup_ge
 
@@ -221,7 +227,9 @@ namespace ge
 open subgroup_ge
 
 -- We will show that the set of subgroups greater than some subgroup form a 
--- complete lattice
+-- complete lattice. To do this we will use the fact that the subgroups forms 
+-- a complete lattice and we will create a Galois insertion from subgroups 
+-- inducing a complete lattice
 
 @[simp] lemma subgroup_ge_eq (A B : subgroup G) {hA : H ≤ A} {hB : H ≤ B} : 
   subgroup_ge.mk A hA = subgroup_ge.mk B hB ↔ A = B := ⟨subgroup_ge.mk.inj, by cc⟩
@@ -247,6 +255,7 @@ instance has_coe_to_subgroup : has_coe (subgroup_ge G H) (subgroup G) :=
 @[simp] lemma subgroup_ge_eq' (A B : subgroup_ge G H) : 
   A = B ↔ (A : subgroup G) = B := by { cases A, cases B, exact subgroup_ge_eq _ _ }
 
+-- We borrow the partital order structure from subgroups
 instance : partial_order (subgroup_ge G H) := 
 { .. partial_order.lift (coe : subgroup_ge G H → subgroup G) $ λ x y hxy, by simp [hxy] }
 
