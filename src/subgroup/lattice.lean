@@ -172,8 +172,10 @@ by { apply mem_sup_of_mem, left, assumption }
 lemma mem_sup_of_mem_right {x} (hx : x ∈ K) : x ∈ H ⊔ K :=
 by { apply mem_sup_of_mem, right, assumption }
 
+namespace product
+
 /-- The product of a subgroup and a normal subgroup forms a subgroup -/
-def product_subgroup (H : subgroup G) (K : normal G) : subgroup G := 
+def prod (H : subgroup G) (K : normal G) : subgroup G := 
 { carrier := { g | ∃ h ∈ H, ∃ k ∈ K, g = h * k },
   one_mem' := ⟨1, one_mem H, 1, one_mem K, (group.one_mul _).symm⟩,
   mul_mem' := λ x y ⟨h₀, hh₀, k₀, hk₀, hx⟩ ⟨h₁, hh₁, k₁, hk₁, hy⟩,
@@ -192,7 +194,7 @@ def product_subgroup (H : subgroup G) (K : normal G) : subgroup G :=
     end } 
 
 --notation H ` ⨯ `:70 K:70 := product_subgroup H K
-infix ` ⨯ `:70 := product_subgroup
+infix ` ⨯ `:70 := prod
 
 lemma mem_product {H : subgroup G} {K : normal G} {x} : 
   x ∈ H ⨯ K ↔ ∃ (h ∈ H) (k ∈ K), x = h * k := iff.rfl
@@ -208,6 +210,102 @@ begin
         exact ⟨x, hx, 1, one_mem K, (group.mul_one x).symm⟩,
         exact ⟨1, one_mem H, x, hx, (group.one_mul x).symm⟩ }
 end 
+
+end product
+
+inductive subgroup_ge (G : Type) [group G] (K : subgroup G) 
+| mk (H : subgroup G) : (K ≤ H) → subgroup_ge
+
+namespace ge
+
+open subgroup_ge
+
+-- We will show that the set of subgroups greater than some subgroup form a 
+-- complete lattice
+
+@[simp] lemma subgroup_ge_eq (A B : subgroup G) {hA : H ≤ A} {hB : H ≤ B} : 
+  subgroup_ge.mk A hA = subgroup_ge.mk B hB ↔ A = B := ⟨subgroup_ge.mk.inj, by cc⟩
+
+instance : has_coe (subgroup_ge G H) (set G) := ⟨λ ⟨K, _⟩, (K : set G)⟩
+
+@[simp] lemma ext' {A B : subgroup_ge G H} : 
+  A = B ↔ (A : set G) = B :=
+begin
+  cases A, cases B,
+  rw subgroup_ge_eq,
+  exact ⟨by cc, λ h, ext' h⟩,
+end
+
+instance : has_mem G (subgroup_ge G H) := ⟨λ g K, g ∈ (K : set G)⟩
+
+@[ext] theorem ext {A B : subgroup_ge G H}
+  (h : ∀ x, x ∈ A ↔ x ∈ B) : A = B := ext'.2 $ set.ext h
+
+instance has_coe_to_subgroup : has_coe (subgroup_ge G H) (subgroup G) := 
+  ⟨λ ⟨K, _⟩, K⟩
+
+@[simp] lemma subgroup_ge_eq' (A B : subgroup_ge G H) : 
+  A = B ↔ (A : subgroup G) = B := by { cases A, cases B, exact subgroup_ge_eq _ _ }
+
+instance : partial_order (subgroup_ge G H) := 
+{ .. partial_order.lift (coe : subgroup_ge G H → subgroup G) $ λ x y hxy, by simp [hxy] }
+
+instance : has_bot (subgroup_ge G H) := ⟨⟨H, le_refl _⟩⟩
+
+instance : has_Inf (subgroup_ge G H) := 
+⟨ λ s, subgroup_ge.mk (Inf { A | ∃ t ∈ s, (t : subgroup G) = A }) $ λ h hh,
+  begin
+    suffices : ∀ (i : subgroup G) (x : subgroup_ge G H), x ∈ s → ↑x = i → h ∈ ↑i,
+      simpa [Inf],
+    rintros _ ⟨t, ht⟩ _ rfl,
+    exact ht hh
+  end ⟩
+
+lemma le_Inf (s : set (subgroup_ge G H)) : ∀ t ∈ s, Inf s ≤ t :=
+begin
+  rintros ⟨t, ht⟩ hst a ha,
+  change a ∈ ⋂ t _, ↑t at ha,
+  rw mem_bInter_iff at ha,
+  exact ha t ⟨⟨t, ht⟩, hst, rfl⟩,
+end  
+
+def closure (A : subgroup G) : subgroup_ge G H := Inf { B | A ≤ B }
+
+lemma closure_le (A : subgroup G) (B : subgroup_ge G H) : 
+  closure A ≤ B ↔ A ≤ B :=
+begin
+  split,
+    { intro h, cases B with B hB,
+      exact le_trans 
+        (show A ≤ _, by exact (λ _ ha, mem_bInter (λ _ ⟨⟨_, _⟩, ht', rfl⟩, ht' ha))) h },
+    { intro h, exact le_Inf _ _ h }
+end
+
+lemma le_closure (A : subgroup_ge G H) : A = closure A :=
+begin
+  cases A with A hA,
+  ext, split,
+  { intro hx,
+    refine mem_bInter (λ B hB, _),
+    rcases hB with ⟨t, ht, rfl⟩,
+    exact ht hx },
+  { suffices : closure A ≤ ⟨A, hA⟩,
+      intro hx, exact this hx,
+    apply le_Inf,
+    rw mem_set_of_eq,
+    exact le_of_eq rfl }  
+end
+
+def gi : @galois_insertion (subgroup G) (subgroup_ge G H) _ _ closure (coe) := 
+{ choice := λ x _, closure x,
+  gc := λ A B, closure_le _ _,
+  le_l_u := λ x, le_of_eq $ le_closure x,
+  choice_eq := λ _ _, rfl }
+
+instance : complete_lattice (subgroup_ge G H) := 
+{.. @galois_insertion.lift_complete_lattice (subgroup G) (subgroup_ge G H) _ _ _ _ gi }
+
+end ge
 
 end subgroup
 

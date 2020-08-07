@@ -149,8 +149,6 @@ attribute [simp] mem_kernel mem_image
 -- We will prove the classic results about injective homomorphisms that a
 -- homomorphism is injective if and only if it have the trivial kernel
 
-open function
-
 /-- A homomorphism `f` is injective iff. `f` has kernel `{1}` -/
 theorem injective_iff_kernel_eq_one :
   injective f ↔ (kernel f : set G) = {1} :=
@@ -219,8 +217,6 @@ end group_hom
 -- pushforward and pullback of subgroups
 
 namespace subgroup
-
-open set
 
 variables {G : Type} [group G] {H : Type} [group H]
 
@@ -521,11 +517,9 @@ end normal
 
 namespace quotient
 
-open mygroup.subgroup mygroup.group_hom
+open mygroup.subgroup mygroup.group_hom normal subgroup.ge
 
 variables {G H : Type} [group G] [group H]
-
-open normal
 
 /-- If `N ⊆ kernel f` then the kernel of induced map `lift f N h` is 
   image of `kernel f` -/
@@ -594,8 +588,6 @@ end
 -- we will define a map T -> X
 -- and prove N ∩ T is in the kernel
 -- Then we get a well-defined map T/(N∩T) → X
-
-open mygroup.group_hom
 
 -- Proof of the second isomorphism theorem by directly constructing the 
 -- homomorphism and proving its bijective
@@ -726,16 +718,11 @@ def third_iso_theorem' (T : normal G) (N : normal G) (h : T.to_subgroup ≤ N) :
    (G /ₘ T) /ₘ NmodT ≅ G /ₘ N :=
 quotient_kernel_iso_of_surjective' (aux_hom_surjective' h) (aux_hom_kernel' h)
 
--- Option 1 -- I'm going to try out this option and see if there is any road blocks
-inductive subgroup_ge (G : Type) [group G] (K : subgroup G) 
-| mk (H : subgroup G) : (K ≤ H) → subgroup_ge
-
-@[simp] lemma subgroup_ge_eq (H A B : subgroup G) {hA : H ≤ A} {hB : H ≤ B} : 
-  subgroup_ge.mk A hA = subgroup_ge.mk B hB ↔ A = B := ⟨subgroup_ge.mk.inj, by cc⟩
-
+/-
 -- Option 2
 def subgroup_ge' (G : Type) [group G] (N : subgroup G) :=
   { H : subgroup G | N ≤ H }
+-/
 
 -- We would like to define `correspondence N : H ↦ H /ₘ N` so first we need to 
 -- show if `H : subgroup G` with `(N : subgroup G) ≤ H`, then `↑N` is a normal 
