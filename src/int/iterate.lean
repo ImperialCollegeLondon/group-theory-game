@@ -56,6 +56,9 @@ by show f^(-a) = f⁻¹^a; group
 
 lemma succ : iterate n f (f x) = iterate (n + 1) f x := comp n 1 f x
 
+lemma succ' : f (iterate n f x) = iterate (n + 1) f x := 
+by rw add_comm; exact comp 1 n f x
+
 theorem mul (f : X ≃ X) (a b : ℤ) (x : X) : iterate a (iterate b f) = 
 int.iterate (a * b) f := by show (f^b)^a = f^(a*b); group
 
