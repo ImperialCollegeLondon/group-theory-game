@@ -318,4 +318,15 @@ end ge
 
 end subgroup
 
+namespace lattice
+
+variables {A B : Type} [preorder A] [preorder B]
+
+def order_iso_of_equiv_gi (e : A ≃ B) (g : galois_insertion e.to_fun e.inv_fun) : 
+  ((≤) : A → A → Prop) ≃o ((≤) : B → B → Prop) := 
+{ ord' := λ a b, let h := g.gc a (e.to_fun b) in
+    by { rw e.left_inv at h, rw ←h, refl}, .. e }
+
+end lattice 
+
 end mygroup

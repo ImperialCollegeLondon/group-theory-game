@@ -279,7 +279,7 @@ end
 
 /-- The natural homomorphism from a group `G` to its quotient `G / N` is a
   surjection -/
-theorem is_surjective : surjective $ mk N := exists_mk
+theorem is_surjective_mk : surjective $ mk N := exists_mk
 
 -- The first isomorphism theorem states that for all `f : G →* H`,
 -- `G /ₘ kernel f ≅ image f`, we will prove this here.
@@ -524,7 +524,7 @@ variables {G H : Type} [group G] [group H]
 /-- If `N ⊆ kernel f` then the kernel of induced map `lift f N h` is 
   image of `kernel f` -/
 lemma lift_kernel {f : G →* H} {N : normal G} (h : N.to_subgroup ≤ kernel f) :
-  kernel (lift f N h) = nmap is_surjective (kernel f) :=
+  kernel (lift f N h) = nmap is_surjective_mk (kernel f) :=
 begin
   ext x,
   split,
@@ -668,14 +668,14 @@ quotient_kernel_iso_of_surjective' (aux_hom_surjective T N) aux_hom_kernel
 -- subgroup along a surjection
 
 def third_iso_theorem (T : normal G) (N : normal G) (h : T.to_subgroup ≤ N) :
-  let NmodT : normal (G /ₘ T) := N.nmap is_surjective in
+  let NmodT : normal (G /ₘ T) := N.nmap is_surjective_mk in
    (G /ₘ T) /ₘ NmodT ≅ G /ₘ N :=
 let f : G /ₘ T →* G /ₘ N := (lift (mk N) _ (by { convert h, rw kernel_mk })) in 
 iso_comp (subst_iso $ 
-    show nmap is_surjective N = f.kernel, by rw [lift_kernel, kernel_mk]) $
+    show nmap is_surjective_mk N = f.kernel, by rw [lift_kernel, kernel_mk]) $
   quotient_kernel_iso_of_surjective 
     (by { rw [surjective_iff_max_img, lift_image, ←surjective_iff_max_img],
-      exact is_surjective })
+      exact is_surjective_mk })
 
 -- `aux_hom'` is the natural group homomorphism that maps `gT : G /ₘ T` to 
 -- `gN : G /ₘ N`
@@ -692,7 +692,7 @@ end)
  
 -- `aux_hom'` has kernel `N /ₘ T` 
 lemma aux_hom_kernel' {T : normal G} {N : normal G} (h : T.to_subgroup ≤ N): 
-  let NmodT : normal (G /ₘ T) := N.nmap is_surjective in 
+  let NmodT : normal (G /ₘ T) := N.nmap is_surjective_mk in 
   kernel (aux_hom' T N h) = NmodT := 
 begin
   intro hn,
@@ -714,7 +714,7 @@ end
 
 -- Proving the third isomorphism theorem using the first 
 def third_iso_theorem' (T : normal G) (N : normal G) (h : T.to_subgroup ≤ N) :
-   let NmodT : normal (G /ₘ T) := N.nmap (quotient.is_surjective) in
+   let NmodT : normal (G /ₘ T) := N.nmap is_surjective_mk in
    (G /ₘ T) /ₘ NmodT ≅ G /ₘ N :=
 quotient_kernel_iso_of_surjective' (aux_hom_surjective' h) (aux_hom_kernel' h)
 
@@ -749,8 +749,8 @@ end
 @[simp] lemma qmap_eq {H : subgroup G} {N : normal G} (h : H) : 
   qmap H N h = mk N h := rfl
 
-lemma mem_qmap_image {H : subgroup G} {N : normal G} (h : H) : 
-  ↑h ∈ (qmap H N).image ↔ ∃ (g : H /ₘ comap (𝒾 H) N), qmap H N g = h := iff.rfl
+lemma mem_qmap_image {H : subgroup G} {N : normal G} (h) : 
+  h ∈ (qmap H N).image ↔ ∃ (g : H /ₘ comap (𝒾 H) N), qmap H N g = h := iff.rfl
 
 lemma injective_qmap {H : subgroup G} {N : normal G} : injective $ qmap H N :=
 begin
@@ -818,7 +818,7 @@ begin
   cases A with A hA,
   cases B with B _,
   split; intros h a ha,
-    { exact h ⟨((⟨a, ha⟩ : A) : A /ₘ comap (𝒾 A) N), rfl⟩ },
+    { exact h ⟨((⟨a, ha⟩ : A) : _), rfl⟩ },
     { rcases ha with ⟨x, rfl⟩,
       rcases exists_mk x with ⟨⟨g, hg⟩, rfl⟩,
       exact h hg }
@@ -830,6 +830,12 @@ def gi (N : normal G) : galois_insertion (subgroups_of_quotient_equiv N).to_fun
   gc := gc N,
   le_l_u := λ x, by { rw (subgroups_of_quotient_equiv N).right_inv, exact le_refl _ },
   choice_eq := λ _ _, rfl }
+
+def subgroups_of_quotient_order_iso (N : normal G) : 
+  let A := subgroup_ge G N in 
+  let B := subgroup_ge (G /ₘ N) ⊥ in
+  ((≤) : A → A → Prop) ≃o ((≤) : B → B → Prop) :=
+lattice.order_iso_of_equiv_gi (subgroups_of_quotient_equiv N) (gi N)
 
 end quotient
 
