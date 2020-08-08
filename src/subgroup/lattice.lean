@@ -314,6 +314,20 @@ def gi : @galois_insertion (subgroup G) (subgroup_ge G H) _ _ closure (coe) :=
 instance : complete_lattice (subgroup_ge G H) := 
 {.. @galois_insertion.lift_complete_lattice (subgroup G) (subgroup_ge G H) _ _ _ _ gi }
 
+-- We can see easily that subgroup G is the same as subgroup_ge G ⊥
+
+def subgroup_ge_bot_equiv : subgroup G ≃ subgroup_ge G ⊥ := 
+{ to_fun := λ H, ⟨H, bot_le⟩,
+  inv_fun := λ ⟨H, _⟩, H,
+  left_inv := λ _, rfl,
+  right_inv := λ ⟨_, _⟩, rfl }
+
+def subgroup_ge_bot_order_iso : 
+  let A := subgroup G in let B := subgroup_ge G ⊥ in 
+  ((≤) : A → A → Prop) ≃o ((≤) : B → B → Prop) :=
+{ ord' := λ _ _, iff.rfl, 
+  .. subgroup_ge_bot_equiv }
+
 end ge
 
 end subgroup
@@ -322,9 +336,11 @@ namespace lattice
 
 variables {A B : Type} [preorder A] [preorder B]
 
-def order_iso_of_equiv_gi (e : A ≃ B) (g : galois_insertion e.to_fun e.inv_fun) : 
+/-- Given an equivalence `e` on preorders `A` and `B`, and a Galois connection 
+  using `e`, there is an induced `order_iso` between `A` and `B`  -/
+def order_iso_of_equiv_gi (e : A ≃ B) (g : galois_connection e.to_fun e.inv_fun) : 
   ((≤) : A → A → Prop) ≃o ((≤) : B → B → Prop) := 
-{ ord' := λ a b, let h := g.gc a (e.to_fun b) in
+{ ord' := λ a b, let h := g a (e.to_fun b) in
     by { rw e.left_inv at h, rw ←h, refl}, .. e }
 
 end lattice 

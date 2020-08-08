@@ -824,6 +824,7 @@ begin
       exact h hg }
 end
 
+-- ↓ This turns out to be useless since gc + equiv = order_iso ⇒ gi...
 def gi (N : normal G) : galois_insertion (subgroups_of_quotient_equiv N).to_fun 
   (subgroups_of_quotient_equiv N).inv_fun := 
 { choice := λ x _, (subgroups_of_quotient_equiv N).to_fun x,
@@ -831,11 +832,22 @@ def gi (N : normal G) : galois_insertion (subgroups_of_quotient_equiv N).to_fun
   le_l_u := λ x, by { rw (subgroups_of_quotient_equiv N).right_inv, exact le_refl _ },
   choice_eq := λ _ _, rfl }
 
+/-- The subgroups of `G` greater than some `N : normal G` is order isomorphic to 
+  the subgroups of `G /ₘ N` greater than `⊥` -/
 def subgroups_of_quotient_order_iso (N : normal G) : 
   let A := subgroup_ge G N in 
   let B := subgroup_ge (G /ₘ N) ⊥ in
   ((≤) : A → A → Prop) ≃o ((≤) : B → B → Prop) :=
-lattice.order_iso_of_equiv_gi (subgroups_of_quotient_equiv N) (gi N)
+lattice.order_iso_of_equiv_gi (subgroups_of_quotient_equiv N) (gc N)
+
+/-- The subgroups of `G` greater than some `N : normal G` is order isomorphic to 
+  the subgroups of `G /ₘ N` -/
+def subgroups_of_quotient_order_iso' (N : normal G) : 
+  let A := subgroup_ge G N in 
+  let B := subgroup (G /ₘ N) in
+  ((≤) : A → A → Prop) ≃o ((≤) : B → B → Prop) :=
+order_iso.trans (subgroups_of_quotient_order_iso N) $
+  order_iso.symm subgroup_ge_bot_order_iso
 
 end quotient
 
