@@ -1,4 +1,4 @@
-import subgroup.definitions group.group_powers
+import subgroup.definitions group.group_powers for_mathlib.fincard 
 
 noncomputable theory
 
@@ -48,7 +48,6 @@ begin
           convert H.inv_mem h, simp } }
 end
 
-
 -- A corollary of this is a • H = H iff a ∈ H 
 
 /-- The coset of `H`, `1 • H` equals `H` -/
@@ -81,7 +80,7 @@ end
 
 -- Now we would like to prove that all lcosets have the same order
 
-open function fintype
+open function
 
 private def aux_map (a : G) (H : subgroup G) : H → a • H := 
   λ h, ⟨a * h, h, h.2, rfl⟩
@@ -102,7 +101,20 @@ end
 theorem lcoset_equiv {a : G} : H ≃ a • H := 
 equiv.of_bijective (aux_map a H) aux_map_biject
 
--- Move the rest of Lagrange's theorem from orbit.random to here
+-- We are going to use fincard which maps a fintype to its fintype.card 
+-- and maps to 0 otherwise
+
+open fincard
+
+/-- The cardinality of `H` equals its left cosets-/
+lemma eq_card_of_lcoset {a : G} : fincard H = fincard (a • H) := 
+  of_equiv lcoset_equiv
+
+/-- The cardinality of all left cosets are equal -/
+theorem card_of_lcoset_eq {a b : G} : 
+  fincard (a • H) = fincard (b • H) := by iterate 2 { rw ←eq_card_of_lcoset }
+
+-- The rest of the proof will requires quotient
 
 end lagrange
 

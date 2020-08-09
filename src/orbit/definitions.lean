@@ -1,4 +1,4 @@
-import hom.theorems data.fintype.basic
+import hom.theorems 
 
 open set classical
 local attribute [instance] prop_decidable
