@@ -141,11 +141,11 @@ begin
   }
 end
 
-noncomputable def set.fincard {X : Type u} (S : set X) : ℕ :=
-if h : S.finite then (⟨S, h⟩ : finset2 X).card else 37
+--noncomputable def set.fincard {X : Type u} (S : set X) : ℕ :=
+--if h : S.finite then (⟨S, h⟩ : finset2 X).card else 37
 
-noncomputable def fincard (X : Type*) : ℕ :=
-if h : nonempty (fintype X) then @fintype.card X (classical.choice h) else 0
+--noncomputable def fincard (X : Type*) : ℕ :=
+--if h : nonempty (fintype X) then @fintype.card X (classical.choice h) else 0
 
 -- I proved fincard.prod
 
