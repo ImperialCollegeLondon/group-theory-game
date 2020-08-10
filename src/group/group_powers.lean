@@ -15,6 +15,7 @@ def lmul (g : G) : G ≃ G :=
   left_inv := begin intro x, rw [←mul_assoc, mul_left_inv, one_mul], end,
   right_inv := begin intro x, rw [←mul_assoc, mul_right_inv, one_mul] end }
 
+
 def pow : ℤ → G → G :=
   λ n g, (iterate n (lmul g)) 1
 
@@ -28,9 +29,9 @@ variables (n m : ℤ) (g h k : G)
 lemma lmul_one : (lmul g) 1 = g := mul_one g
 
 lemma lmul_symm  : (lmul g).symm = lmul g⁻¹ := by ext; refl
-lemma lmul_symm' : (lmul g)⁻¹ = (lmul g).symm := rfl 
+lemma lmul_symm' : (lmul g)⁻¹ = (lmul g).symm := rfl
 
-lemma pow_def     : (⦃n⦄^g : G) = iterate n (lmul g) 1 := rfl
+lemma pow_def     : (⦃n⦄^g : G) = iterate n (lmul g) 1 := rfl 
 lemma pow_one_mul : iterate 1 (lmul g) h = g * h := rfl
 
 @[simp] lemma zero_pow : (⦃0⦄^g) = 1 := rfl
@@ -78,7 +79,30 @@ begin
   rw [iterate_mul_assoc, one_mul],
 end
 
+
 -- Is there more theorems about pow we should add? 
+
+variables {H : Type} [comm_group H]
+-- Is this useful? Only true in abelian group
+theorem mul_pow {H : Type} [hH :comm_group H] {g : H} {h : H} : (⦃n⦄^g)*(⦃n⦄^h) = (⦃n⦄^(g*h)) := 
+begin
+  simp [pow_def],
+  rw  iterate_mul_assoc,
+  rw one_mul,
+  apply int.induction_on' n 0,
+    {simp},
+    {intros k hk _ ,
+    rw iterate_succ,
+    rw iterate_succ,
+    rw iterate_succ,
+    --unfold iterate at *,
+    rw ← a, 
+    rw mul_assoc, 
+    rw ← mul_assoc,
+      
+    },
+    {sorry},
+end  
 
 end group
 

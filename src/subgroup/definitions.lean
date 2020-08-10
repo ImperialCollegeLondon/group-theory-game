@@ -23,7 +23,7 @@ structure subgroup (G : Type) [group G] :=
 
 -- Defintion of normal subgroup (in a bundled form)
 structure normal (G : Type) [group G] extends subgroup G :=
-(conj_mem : ∀ n, n ∈ carrier → ∀ g : G, g * n * g⁻¹ ∈ carrier)
+(conj_mem' : ∀ n, n ∈ carrier → ∀ g : G, g * n * g⁻¹ ∈ carrier)
 
 -- we put dashes in all the names, because we'll define
 -- non-dashed versions which don't mention `carrier` at all
@@ -75,6 +75,8 @@ theorem inv_mem {x : G} : x ∈ H → x⁻¹ ∈ H := subgroup.inv_mem' _
 
 instance : has_coe (subgroup G) (set G) := ⟨subgroup.carrier⟩
 
+lemma mem_coe' {g : G} : g ∈ (H : set G) ↔ g ∈ H := iff.rfl
+
 instance (K : subgroup G) : group ↥K :=
 { mul := λ a b, ⟨a.1 * b.1, K.mul_mem' a.2 b.2⟩,
   one := ⟨1, K.one_mem'⟩,
@@ -116,8 +118,23 @@ def center (G : Type) [group G] : subgroup G :=
   end
 } -/
 
-
-
 end subgroup
+
+namespace normal
+
+variables {G : Type} [group G]
+
+lemma conj_mem  (N : normal G) (n : G) (hn : n ∈ N) (g : G) :
+  g * n * g⁻¹ ∈ N := N.conj_mem' n hn g
+
+@[ext] lemma ext (A B : normal G) (h : ∀ g, g ∈ A ↔ g ∈ B) : A = B :=
+begin
+  cases A with A, cases B with B, cases A with A, cases B with B,
+  suffices : A = B,
+    simp * at *,
+  ext x, exact h x
+end
+
+end normal
 
 end mygroup

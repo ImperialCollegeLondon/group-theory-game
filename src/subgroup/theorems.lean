@@ -1,4 +1,4 @@
-import subgroup.definitions group.group_powers
+import subgroup.definitions group.group_powers for_mathlib.fincard 
 
 noncomputable theory
 
@@ -25,33 +25,6 @@ namespace mygroup
 
 variables {G : Type} [group G]
 
-namespace subgroup
-
--- The two definitions below should be deleted since we have the lattice 
--- definitions in subgroup.lattice file (Should probably move that over)
-
--- The intersect of two subgroups is also a subgroup
-def inter_subgroup (H K : subgroup G) : subgroup G :=
-{ carrier := H ∩ K,
-  one_mem' := ⟨H.one_mem, K.one_mem⟩,
-  mul_mem' := λ _ _ ⟨hhx, hkx⟩ ⟨hhy, hky⟩, 
-  ⟨H.mul_mem hhx hhy, K.mul_mem hkx hky⟩,
-  inv_mem' := λ x ⟨hhx, hhy⟩,
-  ⟨H.inv_mem hhx, K.inv_mem hhy⟩}
-
-open set
-variable {ι : Sort}
-
--- The intersect of a set of subgroups is a subgroup
-def Inter_subgroup (H : ι → subgroup G) : subgroup G := 
-{ carrier := ⋂ i, H i,
-  one_mem' := mem_Inter.mpr $ λ i, (H i).one_mem,
-  mul_mem' := λ _ _ hx hy, mem_Inter.mpr $ λ i, 
-  by {rw mem_Inter at *, from mul_mem (H i) (hx i) (hy i)},
-  inv_mem' := λ x hx, mem_Inter.mpr $ λ i, (H i).inv_mem $ by apply mem_Inter.mp hx }
-
-end subgroup
-
 namespace lagrange
 
 variables {H : subgroup G}
@@ -74,7 +47,6 @@ begin
           refine ⟨a⁻¹ * b * g, H.mul_mem _ hg₀, by simp [←group.mul_assoc]⟩,
           convert H.inv_mem h, simp } }
 end
-
 
 -- A corollary of this is a • H = H iff a ∈ H 
 
@@ -108,7 +80,7 @@ end
 
 -- Now we would like to prove that all lcosets have the same order
 
-open function fintype
+open function
 
 private def aux_map (a : G) (H : subgroup G) : H → a • H := 
   λ h, ⟨a * h, h, h.2, rfl⟩
@@ -129,11 +101,41 @@ end
 theorem lcoset_equiv {a : G} : H ≃ a • H := 
 equiv.of_bijective (aux_map a H) aux_map_biject
 
--- Move the rest of Lagrange's theorem from orbit.random to here
+-- We are going to use fincard which maps a fintype to its fintype.card 
+-- and maps to 0 otherwise
+
+open fincard
+
+/-- The cardinality of `H` equals its left cosets-/
+lemma eq_card_of_lcoset {a : G} : fincard H = fincard (a • H) := 
+  of_equiv lcoset_equiv
+
+/-- The cardinality of all left cosets are equal -/
+theorem card_of_lcoset_eq {a b : G} : 
+  fincard (a • H) = fincard (b • H) := by iterate 2 { rw ←eq_card_of_lcoset }
+
+-- The rest of the proof will requires quotient
 
 end lagrange
 
 namespace normal
+
+lemma mem_normal {x} {N : normal G} : 
+  x ∈ N ↔ ∃ (g : G) (n ∈ N), x = g * n * g⁻¹ :=
+begin
+  split; intro h, 
+    { exact ⟨1, x, h, by simp⟩ },
+    { rcases h with ⟨g, n, hn, rfl⟩,
+      exact conj_mem _ _ hn _ }
+end
+
+lemma mem_normal' {x} {N : normal G} : 
+  x ∈ N ↔ ∃ (g : G) (n ∈ N), x = g⁻¹ * n * g :=
+begin
+  rw mem_normal,
+  split; rintro ⟨g, n, hn, rfl⟩;
+    { exact ⟨g⁻¹, n, hn, by simp⟩ }
+end
 
 -- Some equivalent definitions for normal groups from wikipedia
 
@@ -150,7 +152,7 @@ end
 
 def normal_of_mem_comm {K : subgroup G} 
   (h : ∀ g k : G, g * k ∈ K → k * g ∈ K) : normal G :=
-{ conj_mem := 
+{ conj_mem' := 
   begin
     intros n hn g,
     suffices : g * (n * g⁻¹) ∈ K,
@@ -178,7 +180,7 @@ end
 
 def normal_of_coset_eq {K : subgroup G} 
   (h : ∀ g : G, g • K = K • g) : normal G :=
-{ conj_mem := 
+{ conj_mem' := 
   begin
     intros n hn g,
     have : ∃ s ∈ K • g, s = g * n,
@@ -205,7 +207,7 @@ end
 
 def normal_of_prod_in_coset {K : subgroup G} 
   (h : ∀ x y g h : G, x ∈ g • K → y ∈ h • K → x * y ∈ (g * h) • K) : normal G :=
-{ conj_mem := 
+{ conj_mem' := 
   begin
     intros n hn g,
     rcases h (g * n) (g⁻¹ * n) g g⁻¹ 
