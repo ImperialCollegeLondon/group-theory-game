@@ -8,11 +8,7 @@ namespace fintype
 universes u v
 
 @[ext] def ext {X : Type u} (a : fintype X) (b : fintype X) :
-a.elems = b.elems → a = b :=
-begin
-  tactic.unfreeze_local_instances,
-  cases a; cases b; simp
-end
+a = b := subsingleton.elim a b
 
 def equiv_congr {X : Type u} {Y : Type v} (e : X ≃ Y) :
   fintype X ≃ fintype Y :=
@@ -20,14 +16,11 @@ def equiv_congr {X : Type u} {Y : Type v} (e : X ≃ Y) :
   inv_fun := λ fY, @fintype.of_equiv X Y fY e.symm,
   left_inv := begin
     intro h,
-    cases h with S hS,
-    ext x,
-    congr'
+    ext,
   end,
   right_inv := begin
-    rintro ⟨S, hS⟩,
-    ext x,
-    congr'
+    intro h,
+    ext,
   end }
 
 end fintype
@@ -52,9 +45,7 @@ variable {X : Type u}
 
 open set
 
-@[ext] structure finset2 (X : Type u) :=
-(S : set X)
-(h : finite S)
+def finset2 (X : Type u) := {S : set X // finite S}
 
 namespace finset2
 
@@ -66,10 +57,8 @@ namespace finset2
 -- proofs can certainly be golfed
 
 noncomputable def equiv_finset (X : Type*) : finset2 X ≃ (finset X) :=
-{ to_fun := λ T, set.finite.to_finset T.h,
-  inv_fun := λ F, 
-  { S := (↑F : set X), -- needs the uparrow
-    h := finite_mem_finset F },
+{ to_fun := λ T, T.2.to_finset,
+  inv_fun := λ F, ⟨↑F, finite_mem_finset F⟩, 
   left_inv := begin
     intro T,
     cases T with S h,
