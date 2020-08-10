@@ -85,12 +85,6 @@ end finset2
 
 /-! # Relation to fintype -/
 
-#check fintype
-#check fintype X
-#check nonempty (fintype X)
-
--- Maths : Let X be a set (i.e a type). Assume X is finite.
-
 def equiv.univ (X : Type u) :
 X ≃ (univ : set X) :=
 { to_fun := λ x,  ⟨x, mem_univ x⟩,
@@ -98,13 +92,7 @@ X ≃ (univ : set X) :=
   left_inv := by intro x; refl,
   right_inv := by intro cx; cases cx; refl }
 
-
 universe v
-
-
-#check finset X
-    
-#check equiv.to_embedding
 
 -- two concepts of finiteness are EQUIVALENT
 theorem nonempty_fintype_iff_finite_univ : nonempty (fintype X) ↔ finite (univ : set X) :=
