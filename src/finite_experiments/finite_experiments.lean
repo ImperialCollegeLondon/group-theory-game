@@ -7,6 +7,7 @@ import data.set.finite
 /-
 Reid said
 
+
 def finite {a : Type} (s : set a) : Prop := -- any definition of finiteness
 
 structure finset (a : Type) :=
@@ -81,9 +82,12 @@ variable X : Type
 -- a proof that it's finite
 
 -- finite subsets of X
-structure FS1 (X : Type) :=
+-- Reid's proposal for finset
+@[ext] structure FS1 (X : Type) :=
 (S : set X)
 (h : set.finite S)
+
+
 
 #check FS1 X --  a type -- it's "the set of all finite subsets of X"
 
@@ -132,18 +136,41 @@ def evens : set ℕ := {n : ℕ | ∃ k, n = 2 * k}
 
 -- so `set.finite` is just the *statement* that a set is finite
 
+open set
 
-example : FS1 X ≃ (finset X) :=
+#print set.finite.to_finset
+
+-- finset is "constructive finite sets"
+-- to make a term of type `finset ℕ` Lean would like
+-- to internally store a list of all the elements
+
+noncomputable def bartonfinset_equiv_finset : FS1 X ≃ (finset X) :=
 { to_fun := λ T, set.finite.to_finset T.h,
-  inv_fun := λ T, 
-  { S := (↑T : set X), -- needs the uparrow
-    h := _ },
-  left_inv := _,
-  right_inv := _ }
+  inv_fun := λ F, 
+  { S := (↑F : set X), -- needs the uparrow
+    h := finite_mem_finset F },
+  left_inv := begin
+    intro T,
+    cases T with S h,
+    ext x,
+    apply finite.mem_to_finset,
+  end,
+  right_inv := begin
+    intro F,
+    dsimp,
+    ext x,
+    set S : set X := ↑F,
+    rw ←(@finset.mem_coe _ _ F),
+    rw finite.mem_to_finset
+  end }
 
 #check set.finite
 
 
 
+-- conclusion -- we don't care about computability
+-- we don't care about constructiveness
 
+-- so we should be using `finite s` for finite sets
+-- or Reid's bundled `finite s`
 
