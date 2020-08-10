@@ -99,7 +99,7 @@ begin
     rw ← a, 
     rw mul_assoc, 
     rw ← mul_assoc,
-      
+    sorry,  
     },
     {sorry},
 end  
