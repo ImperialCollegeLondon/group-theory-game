@@ -149,6 +149,8 @@ attribute [simp] mem_kernel mem_image
 -- We will prove the classic results about injective homomorphisms that a
 -- homomorphism is injective if and only if it have the trivial kernel
 
+open function
+
 /-- A homomorphism `f` is injective iff. `f` has kernel `{1}` -/
 theorem injective_iff_kernel_eq_one :
   injective f ↔ (kernel f : set G) = {1} :=
@@ -218,6 +220,8 @@ end group_hom
 
 namespace subgroup
 
+open set
+
 variables {G : Type} [group G] {H : Type} [group H]
 
 /-- image of a subgroup is a subgroup -/
@@ -279,7 +283,7 @@ end
 
 /-- The natural homomorphism from a group `G` to its quotient `G / N` is a
   surjection -/
-theorem is_surjective_mk : surjective $ mk N := exists_mk
+theorem is_surjective : surjective $ mk N := exists_mk
 
 -- The first isomorphism theorem states that for all `f : G →* H`,
 -- `G /ₘ kernel f ≅ image f`, we will prove this here.
@@ -517,14 +521,16 @@ end normal
 
 namespace quotient
 
-open mygroup.subgroup mygroup.group_hom normal subgroup.ge
+open mygroup.subgroup mygroup.group_hom
 
 variables {G H : Type} [group G] [group H]
+
+open normal
 
 /-- If `N ⊆ kernel f` then the kernel of induced map `lift f N h` is 
   image of `kernel f` -/
 lemma lift_kernel {f : G →* H} {N : normal G} (h : N.to_subgroup ≤ kernel f) :
-  kernel (lift f N h) = nmap is_surjective_mk (kernel f) :=
+  kernel (lift f N h) = nmap is_surjective (kernel f) :=
 begin
   ext x,
   split,
@@ -588,6 +594,8 @@ end
 -- we will define a map T -> X
 -- and prove N ∩ T is in the kernel
 -- Then we get a well-defined map T/(N∩T) → X
+
+open mygroup.group_hom
 
 -- Proof of the second isomorphism theorem by directly constructing the 
 -- homomorphism and proving its bijective
@@ -668,14 +676,14 @@ quotient_kernel_iso_of_surjective' (aux_hom_surjective T N) aux_hom_kernel
 -- subgroup along a surjection
 
 def third_iso_theorem (T : normal G) (N : normal G) (h : T.to_subgroup ≤ N) :
-  let NmodT : normal (G /ₘ T) := N.nmap is_surjective_mk in
+  let NmodT : normal (G /ₘ T) := N.nmap is_surjective in
    (G /ₘ T) /ₘ NmodT ≅ G /ₘ N :=
 let f : G /ₘ T →* G /ₘ N := (lift (mk N) _ (by { convert h, rw kernel_mk })) in 
 iso_comp (subst_iso $ 
-    show nmap is_surjective_mk N = f.kernel, by rw [lift_kernel, kernel_mk]) $
+    show nmap is_surjective N = f.kernel, by rw [lift_kernel, kernel_mk]) $
   quotient_kernel_iso_of_surjective 
     (by { rw [surjective_iff_max_img, lift_image, ←surjective_iff_max_img],
-      exact is_surjective_mk })
+      exact is_surjective })
 
 -- `aux_hom'` is the natural group homomorphism that maps `gT : G /ₘ T` to 
 -- `gN : G /ₘ N`
@@ -692,7 +700,7 @@ end)
  
 -- `aux_hom'` has kernel `N /ₘ T` 
 lemma aux_hom_kernel' {T : normal G} {N : normal G} (h : T.to_subgroup ≤ N): 
-  let NmodT : normal (G /ₘ T) := N.nmap is_surjective_mk in 
+  let NmodT : normal (G /ₘ T) := N.nmap is_surjective in 
   kernel (aux_hom' T N h) = NmodT := 
 begin
   intro hn,
@@ -714,15 +722,20 @@ end
 
 -- Proving the third isomorphism theorem using the first 
 def third_iso_theorem' (T : normal G) (N : normal G) (h : T.to_subgroup ≤ N) :
-   let NmodT : normal (G /ₘ T) := N.nmap is_surjective_mk in
+   let NmodT : normal (G /ₘ T) := N.nmap (quotient.is_surjective) in
    (G /ₘ T) /ₘ NmodT ≅ G /ₘ N :=
 quotient_kernel_iso_of_surjective' (aux_hom_surjective' h) (aux_hom_kernel' h)
 
-/-
+-- Option 1 -- I'm going to try out this option and see if there is any road blocks
+inductive subgroup_ge (G : Type) [group G] (K : subgroup G) 
+| mk (H : subgroup G) : (K ≤ H) → subgroup_ge
+
+@[simp] lemma subgroup_ge_eq (H A B : subgroup G) {hA : H ≤ A} {hB : H ≤ B} : 
+  subgroup_ge.mk A hA = subgroup_ge.mk B hB ↔ A = B := ⟨subgroup_ge.mk.inj, by cc⟩
+
 -- Option 2
 def subgroup_ge' (G : Type) [group G] (N : subgroup G) :=
   { H : subgroup G | N ≤ H }
--/
 
 -- We would like to define `correspondence N : H ↦ H /ₘ N` so first we need to 
 -- show if `H : subgroup G` with `(N : subgroup G) ≤ H`, then `↑N` is a normal 
@@ -736,7 +749,7 @@ def subgroup_ge' (G : Type) [group G] (N : subgroup G) :=
   and `N : normal G` such that `h • N ↦ h • N` -/ 
 def qmap (H : subgroup G) (N : normal G) : H /ₘ comap (𝒾 H) N →* G /ₘ N :=
   let φ : H →* G /ₘ N := ⟨λ h, mk N h.1, λ _ _, rfl⟩ in lift φ (comap (𝒾 H) N) $ 
-begin
+begin 
   rintro ⟨x, hx₀⟩ hx,
   show _ ∈ kernel φ,
   rw mem_kernel,
@@ -748,9 +761,6 @@ end
 
 @[simp] lemma qmap_eq {H : subgroup G} {N : normal G} (h : H) : 
   qmap H N h = mk N h := rfl
-
-lemma mem_qmap_image {H : subgroup G} {N : normal G} (h) : 
-  h ∈ (qmap H N).image ↔ ∃ (g : H /ₘ comap (𝒾 H) N), qmap H N g = h := iff.rfl
 
 lemma injective_qmap {H : subgroup G} {N : normal G} : injective $ qmap H N :=
 begin
@@ -773,81 +783,37 @@ subgroup_ge.mk (subgroup.comap (mk N) H) $
   λ n hn, show mk N n ∈ H, 
   by { convert one_mem H, rw [←mem_kernel, kernel_mk], exact hn }
 
-lemma correspondence_left_inv (N : normal G) : 
-  left_inverse (correspondence_inv N) (correspondence N) :=
-begin
-  rintro ⟨H, hH⟩,
-  suffices : comap (mk N) (qmap H N).image = H,
-   { simpa [correspondence, correspondence_inv] },
-  ext x, split; intro hx,
-   { cases hx with x' hx', rcases exists_mk x' with ⟨g, rfl⟩,
-     rw [qmap_eq, ←coe_eq_mk, ←coe_eq_mk, mk_eq'] at hx',
-     rw ←group.inv_inv x,
-     refine inv_mem H _,
-     rw [←group.mul_one x⁻¹, ←group.mul_right_inv (g : G), ←group.mul_assoc],
-     exact mul_mem H (hH hx') (inv_mem H g.2) },
-   { refine ⟨((⟨x, hx⟩ : H) : H /ₘ comap (𝒾 H) N), _⟩,
-     rw qmap_eq, refl }
-end
-
-lemma correspondence_right_inv (N : normal G) : 
-  right_inverse (correspondence_inv N) (correspondence N) :=
-begin
-  rintro ⟨H, _⟩,
-  suffices : (qmap (comap (mk N) H) N).image = H,
-    { simpa [correspondence, correspondence_inv] },
-  ext x, split; intro hx,
-    { rcases hx with ⟨x', rfl⟩,
-      rcases exists_mk x' with ⟨⟨g, hg⟩, rfl⟩,
-      exact hg },
-    { rcases exists_mk x with ⟨g, rfl⟩,
-      exact ⟨(mk (comap (𝒾 (comap (mk N) H)) N)) ⟨g, hx⟩, rfl⟩ }
-end
-
 def subgroups_of_quotient_equiv (N : normal G) : 
   subgroup_ge G N ≃ subgroup_ge (G /ₘ N) ⊥ := 
 { to_fun := correspondence N,
   inv_fun := correspondence_inv N,
-  left_inv := correspondence_left_inv N,
-  right_inv := correspondence_right_inv N }
-
-def gc (N : normal G) : galois_connection (subgroups_of_quotient_equiv N).to_fun 
-  (subgroups_of_quotient_equiv N).inv_fun := 
-begin
-  intros A B,
-  cases A with A hA,
-  cases B with B _,
-  split; intros h a ha,
-    { exact h ⟨((⟨a, ha⟩ : A) : _), rfl⟩ },
-    { rcases ha with ⟨x, rfl⟩,
-      rcases exists_mk x with ⟨⟨g, hg⟩, rfl⟩,
-      exact h hg }
-end
-
--- ↓ This turns out to be useless since gc + equiv = order_iso ⇒ gi...
-def gi (N : normal G) : galois_insertion (subgroups_of_quotient_equiv N).to_fun 
-  (subgroups_of_quotient_equiv N).inv_fun := 
-{ choice := λ x _, (subgroups_of_quotient_equiv N).to_fun x,
-  gc := gc N,
-  le_l_u := λ x, by { rw (subgroups_of_quotient_equiv N).right_inv, exact le_refl _ },
-  choice_eq := λ _ _, rfl }
-
-/-- The subgroups of `G` greater than some `N : normal G` is order isomorphic to 
-  the subgroups of `G /ₘ N` greater than `⊥` -/
-def subgroups_of_quotient_order_iso (N : normal G) : 
-  let A := subgroup_ge G N in 
-  let B := subgroup_ge (G /ₘ N) ⊥ in
-  ((≤) : A → A → Prop) ≃o ((≤) : B → B → Prop) :=
-lattice.order_iso_of_equiv_gi (subgroups_of_quotient_equiv N) (gc N)
-
-/-- The subgroups of `G` greater than some `N : normal G` is order isomorphic to 
-  the subgroups of `G /ₘ N` -/
-def subgroups_of_quotient_order_iso' (N : normal G) : 
-  let A := subgroup_ge G N in 
-  let B := subgroup (G /ₘ N) in
-  ((≤) : A → A → Prop) ≃o ((≤) : B → B → Prop) :=
-order_iso.trans (subgroups_of_quotient_order_iso N) $
-  order_iso.symm subgroup_ge_bot_order_iso
+  left_inv := 
+    begin
+      rintro ⟨H, hH⟩,
+      suffices : comap (mk N) (qmap H N).image = H,
+        { simpa [correspondence, correspondence_inv] },
+      ext x, split; intro hx,
+        { cases hx with x' hx', rcases exists_mk x' with ⟨g, rfl⟩,
+          rw [qmap_eq, ←coe_eq_mk, ←coe_eq_mk, mk_eq'] at hx',
+          rw ←group.inv_inv x,
+          refine inv_mem H _,
+          rw [←group.mul_one x⁻¹, ←group.mul_right_inv (g : G), ←group.mul_assoc],
+          exact mul_mem H (hH hx') (inv_mem H g.2) },
+        { refine ⟨((⟨x, hx⟩ : H) : H /ₘ comap (𝒾 H) N), _⟩,
+          rw qmap_eq, refl }
+    end,
+  right_inv := 
+    begin
+      rintro ⟨H, _⟩,
+      suffices : (qmap (comap (mk N) H) N).image = H,
+        { simpa [correspondence, correspondence_inv] },
+      ext x, split; intro hx,
+        { rcases hx with ⟨x', rfl⟩,
+          rcases exists_mk x' with ⟨⟨g, hg⟩, rfl⟩,
+          exact hg },
+        { rcases exists_mk x with ⟨g, rfl⟩,
+          exact ⟨(mk (comap (𝒾 (comap (mk N) H)) N)) ⟨g, hx⟩, rfl⟩ }
+    end }
 
 end quotient
 
