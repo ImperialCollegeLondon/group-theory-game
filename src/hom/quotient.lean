@@ -1,4 +1,4 @@
-import subgroup.theorems group_theory.congruence
+import hom.definitions group_theory.congruence
 
 namespace mygroup
 
@@ -69,7 +69,7 @@ instance : has_one (quotient R) := ⟨((1 : G) : quotient R)⟩
 lemma coe     (x : G)   : quotient.mk' x = (x : quotient R) := rfl 
 lemma coe_mul (x y : G) : (x : quotient R) * y = ((x * y : G) : quotient R) := rfl  
 lemma coe_inv (x : G)   : (x : quotient R)⁻¹ = ((x⁻¹ : G ): quotient R) := rfl
-lemma coe_one           : 1 = ((1 : G) : quotient R) := rfl
+lemma coe_one           : ((1 : G) : quotient R) = 1 := rfl
 
 -- I think the rhs is more desirable in most cases so I will make simp use them
 attribute [simp] coe coe_mul coe_inv coe_one
@@ -94,7 +94,7 @@ end
 lemma one_mul' {a : quotient R} : 1 * a = a := 
 begin
   apply quotient.induction_on' a,
-  intro x, rw [coe, coe_one, coe_mul, group.one_mul]  
+  intro x, rw [coe, ←coe_one, coe_mul, group.one_mul]  
 end
 
 lemma mul_left_inv' {a : quotient R} : a⁻¹ * a = 1 := 
@@ -112,78 +112,109 @@ instance : group (quotient R) :=
 
 -- But this is not how most of us learnt quotient groups. For us, quotient groups 
 -- are defined by creating a group structure on the set of coests of a normal 
--- subgroup. We will show that these two definitions are, in fact, the same.
+-- subgroup. We will show that the equivalence relation `lcoset_rel H` in which 
+-- `x ~ y ↔ x • H = y • H` is a group congruence if and only if H is normal.
 
 /- The main proposition we will prove is that given a subgroup H of the group G, 
 the equivalence relation ~ : (g, k) ↦ g H = k H on G is a group congruence if 
 and only if H is normal. -/
 
-open mygroup.subgroup lagrange
+open mygroup.subgroup lagrange function
 
-variables {H : subgroup G} 
+variables {H : subgroup G} {N : normal G}
 
 -- We will redeclare the notation since importing group_theory.congruence also 
 -- imported some other notations using `•`
 notation g ` • ` :70 H :70 := lcoset g H
 notation H ` • ` :70 g :70 := rcoset g H
 
-def lcoset_rel (H : subgroup G) := λ x y, x • H = y • H 
-local notation x ` ~ ` y := lcoset_rel H x y
+def lcoset_rel (H : subgroup G) := λ x y, x • H = y • H
+local notation x ` ~ `:70 y := lcoset_rel H x y 
+local notation x ` ~[ `:70 H:70 ` ] `:0 y:0 := lcoset_rel H x y
 
-def lcoset_iseqv (H : subgroup G) : equivalence (lcoset_rel H) := 
+/-
+infixr ` →ₗ `:25 := linear_map _
+notation M ` →ₗ[`:25 R:25 `] `:0 M₂:0 := linear_map R M M₂
+-/
+
+lemma lcoset_rel_def (x y : G) : x ~ y ↔ x • H = y • H := iff.rfl
+
+lemma lcoset_iseqv (H : subgroup G) : equivalence (lcoset_rel H) := 
 begin
   refine ⟨by tauto, λ _ _ hxy, hxy.symm, _⟩,
   intros _ _ _ hxy hyz, unfold lcoset_rel at *, rw [hxy, hyz]
 end 
 
+lemma lcoset_mul {x₀ x₁ y₀ y₁ : G} 
+  (hx : x₀ ~[↑N] x₁) (hy : y₀ ~[↑N] y₁) : (x₀ * y₀) ~[↑N] (x₁ * y₁) := 
+begin
+  rw [lcoset_rel_def, lcoset_eq] at *,
+  have := N.conj_mem _ hx y₁⁻¹, 
+  rw group.inv_inv at this,
+  replace this := N.mul_mem' this hy,
+  rw [←group.mul_assoc, group.mul_assoc (y₁⁻¹ * (x₁⁻¹ * x₀)), 
+      group.mul_right_inv, group.mul_one, ←group.mul_assoc] at this,
+  rwa [group.inv_mul, ←group.mul_assoc],
+end
+
+lemma lcoset_inv {x y : G} (hxy : x ~[↑N] y) : (x⁻¹ ~[↑N] y⁻¹) := 
+begin
+  rw [lcoset_rel_def, lcoset_eq] at *,
+  rw ←group.inv_mul,
+  apply N.inv_mem',
+  convert N.conj_mem' _ hxy y,
+  simp [←group.mul_assoc]
+end
+
 /-- If `H` is normal, then `lcoset_rel H` is a group congruence -/
-def con_of_normal (H : normal G) : group_con G :=
-{ r := lcoset_rel H,
-  iseqv := lcoset_iseqv H, 
-  mul' := -- Should move mul' and inv' into individual lemmas about normal
-    begin
-      intros x₀ x₁ y₀ y₁ hx hy,
-      unfold lcoset_rel at *,
-      rw lcoset_eq at *,
-      have := H.conj_mem _ hx y₁⁻¹, 
-      rw group.inv_inv at this,
-      replace this := H.mul_mem' this hy,
-      rw [←group.mul_assoc, group.mul_assoc (y₁⁻¹ * (x₁⁻¹ * x₀)), 
-        group.mul_right_inv, group.mul_one, ←group.mul_assoc] at this,
-      rwa [group.inv_mul, ←group.mul_assoc],
-    end,
-  inv' := 
-    begin
-      dsimp, intros x y hxy,
-      unfold lcoset_rel at *,
-      rw lcoset_eq at *, rw ←group.inv_mul,
-      apply H.inv_mem',
-      convert H.conj_mem _ hxy y,
-      simp [←group.mul_assoc]
-    end }
+def con_of_normal (G : Type) [group G] (N : normal G) : group_con G :=
+{ r := lcoset_rel N,
+  iseqv := lcoset_iseqv N, 
+  mul' := λ x₀ x₁ y₀ y₁ hx hy, lcoset_mul hx hy,
+  inv' := λ x y hxy, lcoset_inv hxy }
+
+lemma con_of_normal_def {G : Type} [group G] {N : normal G} (x y : G) : 
+con_of_normal G N x y ↔ x ~[↑N] y := iff.rfl
 
 lemma con_one_of_mem : ∀ h ∈ H, h ~ 1 :=
 begin
   intros h hh,
-  unfold lcoset_rel,
-  rw lcoset_eq, simpa  
+  rw [lcoset_rel_def, lcoset_eq], simpa  
 end
 
-lemma mem_of_con_one (g : G) (hg : g ~ 1) : g ∈ H :=
-begin
-  unfold lcoset_rel at hg,
-  rwa [lcoset_eq, group.one_inv, group.one_mul] at hg
-end
+lemma mem_of_con_one {g : G} (hg : g ~ 1) : g ∈ H :=
+by rwa [lcoset_rel_def, lcoset_eq, group.one_inv, group.one_mul] at hg
 
 /-- If `lcoset_rel H` is a congruence then `H` is normal -/
 def normal_of_con (H : subgroup G) {R : group_con G} 
   (hR : R.r = lcoset_rel H) : normal G := 
-{ conj_mem := λ n hn g, mem_of_con_one _ $
+{ conj_mem' := λ n hn g, mem_of_con_one $
     begin
-      rw [←hR, (show (1 : G) = g * 1* g⁻¹, by simp)],
+      rw [←hR, (show (1 : G) = g * 1 * g⁻¹, by simp)],
       refine R.mul' (R.mul' (R.iseqv.1 _) _) (R.iseqv.1 _),
        { rw hR, exact con_one_of_mem _ hn }
     end .. H }
+
+lemma con_one_iff_mem (h : G) : h ~ 1 ↔ h ∈ H := ⟨mem_of_con_one, con_one_of_mem h⟩
+
+-- So now, whenever we would like to work with "normal" quotient groups of 
+-- a group `G` over a normal group `N`, we write `quotient (con_of_normal N)`
+notation G ` /ₘ `:70 N:70 := quotient (con_of_normal G N)
+
+/-- For all elements `c : G /ₘ N`, there is some `g : G` such that `⟦g⟧ = c`-/
+lemma exists_mk {N : normal G} (c : G /ₘ N) : ∃ g : G, (g : G /ₘ N) = c := 
+  @quotient.exists_rep G (con_of_normal G N) c
+
+/-- `(⟦p⟧ : G /ₘ N) = ⟦q⟧` iff `p • N = q • N` where `p q : G` -/
+lemma mk_eq {p q : G} : (p : G /ₘ N) = q ↔ p • N = q • N :=
+  ⟨λ h, quotient.eq.1 h, λ h, quotient.eq.2 h⟩
+
+lemma mk_eq' {p q : G} : (p : G /ₘ N) = q ↔ q⁻¹ * p ∈ N :=
+begin
+  rw mk_eq,
+  exact lcoset_eq
+end
+
 
 end quotient
 
