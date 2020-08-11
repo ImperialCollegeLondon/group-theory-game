@@ -103,7 +103,7 @@ def foo3 (o) [h : fintype o] := card o  > 1
 #check foo
 
 -- temp exit to do one last boring thing
-
+#exit
 --lemma finite_foo : @finite ℕ (foo) := sorry
 --If S is a finite group then card S = card fixed_points G S + Σcard Oᵢ , 
 --where the sum runs over orbits of size > 1.

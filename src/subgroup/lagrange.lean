@@ -23,7 +23,7 @@ lemma eq_card (s : set α) : fincard s = card s := sorry
 lemma eq_card' : fincard α = card (univ : set α) := sorry
 
 lemma sum_const [comm_semiring β] (s : set α) (m : β):
-  ∑ x in s, (λ x, m) x = m * fincard s := by rw [eq_card, set.sum_const s m]
+  ∑ x in s, (λ x, m) x = m * fincard s := sorry -- by rw [eq_card, set.sum_const s m]
 
 lemma sum_const_nat {s : set α} {m : ℕ} {f : α → ℕ} (h₁ : ∀ x ∈ s, f x = m) :
   ∑ x in s, f x = m * fincard s :=

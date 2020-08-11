@@ -1,16 +1,35 @@
-import finiteness.finset2
+--import finiteness.finset2
 
-universe u
+import data.set.finite data.fintype.basic
+
+import tactic
+
+universes u v
 
 open_locale classical
 
 open set
+
 def equiv.univ (X : Type u) :
 X ≃ (univ : set X) :=
 { to_fun := λ x,  ⟨x, mem_univ x⟩,
   inv_fun := λ cx, cx.1,
   left_inv := by intro x; refl,
   right_inv := by intro cx; cases cx; refl }
+
+def subsingleton.mk_equiv {α β} [subsingleton α] [subsingleton β]
+  (f : α → β) (g : β → α) : α ≃ β :=
+⟨f, g, λ _, by cc, λ _, by cc⟩
+
+namespace fintype
+
+@[ext] def ext {X : Type u} (a : fintype X) (b : fintype X) :
+a = b := subsingleton.elim a b
+
+def equiv_congr {X Y} (e : X ≃ Y) : fintype X ≃ fintype Y :=
+subsingleton.mk_equiv (λ fX, @fintype.of_equiv Y X fX e) (λ fY, @fintype.of_equiv X Y fY e.symm)
+
+end fintype
 
 /-! # Relation to fintype -/
 
@@ -57,8 +76,6 @@ begin
   exact set_fintype s,
 end
 
-universe v
-
 instance equiv_congr (X : Type u) {Y : Type v} [is_finite X] [nonempty (X ≃ Y)] :
   is_finite Y :=
 begin
@@ -87,7 +104,6 @@ begin
     left, assumption,
   right, rwa ←iff_not_infinite,
 end
-
 
 /-! # card -/
 -- not sure if this is more or less useful than fincard, but it seems

@@ -1,3 +1,4 @@
+#exit
 -- bundled noncomputable finite sets
 import tactic
 
@@ -78,8 +79,8 @@ noncomputable def card (F : finset2 X) : ℕ :=
 end finset2
 
 -- Don't know if I need it
+-- should prove it's equivalent to Avigad's version
 
---noncomputable def set.fincard {X : Type u} (S : set X) : ℕ :=
---if h : S.finite then (⟨S, h⟩ : finset2 X).card else 37
-
+-- noncomputable def set.fincard {X : Type u} (S : set X) : ℕ :=
+-- if h : S.finite then finset2.card (⟨S, h⟩ : finset2 X) else 37
 

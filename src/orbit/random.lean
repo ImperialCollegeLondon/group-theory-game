@@ -240,18 +240,17 @@ end
 theorem lcoset_equiv {a : G} : H ≃ a • H := 
 equiv.of_bijective (aux_map a H) aux_map_biject
 
--- GETTING FOOD. THE PLAN IS TO REFACTOR ALL THIS STUFF TO USE IS_FINITE
-
 /-- The cardinality of `H` equals its left cosets-/
 lemma eq_card_of_lcoset {a : G} [is_finite G] : is_finite.card H = is_finite.card (a • H) := 
 begin
-  rw card_eq, by_contra h,
-  exact not_nonempty_iff_imp_false.1 h lcoset_equiv
+  sorry
+  -- rw card_eq, by_contra h,
+  -- exact not_nonempty_iff_imp_false.1 h lcoset_equiv
 end
 
 /-- The cardinality of all left cosets are equal -/
-theorem card_of_lcoset_eq {a b : G} [is_finite G] : 
-  card (a • H) = card (b • H) := by iterate 2 { rw ←eq_card_of_lcoset }
+theorem card_of_lcoset_eq {a b : G} [fintype G] : 
+  card (a • H) = card (b • H) := sorry -- by iterate 2 { rw ←eq_card_of_lcoset }
 
 /-- The left cosets of a subgroup `H` form a partition -/
 def lcoset_partition (G : Type*) [group G] (H : subgroup G) : partition G := 
@@ -348,7 +347,8 @@ begin
   convert finset.sum_const_nat _, exact (to_finset_card _).symm,
   intros _ hx, 
   rcases mem_to_finset.1 hx with ⟨g, rfl⟩, 
-  exact (@eq_card_of_lcoset _ _ H g _).symm
+  sorry
+--  exact (@eq_card_of_lcoset _ _ H g _).symm
 end
 
 end order
