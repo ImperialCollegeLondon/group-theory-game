@@ -4,11 +4,26 @@ import group_theory.group_action
 import data.nat.prime
 import data.nat.modeq
 import orbit.random 
+import data.finsupp
+
 noncomputable theory
 
 open set classical
 open function fintype
 local attribute [instance] prop_decidable
+
+open_locale classical
+
+#check @finsupp
+
+noncomputable def finsum {ι α} [add_comm_monoid α] (f : ι → α) : α :=
+if h : ∃ f' : ι →₀ α, f = f' then (classical.some h).sum (λ _ a, a) else 0
+
+noncomputable def finsum_in {ι α} [add_comm_monoid α] (s : set ι) (f : ι → α) : α :=
+finsum (λ i, if i ∈ s then f i else 0)
+
+--localized "notation `∑` binders `, ` r:(scoped:67 f, finsum f) := r" in finsum
+--localized "notation `∑` binders ` in ` s `, ` r:(scoped:67 f, finsum_in s f) := r" in finsum
 
 namespace action
 
@@ -94,7 +109,7 @@ def foo  := {o | ∃ (s : S) (h : @card(orbit μ s) finite_orbit.fintype > 1),
 def foo2 := {o | ∃ s : S, orbit μ s = o}
 def foo3 (o) [h : fintype o] := card o  > 1
 #check foo
-
+#exit
 lemma finite_foo : @finite ℕ (foo) := sorry
 
 --WAS TRYING TO IMPLEMENT SIMILAR PROCEDURE AS ABOVE, BUT DEFINING foo' : set S.
