@@ -1,5 +1,6 @@
 import hom.quotient data.setoid.partition for_mathlib.finite_stuff
 
+
 notation `∑` binder ` in ` s `, ` r:(scoped:67 f, s.sum f) := r
 
 namespace set
@@ -33,7 +34,7 @@ begin
   exact sum_ext rfl h₁,
 end
 
-theorem card_eq_sum_partition [fintype2 α] (s : set (set α)) (hS : is_partition s) : 
+theorem card_eq_sum_partition [is_finite α] (s : set (set α)) (hS : is_partition s) : 
   fincard α = ∑ x in s, fincard x := 
 begin
   rw [eq_card', ←hS.sUnion_eq_univ],
@@ -77,7 +78,7 @@ end
 
 /-- Let `H` be a subgroup of the finite group `G`, then the cardinality of `G` 
 equals the cardinality of `H` multiplied with the number of left cosets of `H` -/
-theorem lagrange [fintype2 G] : 
+theorem lagrange [is_finite G] : 
   fincard G = fincard H * fincard { B | ∃ g : G, B = g • H } := 
 begin
   rw card_eq_sum_partition _ (lcoset_partition H),
