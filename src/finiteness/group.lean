@@ -1,7 +1,7 @@
-import finiteness.fintype2
+import finiteness.is_finite
 import subgroup.theorems
 
--- in this file we get fintype2 working with groups. 
+-- in this file we get is_finite working with groups. 
 -- For example we prove that a subgroup of a finite group is finite.
 
 -- finiteness of subgroups
@@ -15,15 +15,15 @@ namespace mygroup
 
 variables (G : Type) [group G]
 
--- use fintype2 to say a group is finite
+-- use is_finite to say a group is finite
 
-variable [fintype2 G]
+variable [is_finite G]
 
 variable (H : subgroup G)
 
-instance : fintype2 H := fintype2.set H.carrier
+instance : is_finite H := is_finite.set H.carrier
 
-example (G : Type) [group G] [fintype2 G] (H : subgroup G) : fintype2 H :=
+example (G : Type) [group G] [is_finite G] (H : subgroup G) : is_finite H :=
 by apply_instance
 
 end mygroup

@@ -96,7 +96,7 @@ end
 noncomputable def card (X : Type u) [is_finite X] : ℕ := 
 @fintype.card X (to_fintype X)
 
-lemma card_congr {X : Type u} {Y : Type v} [is_finite X] [nonempty (X ≃ Y)] : 
+lemma card_congr' {X : Type u} {Y : Type v} [is_finite X] [nonempty (X ≃ Y)] : 
 card X = card Y :=
 begin
   letI : fintype X := to_fintype X,
@@ -106,7 +106,7 @@ begin
   convert fintype.card_congr e,
 end
 
-lemma card_congr' {X : Type u} {Y : Type v} [is_finite X] (e : X ≃ Y) :
+lemma card_congr {X : Type u} {Y : Type v} [is_finite X] (e : X ≃ Y) :
 by haveI : nonempty (X ≃ Y) := ⟨e⟩; exact
 card X = card Y :=
 begin
@@ -114,6 +114,20 @@ begin
   haveI : nonempty (X ≃ Y) := ⟨e⟩,
   letI : fintype Y := to_fintype Y,
   convert fintype.card_congr e,
+end
+
+lemma card_eq {X : Type u} {Y : Type v} [is_finite X] [is_finite Y] :
+  card X = card Y ↔ nonempty (X ≃ Y) :=
+begin
+  split,
+  { intro h,
+    letI : fintype X := to_fintype X,
+    letI : fintype Y := to_fintype Y,
+    rwa ←fintype.card_eq,
+  },
+  { rintro ⟨e⟩,
+    exact card_congr e,
+  }
 end
 
 instance {X : Type u} {Y : Type v} [is_finite X] [is_finite Y] :

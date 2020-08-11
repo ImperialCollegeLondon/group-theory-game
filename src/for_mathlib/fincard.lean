@@ -40,7 +40,7 @@ lemma fincard.of_equiv {X Y : Type*} (h : X ≃ Y) : fincard X = fincard Y :=
 begin
   casesI finite_or_infinite X,
   { haveI : nonempty (X ≃ Y) := ⟨h⟩,
-    rw [←is_finite.card_eq_fincard X, ←is_finite.card_eq_fincard Y], convert is_finite.card_congr' h,
+    rw [←is_finite.card_eq_fincard X, ←is_finite.card_eq_fincard Y], convert is_finite.card_congr h,
   },
   { haveI : infinite Y := infinite.of_injective _ (equiv.injective h),
     simp [fincard_eq_zero] },
