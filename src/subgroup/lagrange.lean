@@ -2,15 +2,53 @@ import hom.quotient data.setoid.partition for_mathlib.finite_stuff
 
 notation `∑` binder ` in ` s `, ` r:(scoped:67 f, s.sum f) := r
 
-open set
+namespace set
 
-lemma fincard.eq_card {α} (s : set α) : fincard s = card s := sorry
+variables {α β : Type} [comm_semiring β]
+
+lemma sum_disjoint {s : set (set α)} {f : α → β}
+  (h : ∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint x y) : 
+  ∑ i in ⋃₀ s, f i = ∑ x in s, ∑ i in x, f i := sorry
+
+end set
+
+open setoid set
+
+namespace fincard
+
+variables {α β : Type}
+
+lemma eq_card (s : set α) : fincard s = card s := sorry
+lemma eq_card' : fincard α = card (univ : set α) := sorry
+
+lemma sum_const [comm_semiring β] (s : set α) (m : β):
+  ∑ x in s, (λ x, m) x = m * fincard s := by rw [eq_card, set.sum_const s m]
+
+lemma sum_const_nat {s : set α} {m : ℕ} {f : α → ℕ} (h₁ : ∀ x ∈ s, f x = m) :
+  ∑ x in s, f x = m * fincard s :=
+begin
+  have := sum_const s m,
+  norm_cast at this, -- This is annoying
+  rw ←this,
+  exact sum_ext rfl h₁,
+end
+
+theorem card_eq_sum_partition [fintype2 α] (s : set (set α)) (hS : is_partition s) : 
+  fincard α = ∑ x in s, fincard x := 
+begin
+  rw [eq_card', ←hS.sUnion_eq_univ],
+  simp_rw eq_card,
+  unfold card,
+  rw sum_disjoint hS.pairwise_disjoint, refl,
+end
+
+end fincard
 
 namespace mygroup 
 
 namespace lagrange
 
-open setoid mygroup.quotient subgroup set fincard
+open mygroup.quotient subgroup fincard
 
 variables {G : Type} [group G] {H : subgroup G}
 
@@ -37,27 +75,10 @@ begin
   exact is_partition_classes (lcoset_setoid H)
 end
 
--- ↓ this is not true
-theorem card_eq_sum_partition {α} (s : set (set α)) (hS : is_partition s) : 
-  fincard α = ∑ x in s, fincard x := 
-begin
-  sorry,
-end
-
-lemma sum_const_nat {α} {s : set α} {m : ℕ} {f : α → ℕ} (h₁ : ∀ x ∈ s, f x = m) :
-  (∑ x in s, f x) = fincard s * m :=
-begin
-  rw [eq_card, mul_comm],
-  have := sum_const s m,
-  norm_cast at this, -- This is annoying
-  rw ←this,
-  exact sum_ext rfl h₁,
-end
-
 /-- Let `H` be a subgroup of the finite group `G`, then the cardinality of `G` 
 equals the cardinality of `H` multiplied with the number of left cosets of `H` -/
-theorem lagrange : 
-  fincard G = fincard { B | ∃ g : G, B = g • H } * fincard H := 
+theorem lagrange [fintype2 G] : 
+  fincard G = fincard H * fincard { B | ∃ g : G, B = g • H } := 
 begin
   rw card_eq_sum_partition _ (lcoset_partition H),
   refine sum_const_nat (λ _ hx, _), 
