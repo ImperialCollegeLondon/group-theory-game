@@ -1,39 +1,49 @@
 /-
 fincard -- ℕ-valued cardinality of a type (zero for infinite types)
 -/
-import tactic finiteness.fintype2
+import tactic finiteness.is_finite
 
 open_locale classical
 noncomputable theory
 
 def fincard (X : Type*) : ℕ :=
-if h : fintype2 X then @fintype.card X (classical.choice h) else 0 
+if h : is_finite X then @fintype.card X (classical.choice h) else 0 
 
-@[simp] theorem card_eq_fincard (X : Type*) [h : fintype X] : fintype.card X = fincard X :=
+@[simp] theorem fintype.card_eq_fincard (X : Type*) [h : fintype X] : fintype.card X = fincard X :=
 begin
-  simp [fincard, nonempty.intro h, fintype2],
+  simp [fincard, nonempty.intro h, is_finite],
   congr,
 end
 
-theorem fincard_eq_zero {X : Type*} (h : ¬nonempty (fintype X)) : fincard X = 0 := dif_neg h
+open is_finite
+
+@[simp] theorem is_finite.card_eq_fincard' (X : Type*) [h : is_finite X] :
+  @fintype.card X (is_finite.to_fintype X) = fincard X :=
+begin
+  haveI : fintype X := to_fintype X,
+  convert fintype.card_eq_fincard X,
+end
+
+@[simp] theorem is_finite.card_eq_fincard (X : Type*) [h : is_finite X] :
+  is_finite.card X = fincard X := is_finite.card_eq_fincard' X
+
+example (X : Type) (a b : is_finite X) : a = b := rfl
+
+theorem fincard_eq_zero {X : Type*} [h : infinite X] : fincard X = 0 := dif_neg (not_nonempty_fintype.2 h)
 
 @[simp] lemma fincard.empty : fincard empty = 0 :=
 begin
-  simp [←card_eq_fincard]
+  simp [←fintype.card_eq_fincard]
 end
 
 lemma fincard.of_equiv {X Y : Type*} (h : X ≃ Y) : fincard X = fincard Y :=
 begin
-  by_cases h2 : nonempty (fintype X),
-  { cases h2,
-    resetI,
-    letI : fintype Y := fintype.of_equiv X h,
-    rw [←card_eq_fincard X, ←card_eq_fincard Y, fintype.of_equiv_card],
+  casesI finite_or_infinite X,
+  { haveI : nonempty (X ≃ Y) := ⟨h⟩,
+    rw [←is_finite.card_eq_fincard X, ←is_finite.card_eq_fincard Y], convert is_finite.card_congr' h,
   },
-  { have h3 : ¬nonempty (fintype Y),
-    { rintros ⟨_⟩,
-      exactI h2 ⟨fintype.of_equiv _ h.symm⟩ },
-    simp [fincard_eq_zero, *] }
+  { haveI : infinite Y := infinite.of_injective _ (equiv.injective h),
+    simp [fincard_eq_zero] },
 end
 
 theorem fincard.of_empty {X : Type*} (hX : X → false) : fincard X = 0 :=
@@ -47,39 +57,30 @@ private theorem fincard.prod_of_empty_right (X : Type*) {Y : Type*} (h : Y → f
   fincard (X × Y) = fincard X * fincard Y :=
 by rw [fincard.of_empty h, fincard.of_empty (h ∘ prod.snd), mul_zero]
 
+/-! Products -/
 private theorem fincard.prod_of_finite {X Y : Type*}
-  (hX : nonempty (fintype X)) (hY : nonempty (fintype Y)) :
+  (hX : is_finite X) (hY : is_finite Y) :
 fincard (X × Y) = fincard X * fincard Y :=
 begin
-  unfreezingI {cases hX with hX, cases hY with hY},
-  -- change this to squeeze_simp and watch Lean time out
-  simp [←card_eq_fincard],
+  convert is_finite.card_prod X Y;
+  simp,
 end
 
 private theorem fincard.prod_of_infinite_left {X Y : Type*}
-  (hX : ¬nonempty (fintype X)) (hY : nonempty Y) :
+  [infinite X] [nonempty Y] :
 fincard (X × Y) = fincard X * fincard Y :=
 begin
-  have h : ¬nonempty (fintype (X × Y)),
-  { rw not_nonempty_fintype at ⊢ hX,
-    unfreezingI {cases hY with y},
-    apply infinite.of_injective (λ x, (x, y) : X → X × Y),
-    rintros _ _ ⟨_, _⟩, refl
-  },
-  simp [fincard_eq_zero, *],
+  simp [fincard_eq_zero, *]
 end
 
 private theorem fincard.prod_of_infinite_right {X Y : Type*}
-  (hX : nonempty X) (hY : ¬nonempty (fintype Y)) : 
+  (hX : nonempty X) (hY : infinite Y) : 
 fincard (X × Y) = fincard X * fincard Y :=
 begin
-  have h : ¬nonempty (fintype (X × Y)),
-  { rw not_nonempty_fintype at ⊢ hY,
-    unfreezingI {cases hX with x},
-    apply infinite.of_injective (prod.mk x : Y → X × Y),
-    rintros _ _ ⟨_, _⟩, refl
-  },
-  simp [fincard_eq_zero, *],
+  rw mul_comm,
+  rw ←fincard.prod_of_infinite_left,
+  apply fincard.of_equiv,
+  exact equiv.prod_comm X Y,
 end
 
 theorem fincard.prod (X Y : Sort*) : fincard (X × Y) = fincard X * fincard Y :=
@@ -90,10 +91,10 @@ begin
   by_cases hY : Y → false,
   { exact fincard.prod_of_empty_right _ hY},
   rw [←not_nonempty_iff_imp_false, not_not] at hY,
-  by_cases hX2 : nonempty (fintype X),
-  { by_cases hY2 : nonempty (fintype Y),
+  casesI finite_or_infinite X with hX2 hX2,
+  { casesI finite_or_infinite Y with hY2 hY2,
     { exact fincard.prod_of_finite hX2 hY2},
     { exact fincard.prod_of_infinite_right hX hY2},
   },
-  { exact fincard.prod_of_infinite_left hX2 hY}
+  { exact fincard.prod_of_infinite_left}
 end
