@@ -98,19 +98,24 @@ begin
   apply int.induction_on' n 0,
     {simp},
     {intros k hk _ ,
-    rw iterate_succ,
-    rw iterate_succ,
-    rw iterate_succ,
-    --unfold iterate at *,
-    rw ← a, 
-    rw mul_assoc, 
-    rw ← mul_assoc,
-    rw ← iterate_mul_assoc,
-    -- g * (g^k*h)
-    simp [←pow_mul_eq_iterate],
-    sorry,  
+      repeat {rw iterate_succ},
+      rw [← a, ← iterate_mul_assoc],
+      simp [←pow_mul_eq_iterate, mul_assoc, hH.mul_comm],  --should I leave simp here?
+      rw [hH.mul_comm, mul_assoc]  
     },
-    {sorry},
+    {intros k hk _,
+      have hm: ∃ m : ℤ, m + 1 = k ,
+        {use k - 1,
+          simp},
+      cases hm with m hm,       
+      rw ← hm at *,
+      repeat {rw iterate_succ at a},
+      rw [← add_sub, sub_self, add_zero],       
+      simp [←pow_mul_eq_iterate, mul_assoc, hH.mul_comm] at *,
+      apply mul_left_cancel'' h,
+      rw [← a, hH.mul_comm],
+      simp [hH.mul_comm, mul_assoc]        
+    }
 end  
 
 -- iterate k *g h = (iterate k *g 1) * h
