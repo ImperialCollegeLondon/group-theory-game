@@ -1,4 +1,6 @@
+-- Mario says no finset2
 #exit
+
 -- bundled noncomputable finite sets
 import tactic
 
