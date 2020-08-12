@@ -64,6 +64,12 @@ begin
           iterate_succ, ←lmul_symm, ←iterate.neg, neg_neg] }
 end
 
+lemma pow_mul_eq_iterate (n : ℤ) : (⦃n⦄^g) * k = iterate n (lmul g) k :=
+begin
+  unfold pow,
+  rw [iterate_mul_assoc n g 1 k, one_mul],
+end
+
 theorem pow_add : (⦃m + n⦄^g) = (⦃m⦄^g) * ⦃n⦄^g :=
 begin
   iterate 3 { rw pow_def },
@@ -99,11 +105,15 @@ begin
     rw ← a, 
     rw mul_assoc, 
     rw ← mul_assoc,
+    rw ← iterate_mul_assoc,
+    -- g * (g^k*h)
+    simp [←pow_mul_eq_iterate],
     sorry,  
     },
     {sorry},
 end  
 
+-- iterate k *g h = (iterate k *g 1) * h
 end group
 
 end mygroup
