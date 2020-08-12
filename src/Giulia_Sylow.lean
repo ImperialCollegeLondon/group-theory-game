@@ -149,8 +149,8 @@ lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S)
 --A p-group is a group s.t. all its elements have order a power of p, p prime
 --def p_group (g : G) (p : ℕ ) (h : prime p) : sorry 
 /-OR SHOULD I MAKE IT A CLASS? Using previous definition of group structure-/
-#exit
-theorem cauchy_theorem [group G][G fintype]( p : ℕ ) (hp : p.prime) (h : p ∣ (card G)): sorry
- --∃ (g : G) /-order of g is p-/ := sorry
+
+theorem cauchy_theorem [group G][fintype G]( p : ℕ ) (hp : p.prime) (h : p ∣ (card G)): 
+ ∃ (S : subgroup G), card S = p := sorry
 
 end action
