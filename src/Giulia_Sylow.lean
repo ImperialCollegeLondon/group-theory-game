@@ -152,5 +152,5 @@ lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S)
 
 theorem cauchy_theorem [group G][fintype G]( p : ℕ ) (hp : p.prime) (h : p ∣ (card G)): 
  ∃ (S : subgroup G), card S = p := sorry
-
+--need to define order of an element
 end action
