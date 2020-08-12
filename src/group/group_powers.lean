@@ -104,10 +104,7 @@ begin
       rw [hH.mul_comm, mul_assoc]  
     },
     {intros k hk _,
-      have hm: ∃ m : ℤ, m + 1 = k ,
-        {use k - 1,
-          simp},
-      cases hm with m hm,       
+      cases (show ∃ m : ℤ, m + 1 = k, by exact ⟨k - 1, by norm_num⟩) with m hm,    
       rw ← hm at *,
       repeat {rw iterate_succ at a},
       rw [← add_sub, sub_self, add_zero],       
