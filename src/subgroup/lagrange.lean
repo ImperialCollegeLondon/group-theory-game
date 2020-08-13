@@ -5,7 +5,9 @@ import hom.quotient data.setoid.partition finiteness.finsum
 - set.card → fincard
 -/
 
-open_locale classical
+open_locale classical big_operators
+
+notation `∑` binder ` ∈ ` s `, ` r:(scoped:67 f, finsum_in s f) := r
 
 open setoid set
 
