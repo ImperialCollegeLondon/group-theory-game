@@ -79,13 +79,27 @@ end
 --Is it worth proving? Should make iff?
 lemma singleton_eq_orbit  {s : S} (μ : laction G S) : (orbit μ s = {s}) → s ∈ fixed_points μ :=
 begin
-intro h, 
-unfold orbit at h,
-unfold fixed_points,
-intro g,
-apply mem_singleton_iff.1 ,
-rw ← mem_singleton_iff at h,
-sorry
+  intros h k, 
+  apply mem_singleton_iff.1 ,
+  rw ← mem_singleton_iff at h,
+  simp at *,
+  apply singleton_eq_singleton_iff.1,
+  rw ← h,
+  refine ext _,
+  intro x, split,
+  {intro hx,
+    refine singleton_subset_iff.mp _,
+    simp at *,
+    use k, exact hx},
+  {intro hx, 
+    refine mem_singleton_of_eq _,
+    rw h at hx,
+    rw mem_singleton_iff at hx,
+    rw hx,
+    symmetry,
+    apply mem_singleton_iff.1,
+    rw ← h,
+    simp, use k}
 end
 
 localized "notation `∑` binders `, ` r:(scoped:67 f, finset.sum finset.univ f) := r" in big_operators
