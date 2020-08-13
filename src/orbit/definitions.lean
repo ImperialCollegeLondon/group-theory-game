@@ -15,22 +15,22 @@ structure laction (G : Type) [group G] (S : Type) :=
 variables {G S : Type} [group G]
 variables {μ : laction G S}
 
-notation g ` •[ `:70 μ ` ] `:70 s := μ.to_fun g s
-local notation g ` • ` s := μ.to_fun g s
+notation g ` ★[ `:70 μ ` ] `:70 s := μ.to_fun g s
+local notation g ` ★ `:70  s:70  := μ.to_fun g s
 
 namespace laction
 
 -- APIs for left actions 
 
-@[simp] lemma map_one (μ : laction G S) (s : S) : (1 •[μ] s) = s := μ.map_one' _
+@[simp] lemma map_one (μ : laction G S) (s : S) : (1 ★[μ] s) = s := μ.map_one' _
 
-lemma map_assoc (g h : G) (s : S) : g • (h • s) = g * h • s := 
+lemma map_assoc (g h : G) (s : S) : g ★ (h ★ s) = g * h ★ s := 
   μ.map_assoc' _ _ _
 
 -- The user should prove these two lemmas below
 
 lemma laction_mul_inv_cancel {g h : G} {s : S} : 
-  g • s = h • s ↔ s = (g⁻¹ * h) • s :=
+  g ★ s = h ★ s ↔ s = (g⁻¹ * h) ★ s :=
 begin
   split; intro hgh,
     { conv_lhs { rw ←map_one μ s }, 
@@ -40,7 +40,7 @@ begin
                      group.mul_right_inv, group.one_mul] } }
 end
 
-lemma laction_mul_inv {g : G} {s t : S} : g • s = t ↔ s = g⁻¹ • t :=
+lemma laction_mul_inv {g : G} {s t : S} : g ★ s = t ↔ s = g⁻¹ ★ t :=
 begin
   split; intro h,
     rw [←h, map_assoc, group.mul_left_inv, map_one],
@@ -51,19 +51,35 @@ end laction
 
 /-- The orbit of some element of `s : S` is the image of the left action at `s` -/
 def orbit (μ : laction G S) (s : S) : set S := 
-  { m : S | ∃ g : G, m = g •[μ] s } 
+  { m : S | ∃ g : G, m = g ★[μ] s } 
+
+local notation `💫`:70 s:70 := orbit μ s
 
 namespace laction
 
 @[simp]
-lemma orbit_def {s : S} : orbit μ s = { m : S | ∃ g : G, m = g • s } := rfl
+lemma orbit_def {s : S} : 💫 s = { m : S | ∃ g : G, m = g ★ s } := rfl
 
 @[simp]
-lemma mem_orbit {s t : S} : t ∈ orbit μ s ↔ ∃ g : G, t = g • s := 
+lemma mem_orbit {s t : S} : t ∈ 💫 s ↔ ∃ g : G, t = g ★ s := 
 by rw [orbit_def, mem_set_of_eq]
 
 /-- An element of `G` is in its own orbit -/
-lemma self_mem_orbit (s : S) : s ∈ orbit μ s := ⟨1, (map_one μ s).symm⟩
+lemma mem_orbit_refl (s : S) : s ∈ 💫 s := ⟨1, (map_one μ s).symm⟩
+
+/-- If `s₁ : S` is in `s₂ : S`'s orbit, then `s₂` is in `s₁`'s orbit -/
+lemma mem_orbit_symm {s₁ s₂ : S} (h : s₁ ∈ 💫 s₂) : s₂ ∈ 💫 s₁ := 
+let ⟨g, hg⟩ := h in ⟨g⁻¹, by rw [hg, map_assoc, group.mul_left_inv, map_one]⟩
+
+/-- If s₁ ∈ [s₂] and s₂ ∈ [s₃] then s₁ ∈ [s₃] -/
+lemma mem_orbit_trans {s₁ s₂ s₃ : S} 
+  (hs₁ : s₁ ∈ 💫 s₂) (hs₂ : s₂ ∈ 💫 s₃) : s₁ ∈ 💫 s₃ :=
+begin
+  cases hs₁ with g₁ hg₁,
+  cases hs₂ with g₂ hg₂,
+  refine ⟨g₁ * g₂, _⟩,
+  rw [hg₁, hg₂, map_assoc]
+end
 
 /-- If two elements of `S` are in the same orbit then they are in eachothers orbit-/
 lemma in_orbit_of_in_same_orbit {s₁ s₂ s₃ : S} 
@@ -75,9 +91,7 @@ begin
   rw [hg₁, hg₂, map_assoc, group.mul_assoc, group.mul_left_inv, group.mul_one]
 end
 
-/-- If `s₁ : S` is in `s₂ : S`'s orbit, then `s₂` is in `s₁`'s orbit -/
-lemma in_orbit_of_inv {s₁ s₂ : S} (h : s₁ ∈ orbit μ s₂) : s₂ ∈ orbit μ s₁ := 
-let ⟨g, hg⟩ := h in ⟨g⁻¹, by rw [hg, map_assoc, group.mul_left_inv, map_one]⟩
+
 
 lemma in_orbit_of_inv' {s₁ s₂ : S} {g : G} (h : s₁ = μ.1 g s₂) : 
   s₂ = μ.1 g⁻¹ s₁ := by rw [h, map_assoc, group.mul_left_inv, map_one]
@@ -87,7 +101,7 @@ end laction
 /-- The stabilizer of `s : S` is the subgroup which elements fixes `s` under the 
   left laction -/
 def stabilizer (μ : laction G S) (s : S) : subgroup G := 
-{ carrier := { g : G | (g •[μ] s) = s },
+{ carrier := { g : G | (g ★[μ] s) = s },
   one_mem' := laction.map_one μ _,
   mul_mem' := λ _ _ hg hh, 
     by { rw mem_set_of_eq at *, rw [←laction.map_assoc, hh, hg] },
@@ -106,7 +120,7 @@ def is_conjugate (H K : subgroup G) :=
 namespace laction
 
 @[simp]
-lemma mem_stabilizer (s : S) (g : G) : g ∈ stabilizer μ s ↔ g • s = s := iff.rfl
+lemma mem_stabilizer (s : S) (g : G) : g ∈ stabilizer μ s ↔ g ★ s = s := iff.rfl
 
 /-- If `H` is the conjugate of `K`, then `K` is the conjugate of `H` -/
 lemma is_conjugate_comm {H K : subgroup G} (h : is_conjugate H K) :
@@ -136,7 +150,7 @@ begin
     { show x ∈ stabilizer μ s₂,
       rcases hx with ⟨h, hh₀, hh₁⟩,
       rw [mem_stabilizer, hh₁, ←map_assoc, ←map_assoc, ←hg, 
-         (show h • s₁ = s₁, by exact hh₀), hg, map_assoc, 
+         (show h ★ s₁ = s₁, by exact hh₀), hg, map_assoc, 
          group.mul_left_inv, map_one] },
     { change x ∈ stabilizer μ s₂ at hx, 
       refine ⟨g * x * g⁻¹, (mem_stabilizer _ _).2 _, _⟩,
@@ -147,3 +161,4 @@ end
 end laction
 
 end mygroup
+

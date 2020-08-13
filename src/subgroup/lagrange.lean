@@ -1,13 +1,20 @@
-import hom.quotient data.setoid.partition finiteness.finsum
-
+import hom.quotient data.setoid.partition
+#exit
 /- I think we've decided to change:
 - fintype → is_finite
 - set.card → fincard
 -/
 
-open_locale classical big_operators
+--open_locale classical big_operators
 
-notation `∑` binder ` ∈ ` s `, ` r:(scoped:67 f, finsum_in s f) := r
+--notation `∑` binder ` ∈ ` s `, ` r:(scoped:67 f, finsum_in s f) := r
+localized "notation `∑` binder ` ∈ ` s `, ` r:(scoped:67 f, finsum_in s f) := r" in finsum
+localized "notation `∑` binders `, ` r:(scoped:67 f, finsum f) := r" in finsum
+
+--localized "notation `∑` binders ` ∈ ` s `, ` r:(scoped:67 f, finsum_in s f) := r" in finsum
+--localized "notation `∑` binders ` ∈ ` s `, ` r:(scoped:67 f, finsum_in s f) := r" in finsum
+
+open_locale finsum
 
 open setoid set
 

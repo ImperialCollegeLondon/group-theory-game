@@ -2,6 +2,7 @@ import tactic
 import subgroup.theorems
 import data.zmod.basic
 
+#exit
 
 namespace mygroup
 
@@ -11,7 +12,7 @@ namespace mygroup
 
    Proposed proof:
 
-1) Let X be the set of lists of p elements of G whose product is 1
+1) Let X be the set of lists of p elements of G whose product is 1 -- a definition and hence a stroke of genius
 2) Note that cyclic shift is a permutation of X
 3) Note that #X=|G|^{p-1} is a multiple of p
 4) Hence # fixed point is a multiple of p by some standard theorem
@@ -25,21 +26,22 @@ namespace mygroup
 -- from mathlib
 
 /-- The type of vectors with terms from `G`, length `n`, and product equal to `1:G`. -/
-def vectors_prod_eq_one (G : Type*) [group G] (n : ℕ) : set (vector G n) :=
-{v | v.to_list.prod = 1}
+def array_prod_eq_one (G : Type*) [group G] (n : ℕ) : set (fin n → G) :=
+{f | f.to_list.prod = 1}
 
 variables {G : Type} [group G]
 
+#check mul_left_inj
+#check mul_right_cancel_iff
+
 def group.mul_left_inj (a b c : G) : b * a = c * a ↔ b = c :=
 begin
-  split,
-  { exact group.mul_right_cancel a b c },
-  { rintro rfl, refl },
+  exact group.mul_right_cancel_iff a b c,
 end
 
 --#check inv_mul_self
 
-lemma group.inv_mul_self (a : G) : a⁻¹ * a = 1 := sorry
+lemma group.inv_mul_self (a : G) : a⁻¹ * a = 1 := group.mul_left_inv a
 
 #check list.prod_cons
 
