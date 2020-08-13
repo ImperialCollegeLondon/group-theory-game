@@ -1,6 +1,6 @@
 import data.finsupp finiteness.is_finite
 
-open_locale classical
+open_locale classical big_operators
 
 noncomputable def finsum {ι α} [add_comm_monoid α] (f : ι → α) : α :=
 if h : ∃ f' : ι →₀ α, f = f' then (classical.some h).sum (λ _ a, a) else 0
@@ -37,12 +37,6 @@ begin
   rw dif_pos h,
   congr, ext, rw finsupp_of_is_finite_eq,
   solve_by_elim [(classical.some_spec h).symm],
-end
-
-lemma finsum_def_of_finite' (f : ι → α) : 
-  finsum f = finset.sum (@finset.univ _ (to_fintype ι)) (finsupp_of_is_finite f) :=
-begin
-  sorry
 end
 
 #exit
