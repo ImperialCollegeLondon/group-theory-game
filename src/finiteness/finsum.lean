@@ -10,21 +10,56 @@ finsum (λ i, if i ∈ s then f i else 0)
 
 notation `∑` binder ` ∈ ` s `, ` r:(scoped:67 f, finsum_in s f) := r
 
+lemma is_finite_supp {α β} [has_zero β] (f : α →₀ β) : is_finite {a | f a ≠ 0} :=
+sorry
+
 namespace is_finite
 
-variables {α β : Type} [add_comm_monoid β]
-variables {f : α → β}
+open finset finsupp
 
-def finsum_def_of_finite [h : is_finite α] (f : α → β) : 
-  finsum f = (@finset.univ α (to_fintype α)).sum f := sorry
+variables {ι α : Type} [is_finite ι] [add_comm_monoid α]
+variables {f : ι → α}
 
-noncomputable instance [is_finite α] (s : set α) : fintype s := 
-by haveI := to_fintype α; apply_instance
+noncomputable def finsupp_of_is_finite (f : ι → α) : ι →₀ α := 
+    { support := filter (λ x, f x ≠ 0) $ @univ ι (to_fintype ι),
+      to_fun := f,
+      mem_support_to_fun := λ _, 
+        ⟨λ h, (mem_filter.1 h).2, λ h, mem_filter.2 ⟨@mem_univ _ (to_fintype ι) _, h⟩⟩}
 
-def finsum_in_def_of_finite [h : is_finite α] (f : α → β) (s : set α): 
-  ∑ x ∈ s, f x = s.to_finset.sum f := sorry
+@[simp] lemma finsupp_of_is_finite_eq (f : ι → α) : 
+  (finsupp_of_is_finite f : ι → α) = f := rfl
 
-lemma finsum_ext {s t : set α} {f₁ f₂ : α → β} (h₀ : s = t) 
+lemma finsum_def_of_finite (f : ι → α) : 
+  finsum f = (finsupp_of_is_finite f).sum (λ _ a, a) := 
+begin
+  unfold finsum,
+  have h : ∃ (f' : ι →₀ α), f = f' := ⟨finsupp_of_is_finite f, rfl⟩,
+  rw dif_pos h,
+  congr, ext, rw finsupp_of_is_finite_eq,
+  solve_by_elim [(classical.some_spec h).symm],
+end
+
+lemma finsum_def_of_finite' (f : ι → α) : 
+  finsum f = finset.sum (@finset.univ _ (to_fintype ι)) (finsupp_of_is_finite f) :=
+begin
+  sorry
+end
+
+#exit
+noncomputable instance (s : set ι) : fintype s := 
+by haveI := to_fintype ι; apply_instance
+
+-- (on_finset s f hf).sum g = ∑ a in s, g a (f a) :=
+
+lemma finsum_in_def_of_finite (f : ι → α) (s : set ι) : 
+  ∑ x ∈ s, f x = s.to_finset.sum f := 
+begin
+  unfold finsum_in,
+  rw finsum_def_of_finite,
+  rw sum_fintype _ _ (sorry),
+end
+
+lemma finsum_ext {s t : set ι} {f₁ f₂ : ι → α} (h₀ : s = t) 
   (h₁ : ∀ x ∈ t, f₁ x = f₂ x) : ∑ x ∈ s, f₁ x = ∑ x ∈ t, f₂ x := sorry
 
 end is_finite
