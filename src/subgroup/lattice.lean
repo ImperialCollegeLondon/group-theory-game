@@ -223,7 +223,6 @@ def prod_abelian {G : Type} [hG :comm_group G](H : subgroup G) (K : subgroup G) 
   inv_mem' := λ x ⟨h, hh, k, hk, hx⟩,
   begin
    rw hx,
-   dsimp at *,
    use h⁻¹,
    split,
     {apply inv_mem H hh},
