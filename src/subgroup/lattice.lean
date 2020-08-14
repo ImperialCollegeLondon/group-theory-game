@@ -230,7 +230,7 @@ def prod_ab {G : Type} [hG :comm_group G](H : subgroup G) (K : subgroup G) : sub
    use k⁻¹,
    split,
    apply inv_mem K hk,
-   sorry    
+   sorry   
   end  
   ,
 }
