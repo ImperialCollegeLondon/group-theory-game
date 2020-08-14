@@ -1,17 +1,23 @@
+-- all moved to finsum witrh different
+-- implementation
+
+#exit
+
 /-
-fincard -- ℕ-valued cardinality of a type (zero for infinite types)
+Finite types
 -/
-import tactic finiteness.fintype2
+import tactic
 
 open_locale classical
+
 noncomputable theory
 
 def fincard (X : Type*) : ℕ :=
-if h : fintype2 X then @fintype.card X (classical.choice h) else 0 
+if h : nonempty (fintype X) then @fintype.card X (classical.choice h) else 0 
 
 @[simp] theorem card_eq_fincard (X : Type*) [h : fintype X] : fintype.card X = fincard X :=
 begin
-  simp [fincard, nonempty.intro h, fintype2],
+  simp [fincard, nonempty.intro h],
   congr,
 end
 

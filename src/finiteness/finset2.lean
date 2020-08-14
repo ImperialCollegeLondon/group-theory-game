@@ -1,7 +1,14 @@
+-- Mario says no finset2
+#exit
+
 -- bundled noncomputable finite sets
 import tactic
 
 import data.set.finite
+
+def subsingleton.mk_equiv {α β} [subsingleton α] [subsingleton β]
+  (f : α → β) (g : β → α) : α ≃ β :=
+⟨f, g, λ _, by cc, λ _, by cc⟩
 
 namespace fintype
 
@@ -10,18 +17,8 @@ universes u v
 @[ext] def ext {X : Type u} (a : fintype X) (b : fintype X) :
 a = b := subsingleton.elim a b
 
-def equiv_congr {X : Type u} {Y : Type v} (e : X ≃ Y) :
-  fintype X ≃ fintype Y :=
-{ to_fun := λ fX, @fintype.of_equiv Y X fX e,
-  inv_fun := λ fY, @fintype.of_equiv X Y fY e.symm,
-  left_inv := begin
-    intro h,
-    ext,
-  end,
-  right_inv := begin
-    intro h,
-    ext,
-  end }
+def equiv_congr {X Y} (e : X ≃ Y) : fintype X ≃ fintype Y :=
+subsingleton.mk_equiv (λ fX, @fintype.of_equiv Y X fX e) (λ fY, @fintype.of_equiv X Y fY e.symm)
 
 end fintype
 
@@ -83,46 +80,9 @@ noncomputable def card (F : finset2 X) : ℕ :=
 
 end finset2
 
-/-! # Relation to fintype -/
+-- Don't know if I need it
+-- should prove it's equivalent to Avigad's version
 
-def equiv.univ (X : Type u) :
-X ≃ (univ : set X) :=
-{ to_fun := λ x,  ⟨x, mem_univ x⟩,
-  inv_fun := λ cx, cx.1,
-  left_inv := by intro x; refl,
-  right_inv := by intro cx; cases cx; refl }
-
-universe v
-
--- two concepts of finiteness are EQUIVALENT
-theorem nonempty_fintype_iff_finite_univ : nonempty (fintype X) ↔ finite (univ : set X) :=
-begin
-  split,
-  { unfold finite,
-    intro h,
-    exact nonempty.map (fintype.equiv_congr (equiv.univ X)) h
-  },
-  { intro h,
-    cases h,
-    cases h with S hS,
-    let elems : finset X := finset.map (equiv.to_embedding (equiv.univ X).symm) S,
-    use { elems := elems, complete := begin
-      intro x,
-      change x ∈ finset.map (equiv.univ X).symm.to_embedding S,
-      rw finset.mem_map,
-      use ⟨x, mem_univ x⟩,
-      split,
-        apply hS,
-      refl,
-    end},
-  }
-end
-
---noncomputable def set.fincard {X : Type u} (S : set X) : ℕ :=
---if h : S.finite then (⟨S, h⟩ : finset2 X).card else 37
-
---noncomputable def fincard (X : Type*) : ℕ :=
---if h : nonempty (fintype X) then @fintype.card X (classical.choice h) else 0
-
--- I proved fincard.prod
+-- noncomputable def set.fincard {X : Type u} (S : set X) : ℕ :=
+-- if h : S.finite then finset2.card (⟨S, h⟩ : finset2 X) else 37
 

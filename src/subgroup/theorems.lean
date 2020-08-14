@@ -1,4 +1,5 @@
-import subgroup.definitions group.group_powers for_mathlib.fincard 
+import subgroup.definitions group.group_powers
+import for_mathlib.finsum -- breaks many things
 
 noncomputable theory
 
@@ -29,15 +30,15 @@ namespace lagrange
 
 variables {H : subgroup G}
 
-lemma self_mem_coset (a : G) (H : subgroup G): a ∈ a • H := 
+lemma self_mem_coset (a : G) (H : subgroup G): a ∈ a •• H := 
   ⟨1, H.one_mem, (group.mul_one a).symm⟩
 
-/-- Two cosets `a • H`, `b • H` are equal if and only if `b⁻¹ * a ∈ H` -/
+/-- Two cosets `a •• H`, `b •• H` are equal if and only if `b⁻¹ * a ∈ H` -/
 theorem lcoset_eq {a b : G} :
-  a • H = b • H ↔ b⁻¹ * a ∈ H := 
+  a •• H = b •• H ↔ b⁻¹ * a ∈ H := 
 begin
   split; intro h,
-    { replace h : a ∈ b • H, rw ←h, exact self_mem_coset a H,
+    { replace h : a ∈ b •• H, rw ←h, exact self_mem_coset a H,
       rcases h with ⟨g, hg₀, hg₁⟩,
       rw hg₁, simp [←group.mul_assoc, hg₀] },
     { ext, split; intro hx,
@@ -48,10 +49,10 @@ begin
           convert H.inv_mem h, simp } }
 end
 
--- A corollary of this is a • H = H iff a ∈ H 
+-- A corollary of this is a •• H = H iff a ∈ H 
 
-/-- The coset of `H`, `1 • H` equals `H` -/
-theorem lcoset_of_one : 1 • H = H :=
+/-- The coset of `H`, `1 •• H` equals `H` -/
+theorem lcoset_of_one : 1 •• H = H :=
 begin
   ext, split; intro hx,
     { rcases hx with ⟨h, hh₀, hh₁⟩,
@@ -59,13 +60,13 @@ begin
     { exact ⟨x, hx, (group.one_mul x).symm⟩ }
 end
 
-/-- A left coset `a • H` equals `H` if and only if `a ∈ H` -/
+/-- A left coset `a •• H` equals `H` if and only if `a ∈ H` -/
 theorem lcoset_of_mem {a : G} :
-  a • H = H ↔ a ∈ H := by rw [←lcoset_of_one, lcoset_eq]; simp 
+  a •• H = H ↔ a ∈ H := by rw [←lcoset_of_one, lcoset_eq]; simp 
 
-/-- Two left cosets `a • H` and `b • H` are equal if they are not disjoint -/
-theorem lcoset_digj {a b c : G} (ha : c ∈ a • H) (hb : c ∈ b • H) : 
-  a • H = b • H :=
+/-- Two left cosets `a •• H` and `b •• H` are equal if they are not disjoint -/
+theorem lcoset_digj {a b c : G} (ha : c ∈ a •• H) (hb : c ∈ b •• H) : 
+  a •• H = b •• H :=
 begin
   rcases ha with ⟨g₀, hg₀, hca⟩,
   rcases hb with ⟨g₁, hg₁, hcb⟩,
@@ -82,7 +83,7 @@ end
 
 open function
 
-private def aux_map (a : G) (H : subgroup G) : H → a • H := 
+private def aux_map (a : G) (H : subgroup G) : H → a •• H := 
   λ h, ⟨a * h, h, h.2, rfl⟩
 
 private lemma aux_map_biject {a : G} : bijective $ aux_map a H := 
@@ -98,7 +99,7 @@ begin
 end
 
 /-- There is a bijection between `H` and its left cosets -/
-theorem lcoset_equiv {a : G} : H ≃ a • H := 
+theorem lcoset_equiv {a : G} : H ≃ a •• H := 
 equiv.of_bijective (aux_map a H) aux_map_biject
 
 -- We are going to use fincard which maps a fintype to its fintype.card 
@@ -107,12 +108,12 @@ equiv.of_bijective (aux_map a H) aux_map_biject
 open fincard
 
 /-- The cardinality of `H` equals its left cosets-/
-lemma eq_card_of_lcoset {a : G} : fincard H = fincard (a • H) := 
-  of_equiv lcoset_equiv
+lemma eq_card_of_lcoset {a : G} : fincard' H = fincard' (a •• H) := 
+  fincard.of_equiv lcoset_equiv
 
 /-- The cardinality of all left cosets are equal -/
 theorem card_of_lcoset_eq {a b : G} : 
-  fincard (a • H) = fincard (b • H) := by iterate 2 { rw ←eq_card_of_lcoset }
+  fincard' (a •• H) = fincard' (b •• H) := by iterate 2 { rw ←eq_card_of_lcoset }
 
 -- The rest of the proof will requires quotient
 
@@ -163,7 +164,7 @@ def normal_of_mem_comm {K : subgroup G}
 -- If K is a normal subgroup of the group G, then the sets of left and right 
 -- cosets of K in the G coincide
 lemma nomal_coset_eq {K : normal G} : 
-  ∀ g : G, g • (K : subgroup G) = (K : subgroup G) • g :=
+  ∀ g : G, g •• (K : subgroup G) = (K : subgroup G) •• g :=
 begin
   -- dsimp, 
   -- Without the dsimp it displays weridly,
@@ -179,11 +180,11 @@ begin
 end
 
 def normal_of_coset_eq {K : subgroup G} 
-  (h : ∀ g : G, g • K = K • g) : normal G :=
+  (h : ∀ g : G, g •• K = K •• g) : normal G :=
 { conj_mem' := 
   begin
     intros n hn g,
-    have : ∃ s ∈ K • g, s = g * n,
+    have : ∃ s ∈ K •• g, s = g * n,
       { refine ⟨g * n, _, rfl⟩,
         rw ←h, exact ⟨n, hn, rfl⟩ },
     rcases this with ⟨s, ⟨l, hl₁, hl₂⟩, hs₂⟩,
@@ -193,7 +194,7 @@ def normal_of_coset_eq {K : subgroup G}
 
 -- If K is normal then if x ∈ g K and y ∈ h K then x * y ∈ (g * h) K
 lemma prod_in_coset_of_normal {K : normal G} {x y g h : G} 
-  (hx : x ∈ g • K) (hy : y ∈ h • K) : x * y ∈ (g * h) • K :=
+  (hx : x ∈ g •• K) (hy : y ∈ h •• K) : x * y ∈ (g * h) •• K :=
 begin
   rcases hx with ⟨k₀, hx₁, rfl⟩,
   rcases hy with ⟨k₁, hy₁, rfl⟩,
@@ -206,7 +207,7 @@ begin
 end
 
 def normal_of_prod_in_coset {K : subgroup G} 
-  (h : ∀ x y g h : G, x ∈ g • K → y ∈ h • K → x * y ∈ (g * h) • K) : normal G :=
+  (h : ∀ x y g h : G, x ∈ g •• K → y ∈ h •• K → x * y ∈ (g * h) •• K) : normal G :=
 { conj_mem' := 
   begin
     intros n hn g,

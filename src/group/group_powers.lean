@@ -64,6 +64,12 @@ begin
           iterate_succ, ←lmul_symm, ←iterate.neg, neg_neg] }
 end
 
+lemma pow_mul_eq_iterate (n : ℤ) : (⦃n⦄^g) * k = iterate n (lmul g) k :=
+begin
+  unfold pow,
+  rw [iterate_mul_assoc n g 1 k, one_mul],
+end
+
 theorem pow_add : (⦃m + n⦄^g) = (⦃m⦄^g) * ⦃n⦄^g :=
 begin
   iterate 3 { rw pow_def },
@@ -92,18 +98,24 @@ begin
   apply int.induction_on' n 0,
     {simp},
     {intros k hk _ ,
-    rw iterate_succ,
-    rw iterate_succ,
-    rw iterate_succ,
-    --unfold iterate at *,
-    rw ← a, 
-    rw mul_assoc, 
-    rw ← mul_assoc,
-    sorry,  
+      repeat {rw iterate_succ},
+      rw [← a, ← iterate_mul_assoc],
+      simp [←pow_mul_eq_iterate, mul_assoc, hH.mul_comm],  --should I leave simp here?
+      rw [hH.mul_comm, mul_assoc]  
     },
-    {sorry},
+    {intros k hk _,
+      cases (show ∃ m : ℤ, m + 1 = k, by exact ⟨k - 1, by norm_num⟩) with m hm,    
+      rw ← hm at *,
+      repeat {rw iterate_succ at a},
+      rw [← add_sub, sub_self, add_zero],       
+      simp [←pow_mul_eq_iterate, mul_assoc, hH.mul_comm] at *,
+      apply mul_left_cancel'' h,
+      rw [← a, hH.mul_comm],
+      simp [hH.mul_comm, mul_assoc]        
+    }
 end  
 
+-- iterate k *g h = (iterate k *g 1) * h
 end group
 
 end mygroup
