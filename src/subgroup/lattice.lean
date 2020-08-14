@@ -208,7 +208,7 @@ def prod (H : subgroup G) (K : normal G) : subgroup G :=
 infix ` ⨯ `:70 := prod
 
 --The product of two subgroups of an abelian group G is a subgroup of G
-def prod_ab {G : Type} [hG :comm_group G](H : subgroup G) (K : subgroup G) : subgroup G := 
+def prod_abelian {G : Type} [hG :comm_group G](H : subgroup G) (K : subgroup G) : subgroup G := 
 { carrier := { g | ∃ h ∈ H, ∃ k ∈ K, g = h * k },
   one_mem' :=  ⟨1, one_mem H, 1, one_mem K, (group.one_mul _).symm⟩,
   mul_mem' := λ x y ⟨h₀, hh₀, k₀, hk₀, hx⟩ ⟨h₁, hh₁, k₁, hk₁, hy⟩,
@@ -226,11 +226,12 @@ def prod_ab {G : Type} [hG :comm_group G](H : subgroup G) (K : subgroup G) : sub
    dsimp at *,
    use h⁻¹,
    split,
-   apply inv_mem H hh,
+    {apply inv_mem H hh},
    use k⁻¹,
    split,
-   apply inv_mem K hk,
-   sorry   
+    {apply inv_mem K hk},
+   norm_num,
+   rw hG.mul_comm,
   end  
   ,
 }
