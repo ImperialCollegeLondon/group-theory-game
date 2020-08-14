@@ -207,6 +207,35 @@ def prod (H : subgroup G) (K : normal G) : subgroup G :=
 --notation H ` ⨯ `:70 K:70 := product_subgroup H K
 infix ` ⨯ `:70 := prod
 
+--The product of two subgroups of an abelian group G is a subgroup of G
+def prod_ab {G : Type} [hG :comm_group G](H : subgroup G) (K : subgroup G) : subgroup G := 
+{ carrier := { g | ∃ h ∈ H, ∃ k ∈ K, g = h * k },
+  one_mem' :=  ⟨1, one_mem H, 1, one_mem K, (group.one_mul _).symm⟩,
+  mul_mem' := λ x y ⟨h₀, hh₀, k₀, hk₀, hx⟩ ⟨h₁, hh₁, k₁, hk₁, hy⟩,
+  begin
+    rw [hx, hy],
+    refine ⟨ h₀ * h₁, mul_mem H hh₀ hh₁, k₀ * k₁, mul_mem K hk₀ hk₁, _ ⟩,
+    rw [group.mul_assoc, group.mul_assoc],
+    apply group.mul_eq_of_eq_inv_mul, 
+    rw [← group.mul_assoc, ← group.mul_assoc, group.mul_left_inv, group.one_mul, ← group.mul_assoc],
+    simp [group.mul_assoc, group.mul_left_inv, group.one_mul, hG.mul_comm],
+  end  ,
+  inv_mem' := λ x ⟨h, hh, k, hk, hx⟩,
+  begin
+   rw hx,
+   dsimp at *,
+   use h⁻¹,
+   split,
+   apply inv_mem H hh,
+   use k⁻¹,
+   split,
+   apply inv_mem K hk,
+   sorry    
+  end  
+  ,
+}
+
+
 lemma mem_product {H : subgroup G} {K : normal G} {x} : 
   x ∈ H ⨯ K ↔ ∃ (h ∈ H) (k ∈ K), x = h * k := iff.rfl
 
