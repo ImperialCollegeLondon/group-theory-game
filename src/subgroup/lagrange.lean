@@ -1,17 +1,9 @@
-import hom.quotient data.setoid.partition for_mathlib.finite_stuff
+import hom.quotient data.setoid.partition for_mathlib.finsum
 
-
-notation `∑` binder ` in ` s `, ` r:(scoped:67 f, s.sum f) := r
-
-namespace set
-
-variables {α β : Type} [comm_semiring β]
-
-lemma sum_disjoint {s : set (set α)} {f : α → β}
-  (h : ∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint x y) : 
-  ∑ i in ⋃₀ s, f i = ∑ x in s, ∑ i in x, f i := sorry
-
-end set
+/- I think we've decided to change:
+- fintype → is_finite
+- set.card → fincard
+-/
 
 open setoid set
 
@@ -49,7 +41,7 @@ namespace mygroup
 
 namespace lagrange
 
-open mygroup.quotient subgroup fincard
+open mygroup.quotient mygroup.subgroup fincard
 
 variables {G : Type} [group G] {H : subgroup G}
 
@@ -58,7 +50,7 @@ def lcoset_setoid (H : subgroup G) : setoid G :=
   iseqv := lcoset_iseqv H }
 
 lemma lcoset_setoid_classes : 
-  (lcoset_setoid H).classes = { B | ∃ g : G, B = g • H } :=
+  (lcoset_setoid H).classes = { B | ∃ g : G, B = lcoset g H } :=
 begin
   ext, split; rintro ⟨g, rfl⟩; refine ⟨g, _⟩, apply eq.symm,
   all_goals { show _ = { h | lcoset_rel H h g },
@@ -70,7 +62,7 @@ end
 
 /-- The left cosets of a subgroup `H` form a partition -/
 def lcoset_partition (H : subgroup G) : 
-  is_partition { B | ∃ g : G, B = g • H } := 
+  is_partition { B | ∃ g : G, B = lcoset g H } := 
 begin
   rw ←lcoset_setoid_classes,
   exact is_partition_classes (lcoset_setoid H)
@@ -81,10 +73,11 @@ equals the cardinality of `H` multiplied with the number of left cosets of `H` -
 theorem lagrange [fintype G] : 
   fincard G = fincard H * fincard { B | ∃ g : G, B = g • H } := 
 begin
-  rw card_eq_sum_partition _ (lcoset_partition H),
-  refine sum_const_nat (λ _ hx, _), 
-  rcases hx with ⟨g, rfl⟩, 
-  exact eq_card_of_lcoset.symm
+  sorry
+  --rw card_eq_sum_partition _ (lcoset_partition H), 
+  --refine sum_const_nat (λ _ hx, _), 
+  --rcases hx with ⟨g, rfl⟩, 
+  --exact eq_card_of_lcoset.symm
 end
 
 end lagrange
