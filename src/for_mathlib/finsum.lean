@@ -204,11 +204,21 @@ begin
       simpa using ha }
 end
 
-lemma finsum_bind {γ} [fintype γ] {s : set γ} {t : γ → set ι} (f : ι → α):
-  (∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) → 
+lemma finsum_bind {γ} [fintype γ] [fintype ι] {s : set γ} {t : γ → set ι} 
+  (f : ι → α) (h : ∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) : 
   (∑ x ∈ (⋃ x ∈ s, t x), f x) = ∑ x ∈ s, ∑ i ∈ t x, f i :=
 begin
-  sorry
+  iterate 2 { rw finsum_in_def_of_finite },
+  conv_rhs { congr, skip, funext, rw finsum_in_def_of_finite },
+    { convert @sum_bind _ _ _ f _ _ s.to_finset (λ x, (t x).to_finset) 
+      (begin
+        intros x hx y hy hxy a ha,
+        specialize h x (set.mem_to_finset.1 hx) y (set.mem_to_finset.1 hy) hxy,
+        apply @h a, simpa using ha end),
+      { ext, rw [mem_bind, set.mem_to_finset, set.mem_bUnion_iff],
+        split; intro ha; rcases ha with ⟨x, hx₀, hx₁⟩,
+          exact ⟨x, set.mem_to_finset.2 hx₀, set.mem_to_finset.2 hx₁⟩,
+          exact ⟨x, set.mem_to_finset.1 hx₀, set.mem_to_finset.1 hx₁⟩ } },
 end
 
 -- def fincard (X : Type*) : ℕ :=
@@ -377,7 +387,7 @@ begin
         setoid.is_partition.sUnion_eq_univ hS],
       ext, simp [fintype.complete] },
     { exact hS.pairwise_disjoint },
-    { apply_instance }
+    all_goals { apply_instance }
 end
 
 lemma sum_fibres (X Y : Type) (f : X → Y) [fintype X] :
