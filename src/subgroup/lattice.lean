@@ -234,7 +234,6 @@ def prod_abelian {G : Type} [hG :comm_group G](H : subgroup G) (K : subgroup G) 
   end,
 }
 
-
 lemma mem_product {H : subgroup G} {K : normal G} {x} : 
   x ∈ H ⨯ K ↔ ∃ (h ∈ H) (k ∈ K), x = h * k := iff.rfl
 
