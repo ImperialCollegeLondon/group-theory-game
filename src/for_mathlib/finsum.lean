@@ -281,13 +281,35 @@ begin
   { exact fincard.prod_of_infinite_left hX2 hY}
 end
 
-lemma card_eq_sum_one {X : Type u} [h : fintype X] : fincard' X = ∑ x : X, 1 :=
+lemma card_eq_sum_one_of_fintype {X : Type u} [h : fintype X] : 
+  fincard' X = ∑ x : X, 1 :=
 begin
   rw [eq_finset_card, finset.card_univ, finsum_def_of_finite],
   unfold univ',
   rw dif_pos (nonempty.intro h),
   simp only [mul_one, nat.cast_id, nsmul_eq_mul, sum_const],
   congr'
+end
+
+lemma card_eq_sum_one_of_nfintype {X : Type u} (h : ¬ nonempty (fintype X)) : 
+  fincard' X = ∑ x : X, 1 :=
+begin
+  unfold finsum,
+  rw dif_neg, exact fincard_eq_zero h,
+  suffices : function.support (λ (x : X), 1) = set.univ,
+    rw this, intro h',
+    exact h (nonempty.intro 
+      ⟨h'.to_finset, λ x, set.finite.mem_to_finset.2 (set.mem_univ _)⟩),
+  rw set.eq_univ_iff_forall,
+  intro x, rw function.mem_support, norm_num,
+end
+
+lemma card_eq_sum_one {X : Type u} : fincard' X = ∑ x : X, 1 :=
+begin
+  by_cases (nonempty (fintype X)),
+    { haveI := classical.choice h,
+      exact card_eq_sum_one_of_fintype },
+    { exact card_eq_sum_one_of_nfintype h }
 end
 
 lemma sum_const {X Y : Type} [fintype X] [add_comm_monoid Y] 
