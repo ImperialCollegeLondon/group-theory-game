@@ -106,7 +106,7 @@ funext (λ x, dif_pos (mem_univ' x))
 -- (on_finset s f hf).sum g = ∑ a in s, g a (f a) :=
 
 lemma finsum_in_eq_finset_sum (f : ι → α) (s : finset ι) :
-∑ x ∈ ↑s, f x = s.sum f :=
+  ∑ x ∈ ↑s, f x = s.sum f :=
 begin
   unfold finsum_in, unfold finsum,
   rw dif_pos,
@@ -166,6 +166,26 @@ begin
   split_ifs,
   { exact h₁ x h },
   { refl },
+end
+
+lemma finsum_union [fintype ι] {s t : set ι} (f : ι → α) (h : disjoint s t) : 
+  ∑ x ∈ (s ∪ t), f x = ∑ x ∈ s, f x + ∑ x ∈ t, f x :=
+begin
+  iterate 3 { rw finsum_in_def_of_finite },
+  rw ←finset.sum_union, congr', 
+    { ext, simp }, 
+    { intros a ha,
+      apply @h a,
+      simpa using ha }
+end
+
+lemma finsum_bind {γ} [fintype γ] {s : set γ} {t : γ → set ι} (f : ι → α):
+  (∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) → 
+  (∑ x ∈ (⋃ x ∈ s, t x), f x) = ∑ x ∈ s, ∑ i ∈ t x, f i :=
+begin
+  intros,
+  -- rw finsum_in_def_of_finite f (⋃ (x : γ) (H : x ∈ s), t x),
+  sorry
 end
 
 -- def fincard (X : Type*) : ℕ :=
@@ -312,31 +332,29 @@ begin
     { exact card_eq_sum_one_of_nfintype h }
 end
 
-lemma sum_const {X Y : Type} [fintype X] [add_comm_monoid Y] 
+lemma finsum_const {X Y : Type} [fintype X] [add_comm_monoid Y] 
   (s : set X) (m : Y) : ∑ x ∈ s, m = fincard' s •ℕ m := 
 by rw [finsum_in_def_of_finite, finset.sum_const m, ←eq_finset_card' s]
 
-lemma sum_const_nat {X : Type} [fintype X] {s : set X} {m : ℕ} {f : X → ℕ} 
+lemma finsum_const_nat {X : Type} [fintype X] {s : set X} {m : ℕ} {f : X → ℕ} 
   (h : ∀ x ∈ s, f x = m) : ∑ x ∈ s, f x = fincard' s * m :=
 begin
-  rw [←nat.nsmul_eq_mul, ←(sum_const s m)],
+  rw [←nat.nsmul_eq_mul, ←(finsum_const s m)],
   exact finsum_ext rfl h
 end
 
-theorem card_eq_sum_partition {X : Type} [fintype X] (s : set (set X)) 
+theorem card_eq_sum_partition {X : Type} [h : fintype X] (s : set (set X)) 
   (hS : setoid.is_partition s) : fincard' X = ∑ x ∈ s, fincard' x := 
 begin
-  rw [eq_finset_card, finsum_in_def_of_finite], -- How is lean able to infer s.finite
-  simp_rw [eq_finset_card],
-  conv_rhs { congr, skip, funext, rw card_eq_sum_ones },
-  --change _ = univ.card = s.to_finset.sum (λ x, x.to_finset.sum (λ _, 1)),
-  --rw [←finset.sum_bind _],
-  
-  /- rw [eq_card', ←hS.sUnion_eq_univ],
-  simp_rw eq_card,
-  unfold card,
-  rw sum_disjoint hS.pairwise_disjoint, refl, -/
-  sorry
+  conv_rhs { congr, skip, funext, rw card_eq_sum_one },
+  simp_rw ←finsum_in_eq_finsum (λ _, 1),
+  rw [←finsum_bind _, card_eq_sum_one, finsum_def_of_finite, finsum_in_def_of_finite],
+    { congr, unfold univ',
+      rw [dif_pos (nonempty.intro h), ←set.sUnion_eq_bUnion, 
+        setoid.is_partition.sUnion_eq_univ hS],
+      ext, simp [fintype.complete] },
+    { exact hS.pairwise_disjoint },
+    { apply_instance }
 end
 
 lemma sum_fibres (X Y : Type) (f : X → Y) [fintype X] :
