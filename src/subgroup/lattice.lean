@@ -219,7 +219,7 @@ def prod_abelian {G : Type} [hG :comm_group G](H : subgroup G) (K : subgroup G) 
     apply group.mul_eq_of_eq_inv_mul, 
     rw [← group.mul_assoc, ← group.mul_assoc, group.mul_left_inv, group.one_mul, ← group.mul_assoc],
     simp [group.mul_assoc, group.mul_left_inv, group.one_mul, hG.mul_comm],
-  end  ,
+  end,
   inv_mem' := λ x ⟨h, hh, k, hk, hx⟩,
   begin
    rw hx,
@@ -232,8 +232,7 @@ def prod_abelian {G : Type} [hG :comm_group G](H : subgroup G) (K : subgroup G) 
     {apply inv_mem K hk},
    norm_num,
    rw hG.mul_comm,
-  end  
-  ,
+  end,
 }
 
 
