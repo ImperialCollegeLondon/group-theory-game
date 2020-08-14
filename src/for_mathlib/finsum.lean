@@ -132,6 +132,31 @@ begin
   sorry,sorry,sorry,sorry,
 end
 
+/- lemma finite_support_of_fintype [fintype ι] (f : ι → α) : 
+(function.support f).finite := set.finite.of_fintype (function.support f) -/
+
+lemma finsum_in_def_of_finite' (f : ι → α) (s : set ι) 
+  (hf : (function.support f).finite) : 
+  ∑ x ∈ s, f x = (filter (∈ s) hf.to_finset).sum f := 
+begin
+  unfold finsum_in, unfold finsum,
+  rw dif_pos,
+    { rw [sum_ite, sum_const_zero, add_zero],
+      refine finset.sum_subset _ _,
+        { refine set.finite.subset hf (λ x hx, _),
+          rw function.mem_support at ⊢ hx,
+          intro h, apply hx,
+          split_ifs, exact h, refl },
+        { intros x hx,
+          rw mem_filter at ⊢ hx,
+          cases hx with hx₀ hx₁,
+          refine ⟨_, hx₁⟩,
+          rw [set.finite.mem_to_finset, function.mem_support, if_pos hx₁] at hx₀,
+          rw set.finite.mem_to_finset, exact hx₀ },
+    { simp [function.mem_support] {contextual := tt} } }
+end .
+
+-- ↓ Rewrite below as a corollary of `finsum_in_def_of_finite'`
 lemma finsum_in_def_of_finite [fintype ι] (f : ι → α) (s : set ι) : 
   ∑ x ∈ s, f x = s.to_finset.sum f := 
 begin
@@ -183,8 +208,6 @@ lemma finsum_bind {γ} [fintype γ] {s : set γ} {t : γ → set ι} (f : ι →
   (∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) → 
   (∑ x ∈ (⋃ x ∈ s, t x), f x) = ∑ x ∈ s, ∑ i ∈ t x, f i :=
 begin
-  intros,
-  -- rw finsum_in_def_of_finite f (⋃ (x : γ) (H : x ∈ s), t x),
   sorry
 end
 
