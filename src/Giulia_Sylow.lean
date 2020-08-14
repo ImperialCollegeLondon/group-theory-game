@@ -5,7 +5,7 @@ import data.nat.prime
 import data.nat.modeq
 import orbit.random 
 import data.finsupp
-
+import for_mathlib.fincard
 noncomputable theory
 
 open set classical
@@ -116,14 +116,14 @@ begin
       rintro x ⟨g, rfl⟩,
       refine ⟨g, rfl⟩ }
 end
-
+#exit
 --The idea is to define the set of elements in S whose orbit has cardinality greater than 1
 def foo  := {o | ∃ (s : S) (h : @card(orbit μ s) finite_orbit.fintype > 1), 
 @card (orbit μ s) finite_orbit.fintype = o}
 def foo2 := {o | ∃ s : S, orbit μ s = o}
-def foo3 (o) [h : fintype o] := card o  > 1
+def foo3 (o) [h : fintype o] := fincard o  > 1
 #check foo
-#exit
+
 lemma finite_foo : @finite ℕ (foo) := sorry
 
 --WAS TRYING TO IMPLEMENT SIMILAR PROCEDURE AS ABOVE, BUT DEFINING foo' : set S.
@@ -139,7 +139,7 @@ lemma finite_foo : @finite ℕ (foo) := sorry
 --where the sum runs over orbits of size > 1.
 
 lemma card_set_eq_card_fixed_points_sum_card_orbits (μ : laction G S)
- [fintype S] : card S = card(fixed_points μ) + ∑ o in foo , id o := sorry
+ [fintype S] : fincard S = fincard(fixed_points μ) + ∑ o in foo , id o := sorry
 --TODO: write adequate indexing and express sum correctly
 
 
@@ -149,13 +149,13 @@ lemma card_set_eq_card_fixed_points_sum_card_orbits (μ : laction G S)
 
 lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S) 
  [fintype S] [fintype G] (p : ℕ) (hp : p.prime) (n : ℕ) (hn : n ≥ 1) (hG: card G = p^n):
- nat.modeq p (card S) (card (fixed_points μ) ) := 
+ nat.modeq p (fincard S) (fincard (fixed_points μ) ) := 
  begin
   -- we want to show that card (orbit μ s) ∣ p^n for all s : S by orbit-stabilizer
   -- note that since G is finite we have finite orbits
-  have claim : ∀ s : S, card( orbit μ s ) ∣ p^n , 
+  have claim : ∀ s : S, fincard( orbit μ s ) ∣ p^n , 
     {intro s, rw ← hG,
-    use (card (stabilizer μ s)),
+    use (fincard (stabilizer μ s)),
     rw @orbit_stabilizer G _ S _ s μ , congr,
     },
   sorry  
@@ -164,7 +164,7 @@ lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S)
 --def p_group (g : G) (p : ℕ ) (h : prime p) : sorry 
 /-OR SHOULD I MAKE IT A CLASS? Using previous definition of group structure-/
 
-theorem cauchy_theorem [group G][fintype G]( p : ℕ ) (hp : p.prime) (h : p ∣ (card G)): 
- ∃ (S : subgroup G), card S = p := sorry
+theorem cauchy_theorem [group G][fintype G] {p : ℕ} (hp : p.prime) (h : p ∣ (fincard G)): 
+ ∃ (S : subgroup G), fincard S = p := sorry
 --need to define order of an element
 end action
