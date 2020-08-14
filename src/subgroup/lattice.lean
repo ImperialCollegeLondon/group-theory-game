@@ -387,7 +387,7 @@ open order_iso
   `B` given that they are order isomorphic -/
 def lattice_of_order_iso {A B : Type} [lattice A] [partial_order B] 
   (e : ((≤) : A → A → Prop) ≃o ((≤) : B → B → Prop)) : lattice B := 
-{ .. galois_insertion.lift_lattice e.to_galois_insertion}
+{ .. galois_insertion.lift_lattice e.to_galois_insertion }
 
 -- I was intending to show that the subgroups of G form a distributive lattice 
 -- and then since I have made a order isomorphism from the subgroups to 

@@ -4,11 +4,26 @@ import group_theory.group_action
 import data.nat.prime
 import data.nat.modeq
 import orbit.random 
+import data.finsupp
+
 noncomputable theory
 
 open set classical
 open function fintype
 local attribute [instance] prop_decidable
+
+open_locale classical
+
+#check @finsupp
+
+noncomputable def finsum {ι α} [add_comm_monoid α] (f : ι → α) : α :=
+if h : ∃ f' : ι →₀ α, f = f' then (classical.some h).sum (λ _ a, a) else 0
+
+noncomputable def finsum_in {ι α} [add_comm_monoid α] (s : set ι) (f : ι → α) : α :=
+finsum (λ i, if i ∈ s then f i else 0)
+
+localized "notation `∑` binders `, ` r:(scoped:67 f, finsum f) := r" in finsum
+localized "notation `∑` binders ` in ` s `, ` r:(scoped:67 f, finsum_in s f) := r" in finsum
 
 namespace action
 
@@ -60,8 +75,11 @@ begin
   ext x, 
   simp * at *, 
 end
-localized "notation `∑` binders `, ` r:(scoped:67 f, finset.sum finset.univ f) := r" in big_operators
-localized "notation `∑` binders ` in ` s `, ` r:(scoped:67 f, finset.sum s f) := r" in big_operators
+
+
+
+--localized "notation `∑` binders `, ` r:(scoped:67 f, finset.sum finset.univ f) := r" in big_operators
+--localized "notation `∑` binders ` in ` s `, ` r:(scoped:67 f, finset.sum s f) := r" in big_operators
 variable [fintype G]
 lemma finite_orbit' [fintype G] {a : S} : finite (orbit μ a) :=
 begin
@@ -79,7 +97,14 @@ def foo  := {o | ∃ (s : S) (h : @card(orbit μ s) finite_orbit.fintype > 1),
 def foo2 := {o | ∃ s : S, orbit μ s = o}
 def foo3 (o) [h : fintype o] := card o  > 1
 #check foo
-lemma finite_foo : @finite ℕ (foo) := sorry
+
+#check finset.filter
+
+#check foo
+
+-- temp exit to do one last boring thing
+#exit
+--lemma finite_foo : @finite ℕ (foo) := sorry
 --If S is a finite group then card S = card fixed_points G S + Σcard Oᵢ , 
 --where the sum runs over orbits of size > 1.
 lemma card_set_eq_card_fixed_points_sum_card_orbits (μ : laction G S)

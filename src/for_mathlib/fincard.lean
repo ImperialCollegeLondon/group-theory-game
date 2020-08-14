@@ -1,9 +1,15 @@
+-- all moved to finsum witrh different
+-- implementation
+
+#exit
+
 /-
-fincard -- ℕ-valued cardinality of a type (zero for infinite types)
+Finite types
 -/
-import tactic data.fintype.card
+import tactic
 
 open_locale classical
+
 noncomputable theory
 
 def fincard (X : Type*) : ℕ :=

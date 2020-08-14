@@ -1,4 +1,5 @@
 import group.theorems -- basic interface for groups
+import group_theory.group_action
 
 /-!
 
@@ -96,11 +97,12 @@ instance normal_has_mem : has_mem G (normal G) := ⟨λ m K, m ∈ K.carrier⟩
 
 instance normal_to_set : has_coe (normal G) (set G) := ⟨λ K, K.carrier⟩
 
+
 -- Defining cosets thats used in some lemmas
 def lcoset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = g * k}
 def rcoset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = k * g}
-notation g ` • ` :70 H :70 := lcoset g H
-notation H ` • ` :70 g :70 := rcoset g H
+notation g ` •• ` :70 H :70 := lcoset g H
+notation H ` •• ` :70 g :70 := rcoset g H
 
 attribute [reducible] lcoset rcoset
 
