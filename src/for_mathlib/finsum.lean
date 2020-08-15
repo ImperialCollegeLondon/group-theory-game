@@ -287,7 +287,7 @@ begin
   simp,
 end
 
-lemma fincard.of_equiv {X Y : Type*} (h : X ≃ Y) : fincard' X = fincard' Y :=
+lemma of_equiv {X Y : Type*} (h : X ≃ Y) : fincard' X = fincard' Y :=
 begin
   by_cases h2 : nonempty (fintype X),
   { cases h2,
@@ -300,18 +300,18 @@ begin
     simp [fincard_eq_zero, *] }
 end
 
-theorem fincard.of_empty {X : Type*} (hX : X → false) : fincard' X = 0 :=
+theorem of_empty {X : Type*} (hX : X → false) : fincard' X = 0 :=
 by simp [fincard.of_equiv (equiv.equiv_empty hX)]
 
-private theorem fincard.prod_of_empty_left {X : Type*} (h : X → false) (Y : Type*) :
+private theorem prod_of_empty_left {X : Type*} (h : X → false) (Y : Type*) :
   fincard' (X × Y) = fincard' X * fincard' Y :=
 by rw [fincard.of_empty h, fincard.of_empty (h ∘ prod.fst), zero_mul]
 
-private theorem fincard.prod_of_empty_right (X : Type*) {Y : Type*} (h : Y → false) :
+private theorem prod_of_empty_right (X : Type*) {Y : Type*} (h : Y → false) :
   fincard' (X × Y) = fincard' X * fincard' Y :=
 by rw [fincard.of_empty h, fincard.of_empty (h ∘ prod.snd), mul_zero]
 
-private theorem fincard.prod_of_finite {X Y : Type*}
+private theorem prod_of_finite {X Y : Type*}
   (hX : nonempty (fintype X)) (hY : nonempty (fintype Y)) :
 fincard' (X × Y) = fincard' X * fincard' Y :=
 begin
@@ -320,7 +320,7 @@ begin
   simp [←card_eq_fincard],
 end
 
-private theorem fincard.prod_of_infinite_left {X Y : Type*}
+private theorem prod_of_infinite_left {X Y : Type*}
   (hX : ¬nonempty (fintype X)) (hY : nonempty Y) :
 fincard' (X × Y) = fincard' X * fincard' Y :=
 begin
@@ -333,7 +333,7 @@ begin
   simp [fincard_eq_zero, *],
 end
 
-private theorem fincard.prod_of_infinite_right {X Y : Type*}
+private theorem prod_of_infinite_right {X Y : Type*}
   (hX : nonempty X) (hY : ¬nonempty (fintype Y)) : 
 fincard' (X × Y) = fincard' X * fincard' Y :=
 begin
@@ -346,20 +346,20 @@ begin
   simp [fincard_eq_zero, *],
 end
 
-theorem fincard.prod (X Y : Sort*) : fincard' (X × Y) = fincard' X * fincard' Y :=
+theorem prod (X Y : Sort*) : fincard' (X × Y) = fincard' X * fincard' Y :=
 begin
   by_cases hX : X → false,
-  { exact fincard.prod_of_empty_left hX _},
+  { exact prod_of_empty_left hX _},
   rw [←not_nonempty_iff_imp_false, not_not] at hX,
   by_cases hY : Y → false,
-  { exact fincard.prod_of_empty_right _ hY},
+  { exact prod_of_empty_right _ hY},
   rw [←not_nonempty_iff_imp_false, not_not] at hY,
   by_cases hX2 : nonempty (fintype X),
   { by_cases hY2 : nonempty (fintype Y),
-    { exact fincard.prod_of_finite hX2 hY2},
-    { exact fincard.prod_of_infinite_right hX hY2},
+    { exact prod_of_finite hX2 hY2},
+    { exact prod_of_infinite_right hX hY2},
   },
-  { exact fincard.prod_of_infinite_left hX2 hY}
+  { exact prod_of_infinite_left hX2 hY}
 end
 
 lemma card_eq_sum_one_of_fintype {X : Type u} [h : fintype X] : 
@@ -393,9 +393,11 @@ begin
     { exact card_eq_sum_one_of_nfintype h }
 end
 
+end fincard 
+
 lemma finsum_const {X Y : Type} [fintype X] [add_comm_monoid Y] 
   (s : set X) (m : Y) : ∑ x ∈ s, m = fincard' s •ℕ m := 
-by rw [finsum_in_def_of_finite, finset.sum_const m, ←eq_finset_card' s]
+by rw [finsum_in_def_of_finite, finset.sum_const m, ←fincard.eq_finset_card' s]
 
 lemma finsum_const_nat {X : Type} [fintype X] {s : set X} {m : ℕ} {f : X → ℕ} 
   (h : ∀ x ∈ s, f x = m) : ∑ x ∈ s, f x = fincard' s * m :=
@@ -403,6 +405,8 @@ begin
   rw [←nat.nsmul_eq_mul, ←(finsum_const s m)],
   exact finsum_ext rfl h
 end
+
+namespace fincard
 
 theorem card_eq_finsum_partition {X : Type} [h : fintype X] (s : set (set X)) 
   (hS : setoid.is_partition s) : fincard' X = ∑ x ∈ s, fincard' x := 

@@ -1,7 +1,9 @@
-import hom.theorems 
+import subgroup.lagrange
 
-open set classical
+open set classical function
 local attribute [instance] prop_decidable
+
+noncomputable theory
 
 namespace mygroup
 
@@ -15,22 +17,22 @@ structure laction (G : Type) [group G] (S : Type) :=
 variables {G S : Type} [group G]
 variables {μ : laction G S}
 
-notation g ` ★[ `:70 μ ` ] `:70 s := μ.to_fun g s
-local notation g ` ★ `:70  s:70  := μ.to_fun g s
+notation g ` •[ `:70 μ ` ] `:70 s := μ.to_fun g s
+local notation g ` • `:70  s:70  := μ.to_fun g s
 
 namespace laction
 
 -- APIs for left actions 
 
-@[simp] lemma map_one (μ : laction G S) (s : S) : (1 ★[μ] s) = s := μ.map_one' _
+@[simp] lemma map_one (μ : laction G S) (s : S) : (1 •[μ] s) = s := μ.map_one' _
 
-lemma map_assoc (g h : G) (s : S) : g ★ (h ★ s) = g * h ★ s := 
+lemma map_assoc (g h : G) (s : S) : g • (h • s) = g * h • s := 
   μ.map_assoc' _ _ _
 
 -- The user should prove these two lemmas below
 
 lemma laction_mul_inv_cancel {g h : G} {s : S} : 
-  g ★ s = h ★ s ↔ s = (g⁻¹ * h) ★ s :=
+  g • s = h • s ↔ s = (g⁻¹ * h) • s :=
 begin
   split; intro hgh,
     { conv_lhs { rw ←map_one μ s }, 
@@ -40,7 +42,7 @@ begin
                      group.mul_right_inv, group.one_mul] } }
 end
 
-lemma laction_mul_inv {g : G} {s t : S} : g ★ s = t ↔ s = g⁻¹ ★ t :=
+lemma laction_mul_inv {g : G} {s t : S} : g • s = t ↔ s = g⁻¹ • t :=
 begin
   split; intro h,
     rw [←h, map_assoc, group.mul_left_inv, map_one],
@@ -51,17 +53,17 @@ end laction
 
 /-- The orbit of some element of `s : S` is the image of the left action at `s` -/
 def orbit (μ : laction G S) (s : S) : set S := 
-  { m : S | ∃ g : G, m = g ★[μ] s } 
+  { m : S | ∃ g : G, m = g •[μ] s } 
 
 local notation `💫`:70 s:70 := orbit μ s
 
 namespace laction
 
 @[simp]
-lemma orbit_def {s : S} : 💫 s = { m : S | ∃ g : G, m = g ★ s } := rfl
+lemma orbit_def {s : S} : 💫 s = { m : S | ∃ g : G, m = g • s } := rfl
 
 @[simp]
-lemma mem_orbit {s t : S} : t ∈ 💫 s ↔ ∃ g : G, t = g ★ s := 
+lemma mem_orbit {s t : S} : t ∈ 💫 s ↔ ∃ g : G, t = g • s := 
 by rw [orbit_def, mem_set_of_eq]
 
 /-- An element of `G` is in its own orbit -/
@@ -83,15 +85,13 @@ end
 
 /-- If two elements of `S` are in the same orbit then they are in eachothers orbit-/
 lemma in_orbit_of_in_same_orbit {s₁ s₂ s₃ : S} 
-  (hs₁ : s₁ ∈ orbit μ s₃) (hs₂ : s₂ ∈ orbit μ s₃) : s₁ ∈ orbit μ s₂ :=
+  (hs₁ : s₁ ∈ 💫 s₃) (hs₂ : s₂ ∈ 💫 s₃) : s₁ ∈ 💫 s₂ :=
 begin
   cases hs₁ with g₁ hg₁,
   cases hs₂ with g₂ hg₂,
   refine ⟨g₁ * g₂⁻¹, _⟩,
   rw [hg₁, hg₂, map_assoc, group.mul_assoc, group.mul_left_inv, group.mul_one]
 end
-
-
 
 lemma in_orbit_of_inv' {s₁ s₂ : S} {g : G} (h : s₁ = μ.1 g s₂) : 
   s₂ = μ.1 g⁻¹ s₁ := by rw [h, map_assoc, group.mul_left_inv, map_one]
@@ -101,7 +101,7 @@ end laction
 /-- The stabilizer of `s : S` is the subgroup which elements fixes `s` under the 
   left laction -/
 def stabilizer (μ : laction G S) (s : S) : subgroup G := 
-{ carrier := { g : G | (g ★[μ] s) = s },
+{ carrier := { g : G | (g •[μ] s) = s },
   one_mem' := laction.map_one μ _,
   mul_mem' := λ _ _ hg hh, 
     by { rw mem_set_of_eq at *, rw [←laction.map_assoc, hh, hg] },
@@ -120,7 +120,7 @@ def is_conjugate (H K : subgroup G) :=
 namespace laction
 
 @[simp]
-lemma mem_stabilizer (s : S) (g : G) : g ∈ stabilizer μ s ↔ g ★ s = s := iff.rfl
+lemma mem_stabilizer (s : S) (g : G) : g ∈ stabilizer μ s ↔ g • s = s := iff.rfl
 
 /-- If `H` is the conjugate of `K`, then `K` is the conjugate of `H` -/
 lemma is_conjugate_comm {H K : subgroup G} (h : is_conjugate H K) :
@@ -141,7 +141,7 @@ end
 
 /-- If two elements are in the same orbit, then their stabilizers are conjugates -/
 theorem conjugate_stabilizer_of_in_same_orbit {s₁ s₂ s₃ : S} 
-  (hs₁ : s₁ ∈ orbit μ s₃) (hs₂ : s₂ ∈ orbit μ s₃) : 
+  (hs₁ : s₁ ∈ 💫 s₃) (hs₂ : s₂ ∈ 💫 s₃) : 
   is_conjugate (stabilizer μ s₁) (stabilizer μ s₂) :=
 begin
   cases in_orbit_of_in_same_orbit hs₁ hs₂ with g hg,
@@ -150,13 +150,54 @@ begin
     { show x ∈ stabilizer μ s₂,
       rcases hx with ⟨h, hh₀, hh₁⟩,
       rw [mem_stabilizer, hh₁, ←map_assoc, ←map_assoc, ←hg, 
-         (show h ★ s₁ = s₁, by exact hh₀), hg, map_assoc, 
+         (show h • s₁ = s₁, by exact hh₀), hg, map_assoc, 
          group.mul_left_inv, map_one] },
     { change x ∈ stabilizer μ s₂ at hx, 
       refine ⟨g * x * g⁻¹, (mem_stabilizer _ _).2 _, _⟩,
       rw [←map_assoc, ←(in_orbit_of_inv' hg), 
           ←map_assoc, (mem_stabilizer _ _).1 hx, hg], by simp [group.mul_assoc] }
 end
+
+private structure extract_struct {μ : laction G S} {a : S} (s : orbit μ a) :=
+(val : G) (prop : s.1 = μ.to_fun val a)
+
+@[reducible] private def extract {μ : laction G S} {a : S} (s : orbit μ a) : 
+  extract_struct s := ⟨some s.2, some_spec s.2⟩
+
+@[reducible] private def aux_map (μ : laction G S) (a : S) : 
+  orbit μ a → { s | ∃ h : G, s = h ⋆ stabilizer μ a } := 
+λ s, ⟨(extract s).1 ⋆ stabilizer μ a, (extract s).1, rfl⟩
+
+private lemma aux_map_biject {a : S} : bijective $ aux_map μ a :=
+begin
+  split,
+    { rintro ⟨x, hx⟩ ⟨y, hy⟩ hxy,
+      rw [subtype.mk.inj_eq, lagrange.lcoset_eq] at hxy,
+      change ((extract ⟨y, hy⟩).val)⁻¹ * (extract ⟨x, hx⟩).val ∈ 
+        { g : G | μ.1 g a = a } at hxy,
+      rw [mem_set_of_eq, ←μ.3, ←(extract ⟨x, hx⟩).2, 
+        @laction_mul_inv _ _ _ μ _ x a, group.inv_inv, ←(extract ⟨y, hy⟩).2] at hxy,
+      simp only [hxy] },
+    { rintro ⟨_, g, hg⟩, refine ⟨⟨μ.1 g a, g, rfl⟩, _⟩,
+      rw [subtype.mk.inj_eq, hg, lagrange.lcoset_eq],
+      show g⁻¹ * (extract ⟨μ.to_fun g a, _⟩).val ∈ { g : G | μ.1 g a = a },
+      rw [mem_set_of_eq, ←μ.3, ←(extract ⟨μ.to_fun g a, _⟩).2, 
+        μ.3, group.mul_left_inv, μ.2] }
+end 
+
+-- With this function defined, we see that the cardinality of orbit s equals 
+-- the number of left cosets of stabilizer s
+
+lemma card_orbit_eq_num_lcoset {a : S} : 
+  fincard' (orbit μ a) = fincard' { s | ∃ h : G, s = h ⋆ stabilizer μ a } :=
+fincard.of_equiv (equiv.of_bijective _ aux_map_biject)
+
+/-- Orbit-Stabilizer : The cardinality of a finite group `G` given a laction `μ` 
+on some `S` equals the cardinality of the orbit of `s` multiplied by the 
+cardinality of the stabilizer of `s` for any `s : S` -/
+theorem orbit_stabilizer [h: fintype G] {a : S} (μ : laction G S) : 
+  fincard' G = fincard' (orbit μ a) * fincard' (stabilizer μ a) := 
+by rw [card_orbit_eq_num_lcoset, mul_comm]; exact lagrange.lagrange 
 
 end laction
 
