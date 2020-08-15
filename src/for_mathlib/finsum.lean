@@ -72,11 +72,16 @@ def finset.univ' (ι : Type*) : finset ι := if h : nonempty (fintype ι) then
 
 open finset finsupp
 
-lemma mem_univ' {ι : Type u} [fintype ι] (x : ι) : x ∈ univ' ι :=
+lemma univ'_eq_univ_of_finitype [h : fintype ι] : univ' ι = univ :=
 begin
-  unfold univ',
-  rw dif_pos (nonempty.intro _inst_2),
-  convert fintype.complete x,
+  unfold univ', unfold univ,
+  convert dif_pos (nonempty.intro h)
+end
+
+lemma mem_univ' [fintype ι] (x : ι) : x ∈ univ' ι :=
+begin
+  rw univ'_eq_univ_of_finitype, 
+  exact mem_univ _
 end
 
 noncomputable def to_finsupp (f : ι → α) : ι →₀ α := 
@@ -135,7 +140,7 @@ end
 /- lemma finite_support_of_fintype [fintype ι] (f : ι → α) : 
 (function.support f).finite := set.finite.of_fintype (function.support f) -/
 
-lemma finsum_in_def_of_finite' (f : ι → α) (s : set ι) 
+lemma finsum_in_def_of_finite' {f : ι → α} (s : set ι) 
   (hf : (function.support f).finite) : 
   ∑ x ∈ s, f x = (filter (∈ s) hf.to_finset).sum f := 
 begin
@@ -179,6 +184,29 @@ begin
     intros _ _ hx, 
     rw ←function.nmem_support,
     simpa using hx,
+end
+
+lemma finsum_def_of_finite' {f : ι → α} (hf : (function.support f).finite) : 
+  ∑ x : ι, f x = hf.to_finset.sum f :=
+begin
+  unfold finsum,
+  rw dif_pos hf
+end
+
+lemma finsum_def_of_infinite {f : ι → α} (hf : ¬(function.support f).finite) : 
+  ∑ x : ι, f x = 0 :=
+begin
+  unfold finsum,
+  rw dif_neg hf
+end
+
+lemma finsum_eq_finsum_in_univ (f : ι → α) : 
+  ∑ x : ι, f x = ∑ x ∈ set.univ, f x :=
+begin
+  by_cases ((function.support f).finite),
+    { rw [finsum_def_of_finite' h, finsum_in_def_of_finite' _ h], simp },
+    { unfold finsum_in,
+      rw [finsum_def_of_infinite h, finsum_def_of_infinite], simpa }
 end
 
 lemma finsum_ext {s t : set ι} {f₁ f₂ : ι → α} (h₀ : s = t) 
@@ -390,10 +418,17 @@ begin
     all_goals { apply_instance }
 end
 
-lemma finsum_fibres (X Y : Type) (f : X → Y) [fintype X] :
-  ∑ y : Y, fincard' (f⁻¹' {y}) = fincard' X :=
+lemma preimage_is_partition {X Y : Type} [fintype X] (f : X → Y) :
+  setoid.is_partition $ (λ y, f⁻¹' {y}) '' set.univ :=
 begin
   sorry
+end
+
+lemma finsum_fibres {X Y : Type} [fintype X] (f : X → Y) :
+  ∑ y : Y, fincard' (f⁻¹' {y}) = fincard' X :=
+begin
+  rw card_eq_finsum_partition _ (preimage_is_partition f),
+  rw finsum_eq_finsum_in_univ, sorry
 end
 
 end fincard
