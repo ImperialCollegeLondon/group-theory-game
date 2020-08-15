@@ -1,10 +1,5 @@
 import hom.quotient data.setoid.partition for_mathlib.finsum
 
-/- I think we've decided to change:
-- fintype → is_finite
-- set.card → fincard
--/
-
 open setoid set
 
 namespace mygroup 
@@ -43,11 +38,10 @@ equals the cardinality of `H` multiplied with the number of left cosets of `H` -
 theorem lagrange [fintype G] : 
   fincard' G = fincard' H * fincard' { B | ∃ g : G, B = lcoset g H } := 
 begin
-  sorry
-  --rw card_eq_sum_partition _ (lcoset_partition H), 
-  --refine sum_const_nat (λ _ hx, _), 
-  --rcases hx with ⟨g, rfl⟩, 
-  --exact eq_card_of_lcoset.symm
+  rw [card_eq_finsum_partition _ (lcoset_partition H), 
+    mul_comm, finsum_const_nat],
+  rintros x ⟨g, rfl⟩,
+  exact eq_card_of_lcoset.symm
 end
 
 end lagrange

@@ -376,7 +376,7 @@ begin
   exact finsum_ext rfl h
 end
 
-theorem card_eq_sum_partition {X : Type} [h : fintype X] (s : set (set X)) 
+theorem card_eq_finsum_partition {X : Type} [h : fintype X] (s : set (set X)) 
   (hS : setoid.is_partition s) : fincard' X = ∑ x ∈ s, fincard' x := 
 begin
   conv_rhs { congr, skip, funext, rw card_eq_sum_one },
@@ -390,7 +390,7 @@ begin
     all_goals { apply_instance }
 end
 
-lemma sum_fibres (X Y : Type) (f : X → Y) [fintype X] :
+lemma finsum_fibres (X Y : Type) (f : X → Y) [fintype X] :
   ∑ y : Y, fincard' (f⁻¹' {y}) = fincard' X :=
 begin
   sorry
