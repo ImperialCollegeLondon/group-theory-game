@@ -137,9 +137,6 @@ begin
   sorry,sorry,sorry,sorry,
 end
 
-/- lemma finite_support_of_fintype [fintype ι] (f : ι → α) : 
-(function.support f).finite := set.finite.of_fintype (function.support f) -/
-
 lemma finsum_in_def_of_finite' {f : ι → α} (s : set ι) 
   (hf : (function.support f).finite) : 
   ∑ x ∈ s, f x = (filter (∈ s) hf.to_finset).sum f := 
