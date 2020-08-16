@@ -93,8 +93,8 @@ begin
   rw [hg₁, hg₂, map_assoc, group.mul_assoc, group.mul_left_inv, group.mul_one]
 end
 
-lemma in_orbit_of_inv' {s₁ s₂ : S} {g : G} (h : s₁ = μ.1 g s₂) : 
-  s₂ = μ.1 g⁻¹ s₁ := by rw [h, map_assoc, group.mul_left_inv, map_one]
+lemma in_orbit_of_inv' {s₁ s₂ : S} {g : G} (h : s₁ = g • s₂) : 
+  s₂ = g⁻¹ • s₁ := by rw [h, map_assoc, group.mul_left_inv, map_one]
 
 end laction
 
@@ -174,13 +174,13 @@ begin
     { rintro ⟨x, hx⟩ ⟨y, hy⟩ hxy,
       rw [subtype.mk.inj_eq, lagrange.lcoset_eq] at hxy,
       change ((extract ⟨y, hy⟩).val)⁻¹ * (extract ⟨x, hx⟩).val ∈ 
-        { g : G | μ.1 g a = a } at hxy,
+        { g : G | g • a = a } at hxy,
       rw [mem_set_of_eq, ←μ.3, ←(extract ⟨x, hx⟩).2, 
         @laction_mul_inv _ _ _ μ _ x a, group.inv_inv, ←(extract ⟨y, hy⟩).2] at hxy,
       simp only [hxy] },
-    { rintro ⟨_, g, hg⟩, refine ⟨⟨μ.1 g a, g, rfl⟩, _⟩,
+    { rintro ⟨_, g, hg⟩, refine ⟨⟨g • a, g, rfl⟩, _⟩,
       rw [subtype.mk.inj_eq, hg, lagrange.lcoset_eq],
-      show g⁻¹ * (extract ⟨μ.to_fun g a, _⟩).val ∈ { g : G | μ.1 g a = a },
+      show g⁻¹ * (extract ⟨μ.to_fun g a, _⟩).val ∈ { g : G | g • a = a },
       rw [mem_set_of_eq, ←μ.3, ←(extract ⟨μ.to_fun g a, _⟩).2, 
         μ.3, group.mul_left_inv, μ.2] }
 end 
