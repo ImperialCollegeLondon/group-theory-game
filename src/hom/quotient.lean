@@ -113,7 +113,7 @@ instance : group (quotient R) :=
 -- But this is not how most of us learnt quotient groups. For us, quotient groups 
 -- are defined by creating a group structure on the set of coests of a normal 
 -- subgroup. We will show that the equivalence relation `lcoset_rel H` in which 
--- `x ~ y ↔ x • H = y • H` is a group congruence if and only if H is normal.
+-- `x ~ y ↔ x ⋆ H = y ⋆ H` is a group congruence if and only if H is normal.
 
 /- The main proposition we will prove is that given a subgroup H of the group G, 
 the equivalence relation ~ : (g, k) ↦ g H = k H on G is a group congruence if 
@@ -123,12 +123,7 @@ open mygroup.subgroup lagrange function
 
 variables {H : subgroup G} {N : normal G}
 
--- We will redeclare the notation since importing group_theory.congruence also 
--- imported some other notations using `•`
-notation g ` • ` :70 H :70 := lcoset g H
-notation H ` • ` :70 g :70 := rcoset g H
-
-def lcoset_rel (H : subgroup G) := λ x y, x • H = y • H
+def lcoset_rel (H : subgroup G) := λ x y, x ⋆ H = y ⋆ H
 local notation x ` ~ `:70 y := lcoset_rel H x y 
 local notation x ` ~[ `:70 H:70 ` ] `:0 y:0 := lcoset_rel H x y
 
@@ -137,7 +132,7 @@ infixr ` →ₗ `:25 := linear_map _
 notation M ` →ₗ[`:25 R:25 `] `:0 M₂:0 := linear_map R M M₂
 -/
 
-lemma lcoset_rel_def (x y : G) : x ~ y ↔ x • H = y • H := iff.rfl
+lemma lcoset_rel_def (x y : G) : x ~ y ↔ x ⋆ H = y ⋆ H := iff.rfl
 
 lemma lcoset_iseqv (H : subgroup G) : equivalence (lcoset_rel H) := 
 begin
@@ -205,8 +200,8 @@ notation G ` /ₘ `:70 N:70 := quotient (con_of_normal G N)
 lemma exists_mk {N : normal G} (c : G /ₘ N) : ∃ g : G, (g : G /ₘ N) = c := 
   @quotient.exists_rep G (con_of_normal G N) c
 
-/-- `(⟦p⟧ : G /ₘ N) = ⟦q⟧` iff `p • N = q • N` where `p q : G` -/
-lemma mk_eq {p q : G} : (p : G /ₘ N) = q ↔ p • N = q • N :=
+/-- `(⟦p⟧ : G /ₘ N) = ⟦q⟧` iff `p ⋆ N = q ⋆ N` where `p q : G` -/
+lemma mk_eq {p q : G} : (p : G /ₘ N) = q ↔ p ⋆ N = q ⋆ N :=
   ⟨λ h, quotient.eq.1 h, λ h, quotient.eq.2 h⟩
 
 lemma mk_eq' {p q : G} : (p : G /ₘ N) = q ↔ q⁻¹ * p ∈ N :=

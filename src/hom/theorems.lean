@@ -1,7 +1,7 @@
 import hom.quotient
 import subgroup.lattice
 
-local attribute [instance] classical.prop_decidable -- I hope we don't mind this
+open_locale classical
 
 /-
   The type of group homs G → H is
@@ -326,7 +326,7 @@ end
 
 -- First we prove such a map is well defined
 lemma map_of_lcoset_eq {f : G →* H} {x y : G}
-  (hxy : x • kernel f = y • kernel f) : f x = f y :=
+  (hxy : x ⋆ kernel f = y ⋆ kernel f) : f x = f y :=
 begin
   rw [←group.mul_left_cancel_iff (f y)⁻¹,
       ←map_inv, ←map_mul, map_inv, group.mul_left_inv,
@@ -335,7 +335,7 @@ begin
 end
 
 /-- Given a group homomorphism `f : G →* H`, `kernel_lift f` is a mapping from
-  the quotient `G /ₘ kernel f` to `H` such that `x • kernel f ↦ f x` -/
+  the quotient `G /ₘ kernel f` to `H` such that `x ⋆ kernel f ↦ f x` -/
 def kernel_lift (f : G →* H) (x : G /ₘ kernel f) := lift_on x f $
   λ _ _, map_of_lcoset_eq
 
@@ -718,12 +718,6 @@ def third_iso_theorem' (T : normal G) (N : normal G) (h : T.to_subgroup ≤ N) :
    (G /ₘ T) /ₘ NmodT ≅ G /ₘ N :=
 quotient_kernel_iso_of_surjective' (aux_hom_surjective' h) (aux_hom_kernel' h)
 
-/-
--- Option 2
-def subgroup_ge' (G : Type) [group G] (N : subgroup G) :=
-  { H : subgroup G | N ≤ H }
--/
-
 -- We would like to define `correspondence N : H ↦ H /ₘ N` so first we need to 
 -- show if `H : subgroup G` with `(N : subgroup G) ≤ H`, then `↑N` is a normal 
 -- subgroup of `H`
@@ -733,7 +727,7 @@ def subgroup_ge' (G : Type) [group G] (N : subgroup G) :=
 -- is a induced subgroup of `G` from `H` using `image f`
 
 /-- `qmap` is a group homomorphism from `H /ₘ N →* G /ₘ N` where `H : subgroup G` 
-  and `N : normal G` such that `h • N ↦ h • N` -/ 
+  and `N : normal G` such that `h ⋆ N ↦ h ⋆ N` -/ 
 def qmap (H : subgroup G) (N : normal G) : H /ₘ comap (𝒾 H) N →* G /ₘ N :=
   let φ : H →* G /ₘ N := ⟨λ h, mk N h.1, λ _ _, rfl⟩ in lift φ (comap (𝒾 H) N) $ 
 begin
