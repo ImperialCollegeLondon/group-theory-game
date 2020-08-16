@@ -46,7 +46,6 @@ noncomputable theory
 noncomputable def prod {ι α} [comm_monoid α] (f : ι → α) : α :=
 if h : (function.one_support f).finite then ∏ x in h.to_finset, f x else 1
 
-#print sum
 @[to_additive]
 noncomputable def prod_in {ι α} [comm_monoid α] (s : set ι) (f : ι → α) : α :=
 prod (λ i, if i ∈ s then f i else 1)
