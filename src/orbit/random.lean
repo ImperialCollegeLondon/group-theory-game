@@ -1,7 +1,4 @@
-import group_theory.subgroup data.fintype.basic
-import tactic -- remove once library_search bug is fixed
-import finiteness.is_finite
-
+import group_theory.subgroup data.set.finite
 
 noncomputable theory
 

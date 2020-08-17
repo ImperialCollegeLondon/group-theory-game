@@ -1,11 +1,36 @@
 import hom.quotient data.setoid.partition for_mathlib.finsum
 
-/- I think we've decided to change:
-- fintype → is_finite
-- set.card → fincard
--/
-
 open setoid set
+
+namespace fincard
+
+variables {α β : Type}
+
+lemma eq_card (s : set α) : fincard s = card s := sorry
+lemma eq_card' : fincard α = card (univ : set α) := sorry
+
+lemma sum_const [comm_semiring β] (s : set α) (m : β):
+  ∑ x in s, (λ x, m) x = m * fincard s := sorry -- by rw [eq_card, set.sum_const s m]
+
+lemma sum_const_nat {s : set α} {m : ℕ} {f : α → ℕ} (h₁ : ∀ x ∈ s, f x = m) :
+  ∑ x in s, f x = m * fincard s :=
+begin
+  have := sum_const s m,
+  norm_cast at this, -- This is annoying
+  rw ←this,
+  exact sum_ext rfl h₁,
+end
+
+theorem card_eq_sum_partition [fintype α] (s : set (set α)) (hS : is_partition s) : 
+  fincard α = ∑ x in s, fincard x := 
+begin
+  rw [eq_card', ←hS.sUnion_eq_univ],
+  simp_rw eq_card,
+  unfold card,
+  rw sum_disjoint hS.pairwise_disjoint, refl,
+end
+
+end fincard
 
 namespace mygroup 
 
@@ -41,13 +66,12 @@ end
 /-- Let `H` be a subgroup of the finite group `G`, then the cardinality of `G` 
 equals the cardinality of `H` multiplied with the number of left cosets of `H` -/
 theorem lagrange [fintype G] : 
-  fincard' G = fincard' H * fincard' { B | ∃ g : G, B = lcoset g H } := 
+  fincard G = fincard H * fincard { B | ∃ g : G, B = g • H } := 
 begin
-  sorry
-  --rw card_eq_sum_partition _ (lcoset_partition H), 
-  --refine sum_const_nat (λ _ hx, _), 
-  --rcases hx with ⟨g, rfl⟩, 
-  --exact eq_card_of_lcoset.symm
+  rw [card_eq_finsum_partition _ (lcoset_partition H), 
+    mul_comm, finsum_const_nat],
+  rintros x ⟨g, rfl⟩,
+  exact eq_card_of_lcoset.symm
 end
 
 end lagrange
