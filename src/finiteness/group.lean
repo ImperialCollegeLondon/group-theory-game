@@ -1,3 +1,7 @@
+#exit
+
+-- this was just a proof of concept
+
 import finiteness.is_finite
 import subgroup.theorems
 

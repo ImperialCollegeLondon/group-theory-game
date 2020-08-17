@@ -1,3 +1,6 @@
+--old
+#exit
+
 /-
 fincard -- ℕ-valued cardinality of a type (zero for infinite types)
 -/
