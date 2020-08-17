@@ -1,3 +1,6 @@
+-- old
+#exit
+
 import data.set.finite
 import tactic
 import finiteness.is_finite
