@@ -5,7 +5,7 @@ import data.nat.prime
 import data.nat.modeq
 import orbit.random 
 import data.finsupp
-import orbit.orbit_stabilizer
+--import orbit.orbit_stabilizer
 noncomputable theory
 
 open set classical
