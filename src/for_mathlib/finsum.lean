@@ -451,9 +451,26 @@ begin
 end
 
 lemma preimage_is_partition {X Y : Type} [fintype X] (f : X → Y) :
-  setoid.is_partition $ (λ y, f⁻¹' {y}) '' set.univ :=
+  setoid.is_partition $ (λ y, f⁻¹' {y}) '' (set.range f) :=
 begin
-  sorry
+  split,
+  { intro h,
+    rw set.mem_image at h,
+    rcases h with ⟨y, ⟨x, rfl⟩, hy⟩,
+    apply set.not_mem_empty x,
+    rw ←hy,
+    simp },
+  { intro x,
+    use f⁻¹' {f x},
+    split,
+    { suffices : ∃ (a : X), f ⁻¹' {f a} = f ⁻¹' {f x},
+        simpa,
+      use x
+    },
+    { 
+      rintro _ ⟨⟨t, h1, rfl⟩, h2, h3⟩,
+      change f x = t at h2,
+      subst h2 } }
 end
 
 lemma finsum_fibres {X Y : Type} [fintype X] (f : X → Y) :
