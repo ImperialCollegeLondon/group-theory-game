@@ -72,11 +72,16 @@ def finset.univ' (ι : Type*) : finset ι := if h : nonempty (fintype ι) then
 
 open finset finsupp
 
-lemma mem_univ' {ι : Type u} [fintype ι] (x : ι) : x ∈ univ' ι :=
+lemma univ'_eq_univ_of_finitype [h : fintype ι] : univ' ι = univ :=
 begin
-  unfold univ',
-  rw dif_pos (nonempty.intro _inst_2),
-  convert fintype.complete x,
+  unfold univ', unfold univ,
+  convert dif_pos (nonempty.intro h)
+end
+
+lemma mem_univ' [fintype ι] (x : ι) : x ∈ univ' ι :=
+begin
+  rw univ'_eq_univ_of_finitype, 
+  exact mem_univ _
 end
 
 noncomputable def to_finsupp (f : ι → α) : ι →₀ α := 
@@ -106,7 +111,7 @@ funext (λ x, dif_pos (mem_univ' x))
 -- (on_finset s f hf).sum g = ∑ a in s, g a (f a) :=
 
 lemma finsum_in_eq_finset_sum (f : ι → α) (s : finset ι) :
-∑ x ∈ ↑s, f x = s.sum f :=
+  ∑ x ∈ ↑s, f x = s.sum f :=
 begin
   unfold finsum_in, unfold finsum,
   rw dif_pos,
@@ -132,6 +137,31 @@ begin
   sorry,sorry,sorry,sorry,
 end
 
+/- lemma finite_support_of_fintype [fintype ι] (f : ι → α) : 
+(function.support f).finite := set.finite.of_fintype (function.support f) -/
+
+lemma finsum_in_def_of_finite' {f : ι → α} (s : set ι) 
+  (hf : (function.support f).finite) : 
+  ∑ x ∈ s, f x = (filter (∈ s) hf.to_finset).sum f := 
+begin
+  unfold finsum_in, unfold finsum,
+  rw dif_pos,
+    { rw [sum_ite, sum_const_zero, add_zero],
+      refine finset.sum_subset _ _,
+        { refine set.finite.subset hf (λ x hx, _),
+          rw function.mem_support at ⊢ hx,
+          intro h, apply hx,
+          split_ifs, exact h, refl },
+        { intros x hx,
+          rw mem_filter at ⊢ hx,
+          cases hx with hx₀ hx₁,
+          refine ⟨_, hx₁⟩,
+          rw [set.finite.mem_to_finset, function.mem_support, if_pos hx₁] at hx₀,
+          rw set.finite.mem_to_finset, exact hx₀ },
+    { simp [function.mem_support] {contextual := tt} } }
+end .
+
+-- ↓ Rewrite below as a corollary of `finsum_in_def_of_finite'`
 lemma finsum_in_def_of_finite [fintype ι] (f : ι → α) (s : set ι) : 
   ∑ x ∈ s, f x = s.to_finset.sum f := 
 begin
@@ -156,6 +186,29 @@ begin
     simpa using hx,
 end
 
+lemma finsum_def_of_finite' {f : ι → α} (hf : (function.support f).finite) : 
+  ∑ x : ι, f x = hf.to_finset.sum f :=
+begin
+  unfold finsum,
+  rw dif_pos hf
+end
+
+lemma finsum_def_of_infinite {f : ι → α} (hf : ¬(function.support f).finite) : 
+  ∑ x : ι, f x = 0 :=
+begin
+  unfold finsum,
+  rw dif_neg hf
+end
+
+lemma finsum_eq_finsum_in_univ (f : ι → α) : 
+  ∑ x : ι, f x = ∑ x ∈ set.univ, f x :=
+begin
+  by_cases ((function.support f).finite),
+    { rw [finsum_def_of_finite' h, finsum_in_def_of_finite' _ h], simp },
+    { unfold finsum_in,
+      rw [finsum_def_of_infinite h, finsum_def_of_infinite], simpa }
+end
+
 lemma finsum_ext {s t : set ι} {f₁ f₂ : ι → α} (h₀ : s = t) 
   (h₁ : ∀ x ∈ t, f₁ x = f₂ x) : ∑ x ∈ s, f₁ x = ∑ x ∈ t, f₂ x :=
 begin
@@ -166,6 +219,34 @@ begin
   split_ifs,
   { exact h₁ x h },
   { refl },
+end
+
+lemma finsum_union [fintype ι] {s t : set ι} (f : ι → α) (h : disjoint s t) : 
+  ∑ x ∈ (s ∪ t), f x = ∑ x ∈ s, f x + ∑ x ∈ t, f x :=
+begin
+  iterate 3 { rw finsum_in_def_of_finite },
+  rw ←finset.sum_union, congr', 
+    { ext, simp }, 
+    { intros a ha,
+      apply @h a,
+      simpa using ha }
+end
+
+lemma finsum_bind {γ} [fintype γ] [fintype ι] {s : set γ} {t : γ → set ι} 
+  (f : ι → α) (h : ∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) : 
+  (∑ x ∈ (⋃ x ∈ s, t x), f x) = ∑ x ∈ s, ∑ i ∈ t x, f i :=
+begin
+  iterate 2 { rw finsum_in_def_of_finite },
+  conv_rhs { congr, skip, funext, rw finsum_in_def_of_finite },
+    { convert @sum_bind _ _ _ f _ _ s.to_finset (λ x, (t x).to_finset) 
+      (begin
+        intros x hx y hy hxy a ha,
+        specialize h x (set.mem_to_finset.1 hx) y (set.mem_to_finset.1 hy) hxy,
+        apply @h a, simpa using ha end),
+      { ext, rw [mem_bind, set.mem_to_finset, set.mem_bUnion_iff],
+        split; intro ha; rcases ha with ⟨x, hx₀, hx₁⟩,
+          exact ⟨x, set.mem_to_finset.2 hx₀, set.mem_to_finset.2 hx₁⟩,
+          exact ⟨x, set.mem_to_finset.1 hx₀, set.mem_to_finset.1 hx₁⟩ } },
 end
 
 -- def fincard (X : Type*) : ℕ :=
@@ -206,7 +287,7 @@ begin
   simp,
 end
 
-lemma fincard.of_equiv {X Y : Type*} (h : X ≃ Y) : fincard' X = fincard' Y :=
+lemma of_equiv {X Y : Type*} (h : X ≃ Y) : fincard' X = fincard' Y :=
 begin
   by_cases h2 : nonempty (fintype X),
   { cases h2,
@@ -219,18 +300,18 @@ begin
     simp [fincard_eq_zero, *] }
 end
 
-theorem fincard.of_empty {X : Type*} (hX : X → false) : fincard' X = 0 :=
+theorem of_empty {X : Type*} (hX : X → false) : fincard' X = 0 :=
 by simp [fincard.of_equiv (equiv.equiv_empty hX)]
 
-private theorem fincard.prod_of_empty_left {X : Type*} (h : X → false) (Y : Type*) :
+private theorem prod_of_empty_left {X : Type*} (h : X → false) (Y : Type*) :
   fincard' (X × Y) = fincard' X * fincard' Y :=
 by rw [fincard.of_empty h, fincard.of_empty (h ∘ prod.fst), zero_mul]
 
-private theorem fincard.prod_of_empty_right (X : Type*) {Y : Type*} (h : Y → false) :
+private theorem prod_of_empty_right (X : Type*) {Y : Type*} (h : Y → false) :
   fincard' (X × Y) = fincard' X * fincard' Y :=
 by rw [fincard.of_empty h, fincard.of_empty (h ∘ prod.snd), mul_zero]
 
-private theorem fincard.prod_of_finite {X Y : Type*}
+private theorem prod_of_finite {X Y : Type*}
   (hX : nonempty (fintype X)) (hY : nonempty (fintype Y)) :
 fincard' (X × Y) = fincard' X * fincard' Y :=
 begin
@@ -239,7 +320,7 @@ begin
   simp [←card_eq_fincard],
 end
 
-private theorem fincard.prod_of_infinite_left {X Y : Type*}
+private theorem prod_of_infinite_left {X Y : Type*}
   (hX : ¬nonempty (fintype X)) (hY : nonempty Y) :
 fincard' (X × Y) = fincard' X * fincard' Y :=
 begin
@@ -252,7 +333,7 @@ begin
   simp [fincard_eq_zero, *],
 end
 
-private theorem fincard.prod_of_infinite_right {X Y : Type*}
+private theorem prod_of_infinite_right {X Y : Type*}
   (hX : nonempty X) (hY : ¬nonempty (fintype Y)) : 
 fincard' (X × Y) = fincard' X * fincard' Y :=
 begin
@@ -265,20 +346,20 @@ begin
   simp [fincard_eq_zero, *],
 end
 
-theorem fincard.prod (X Y : Sort*) : fincard' (X × Y) = fincard' X * fincard' Y :=
+theorem prod (X Y : Sort*) : fincard' (X × Y) = fincard' X * fincard' Y :=
 begin
   by_cases hX : X → false,
-  { exact fincard.prod_of_empty_left hX _},
+  { exact prod_of_empty_left hX _},
   rw [←not_nonempty_iff_imp_false, not_not] at hX,
   by_cases hY : Y → false,
-  { exact fincard.prod_of_empty_right _ hY},
+  { exact prod_of_empty_right _ hY},
   rw [←not_nonempty_iff_imp_false, not_not] at hY,
   by_cases hX2 : nonempty (fintype X),
   { by_cases hY2 : nonempty (fintype Y),
-    { exact fincard.prod_of_finite hX2 hY2},
-    { exact fincard.prod_of_infinite_right hX hY2},
+    { exact prod_of_finite hX2 hY2},
+    { exact prod_of_infinite_right hX hY2},
   },
-  { exact fincard.prod_of_infinite_left hX2 hY}
+  { exact prod_of_infinite_left hX2 hY}
 end
 
 lemma card_eq_sum_one_of_fintype {X : Type u} [h : fintype X] : 
@@ -312,37 +393,46 @@ begin
     { exact card_eq_sum_one_of_nfintype h }
 end
 
-lemma sum_const {X Y : Type} [fintype X] [add_comm_monoid Y] 
-  (s : set X) (m : Y) : ∑ x ∈ s, m = fincard' s •ℕ m := 
-by rw [finsum_in_def_of_finite, finset.sum_const m, ←eq_finset_card' s]
+end fincard 
 
-lemma sum_const_nat {X : Type} [fintype X] {s : set X} {m : ℕ} {f : X → ℕ} 
+lemma finsum_const {X Y : Type} [fintype X] [add_comm_monoid Y] 
+  (s : set X) (m : Y) : ∑ x ∈ s, m = fincard' s •ℕ m := 
+by rw [finsum_in_def_of_finite, finset.sum_const m, ←fincard.eq_finset_card' s]
+
+lemma finsum_const_nat {X : Type} [fintype X] {s : set X} {m : ℕ} {f : X → ℕ} 
   (h : ∀ x ∈ s, f x = m) : ∑ x ∈ s, f x = fincard' s * m :=
 begin
-  rw [←nat.nsmul_eq_mul, ←(sum_const s m)],
+  rw [←nat.nsmul_eq_mul, ←(finsum_const s m)],
   exact finsum_ext rfl h
 end
 
-theorem card_eq_sum_partition {X : Type} [fintype X] (s : set (set X)) 
+namespace fincard
+
+theorem card_eq_finsum_partition {X : Type} [h : fintype X] (s : set (set X)) 
   (hS : setoid.is_partition s) : fincard' X = ∑ x ∈ s, fincard' x := 
 begin
-  rw [eq_finset_card, finsum_in_def_of_finite], -- How is lean able to infer s.finite
-  simp_rw [eq_finset_card],
-  conv_rhs { congr, skip, funext, rw card_eq_sum_ones },
-  --change _ = univ.card = s.to_finset.sum (λ x, x.to_finset.sum (λ _, 1)),
-  --rw [←finset.sum_bind _],
-  
-  /- rw [eq_card', ←hS.sUnion_eq_univ],
-  simp_rw eq_card,
-  unfold card,
-  rw sum_disjoint hS.pairwise_disjoint, refl, -/
+  conv_rhs { congr, skip, funext, rw card_eq_sum_one },
+  simp_rw ←finsum_in_eq_finsum (λ _, 1),
+  rw [←finsum_bind _, card_eq_sum_one, finsum_def_of_finite, finsum_in_def_of_finite],
+    { congr, unfold univ',
+      rw [dif_pos (nonempty.intro h), ←set.sUnion_eq_bUnion, 
+        setoid.is_partition.sUnion_eq_univ hS],
+      ext, simp [fintype.complete] },
+    { exact hS.pairwise_disjoint },
+    all_goals { apply_instance }
+end
+
+lemma preimage_is_partition {X Y : Type} [fintype X] (f : X → Y) :
+  setoid.is_partition $ (λ y, f⁻¹' {y}) '' set.univ :=
+begin
   sorry
 end
 
-lemma sum_fibres (X Y : Type) (f : X → Y) [fintype X] :
+lemma finsum_fibres {X Y : Type} [fintype X] (f : X → Y) :
   ∑ y : Y, fincard' (f⁻¹' {y}) = fincard' X :=
 begin
-  sorry
+  rw card_eq_finsum_partition _ (preimage_is_partition f),
+  rw finsum_eq_finsum_in_univ, sorry
 end
 
 end fincard
