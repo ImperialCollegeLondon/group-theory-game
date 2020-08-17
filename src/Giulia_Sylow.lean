@@ -5,7 +5,7 @@ import data.nat.prime
 import data.nat.modeq
 import orbit.random 
 import data.finsupp
-
+import orbit.orbit_stabilizer
 noncomputable theory
 
 open set classical
@@ -133,7 +133,8 @@ lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S)
 --def p_group (g : G) (p : ℕ ) (h : prime p) : sorry 
 /-OR SHOULD I MAKE IT A CLASS? Using previous definition of group structure-/
 #exit
-theorem cauchy_theorem [group G][G fintype]( p : ℕ ) (hp : p.prime) (h : p ∣ (card G)): sorry
- --∃ (g : G) /-order of g is p-/ := sorry
+theorem cauchy_theorem [group G][fintype G] {p : ℕ} (hp : p.prime) (h : p ∣ (fincard G)): 
+∃ (S : subgroup G), fincard S = p := sorry
+--need to define order of an element
 
 end action
