@@ -22,6 +22,9 @@ variables {G : Type} [group G] {S : Type}
 variables {μ : laction G S}
 variables (a b c s: S)
 variables (g h : G)
+
+local notation g ` ★ `:70  s:70  := μ.to_fun g s
+
 def orbit_rel : setoid S :=
 { r := λ a b, a ∈ orbit μ b,
   iseqv := ⟨begin
@@ -34,15 +37,14 @@ def orbit_rel : setoid S :=
    cases h with g hg,
    rw hg,
    use g⁻¹ ,
-   change b = g⁻¹ • (g • b),
-   rw [μ.map_assoc, mul_left_inv, μ.map_one],
+   rw [laction.map_assoc, group.mul_left_inv, μ.map_one],
   end,
   begin
    intros a b c ha hb,
    cases ha with g1 hg1,
    cases hb with g2 hg2,
    use g1*g2,
-   rw [hg1, ← μ.map_assoc, ← hg2],
+   rw [hg1, ←laction.map_assoc, ← hg2],
   end⟩ 
     }
 #check orbit
