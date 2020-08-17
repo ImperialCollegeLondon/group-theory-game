@@ -3,7 +3,7 @@ import tactic -- remove once library_search bug is fixed
 import group_theory.group_action
 import data.nat.prime
 import data.nat.modeq
-import orbit.random 
+import orbit.orbit_stabilizer
 import data.finsupp
 
 noncomputable theory
