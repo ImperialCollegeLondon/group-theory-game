@@ -473,16 +473,6 @@ begin
       subst h2 } }
 end
 
-#check @sum_comp
-/-
-sum_comp :
-  ∀ {α : Type u_1} {β : Type u_2} {γ : Type u_3} [_inst_1 : add_comm_monoid β] 
-  [_inst_2 : decidable_eq γ]
-  {s : finset α} (f : γ → β) (g : α → γ),
-    ∑ (a : α) in s, f (g a) = 
-    ∑ (b : γ) in image g s, (filter (λ (a : α), g a = b) s).card •ℕ f b
--/
-
 lemma finset.ne_empty_iff_exists_mem {α : Type u} {s : finset α} : s ≠ ∅ ↔ ∃ x : α, x ∈ s :=
 begin
   rw ←nonempty_iff_ne_empty,
