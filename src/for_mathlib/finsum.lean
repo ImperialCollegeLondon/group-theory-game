@@ -6,18 +6,17 @@ noncomputable theory
 
 open_locale classical big_operators
 
-
-noncomputable def finsum {ι α} [add_comm_monoid α] (f : ι → α) : α :=
+noncomputable def finsum {ι M} [add_comm_monoid M] (f : ι → M) : M :=
 if h : (function.support f).finite then ∑ x in h.to_finset, f x else 0
 
 section finsum2
 
 -- we might not need this section
 
-noncomputable def finsum2 {ι α} [add_comm_monoid α] (f : ι → α) : α :=
-if h : ∃ f' : ι →₀ α, f = f' then (classical.some h).sum (λ _ a, a) else 0
+noncomputable def finsum2 {ι M} [add_comm_monoid M] (f : ι → M) : M :=
+if h : ∃ f' : ι →₀ M, f = f' then (classical.some h).sum (λ _ a, a) else 0
 
-theorem finsum_eq_finsum2 {ι α} [add_comm_monoid α] (f : ι → α) : finsum f = finsum2 f :=
+theorem finsum_eq_finsum2 {ι M} [add_comm_monoid M] (f : ι → M) : finsum f = finsum2 f :=
 begin
   unfold finsum,
   unfold finsum2,
@@ -39,7 +38,7 @@ begin
   { exfalso,
     apply h1,
     clear h1,
-    let f' : ι →₀ α := 
+    let f' : ι →₀ M := 
     { support := h3.to_finset,
       to_fun := f,
       mem_support_to_fun := begin
@@ -53,19 +52,19 @@ end .
 
 end finsum2
 
-noncomputable def finsum_in {ι α} [add_comm_monoid α] (s : set ι) (f : ι → α) : α :=
+noncomputable def finsum_in {ι M} [add_comm_monoid M] (s : set ι) (f : ι → M) : M :=
 finsum (λ i, if i ∈ s then f i else 0)
 
 notation `∑' ` binders ` in ` s `, ` r:(scoped:67 f, finsum_in s f) := r
 notation `∑' ` binders `, ` r:(scoped:67 f, finsum f) := r
 
--- lemma is_finite_supp {α β} [has_zero β] (f : α →₀ β) : is_finite {a // f a ≠ 0} :=
+-- lemma is_finite_supp {M β} [has_zero β] (f : M →₀ β) : is_finite {a // f a ≠ 0} :=
 -- f.finite_supp
 
 universes u v
 
-variables {ι : Type u} {α : Type v} [add_comm_monoid α]
-variables {f : ι → α}
+variables {ι : Type u} {M : Type v} [add_comm_monoid M]
+variables {f : ι → M}
 
 def finset.univ' (ι : Type*) : finset ι := if h : nonempty (fintype ι) then
   (classical.choice h).elems else ∅
@@ -84,7 +83,7 @@ begin
   exact mem_univ _
 end
 
-noncomputable def to_finsupp (f : ι → α) : ι →₀ α := 
+noncomputable def to_finsupp (f : ι → M) : ι →₀ M := 
 { support := filter (λ x, f x ≠ 0) $ univ' ι,
   to_fun := λ x, if h : x ∈ univ' ι then f x else 0,
   mem_support_to_fun := begin
@@ -94,15 +93,15 @@ noncomputable def to_finsupp (f : ι → α) : ι →₀ α :=
     { simp only [*, mem_filter, eq_self_iff_true, not_true, ne.def, false_and]}  
   end }
 
-@[simp] lemma eq_finsupp [fintype ι] (f : ι → α) : 
-  (to_finsupp f : ι → α) = f :=
+@[simp] lemma eq_finsupp [fintype ι] (f : ι → M) : 
+  (to_finsupp f : ι → M) = f :=
 funext (λ x, dif_pos (mem_univ' x))
 
--- lemma finsum_def_of_finite (f : ι → α) : 
+-- lemma finsum_def_of_finite (f : ι → M) : 
 --   finsum f = (finsupp_of_is_finite f).sum (λ _ a, a) := 
 -- begin
 --   unfold finsum,
---   have h : ∃ (f' : ι →₀ α), f = f' := ⟨finsupp_of_is_finite f, rfl⟩,
+--   have h : ∃ (f' : ι →₀ M), f = f' := ⟨finsupp_of_is_finite f, rfl⟩,
 --   rw dif_pos h,
 --   congr, ext, rw finsupp_of_is_finite_eq,
 --   solve_by_elim [(classical.some_spec h).symm],
@@ -110,7 +109,7 @@ funext (λ x, dif_pos (mem_univ' x))
 
 -- (on_finset s f hf).sum g = ∑ a in s, g a (f a) :=
 
-lemma finsum_in_eq_finset_sum (f : ι → α) (s : finset ι) :
+lemma finsum_in_eq_finset_sum (f : ι → M) (s : finset ι) :
   ∑' x in ↑s, f x = s.sum f :=
 begin
   unfold finsum_in, unfold finsum,
@@ -127,7 +126,7 @@ begin
         classical.not_not, forall_true_iff] { contextual := tt } } },
 end
 
-lemma finsum_in_eq_finsum (f : ι → α) (s : set ι) :
+lemma finsum_in_eq_finsum (f : ι → M) (s : set ι) :
   ∑' x in s, f x = ∑' x : s, f x :=
 begin
   unfold finsum_in,
@@ -165,10 +164,10 @@ begin
   { refl }
 end
 
-/- lemma finite_support_of_fintype [fintype ι] (f : ι → α) : 
+/- lemma finite_support_of_fintype [fintype ι] (f : ι → M) : 
 (function.support f).finite := set.finite.of_fintype (function.support f) -/
 
-lemma finsum_in_def_of_finite' {f : ι → α} (s : set ι) 
+lemma finsum_in_def_of_finite' {f : ι → M} (s : set ι) 
   (hf : (function.support f).finite) : 
   ∑' x in s, f x = (filter (∈ s) hf.to_finset).sum f := 
 begin
@@ -190,7 +189,7 @@ begin
 end .
 
 -- ↓ Rewrite below as a corollary of `finsum_in_def_of_finite'`
-lemma finsum_in_def_of_finite [fintype ι] (f : ι → α) (s : set ι) : 
+lemma finsum_in_def_of_finite [fintype ι] (f : ι → M) (s : set ι) : 
   ∑' x in s, f x = s.to_finset.sum f := 
 begin
   unfold finsum_in,
@@ -203,7 +202,7 @@ begin
  classical.not_not, forall_true_iff] {contextual := tt} }
 end
 
-lemma finsum_def_of_finite [h : fintype ι] (f : ι → α) : 
+lemma finsum_def_of_finite [h : fintype ι] (f : ι → M) : 
   ∑' x : ι, f x = (finset.univ' ι).sum f :=
 begin
   unfold finsum,
@@ -214,21 +213,21 @@ begin
     simpa using hx,
 end
 
-lemma finsum_def_of_finite' {f : ι → α} (hf : (function.support f).finite) : 
+lemma finsum_def_of_finite' {f : ι → M} (hf : (function.support f).finite) : 
   ∑' x : ι, f x = hf.to_finset.sum f :=
 begin
   unfold finsum,
   rw dif_pos hf
 end
 
-lemma finsum_def_of_infinite {f : ι → α} (hf : ¬(function.support f).finite) : 
+lemma finsum_def_of_infinite {f : ι → M} (hf : ¬(function.support f).finite) : 
   ∑' x : ι, f x = 0 :=
 begin
   unfold finsum,
   rw dif_neg hf
 end
 
-lemma finsum_eq_finsum_in_univ (f : ι → α) : 
+lemma finsum_eq_finsum_in_univ (f : ι → M) : 
   ∑' x : ι, f x = ∑' x in set.univ, f x :=
 begin
   by_cases ((function.support f).finite),
@@ -237,7 +236,7 @@ begin
       rw [finsum_def_of_infinite h, finsum_def_of_infinite], simpa }
 end
 
-lemma finsum_ext {s t : set ι} {f₁ f₂ : ι → α} (h₀ : s = t) 
+lemma finsum_ext {s t : set ι} {f₁ f₂ : ι → M} (h₀ : s = t) 
   (h₁ : ∀ x ∈ t, f₁ x = f₂ x) : ∑' x in s, f₁ x = ∑' x in t, f₂ x :=
 begin
   subst h₀,
@@ -249,7 +248,7 @@ begin
   { refl },
 end
 
-lemma finsum_union [fintype ι] {s t : set ι} (f : ι → α) (h : disjoint s t) : 
+lemma finsum_union [fintype ι] {s t : set ι} {f : ι → M} (h : disjoint s t) : 
   ∑' x in (s ∪ t), f x = ∑' x in s, f x + ∑' x in t, f x :=
 begin
   iterate 3 { rw finsum_in_def_of_finite },
@@ -261,7 +260,7 @@ begin
 end
 
 lemma finsum_bind {γ} [fintype γ] [fintype ι] {s : set γ} {t : γ → set ι} 
-  (f : ι → α) (h : ∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) : 
+  (f : ι → M) (h : ∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) : 
   (∑' x in (⋃ x ∈ s, t x), f x) = ∑' x in s, ∑' i in t x, f i :=
 begin
   iterate 2 { rw finsum_in_def_of_finite },
@@ -436,7 +435,7 @@ end
 
 namespace fincard
 
-theorem card_eq_finsum_partition {X : Type} [h : fintype X] (s : set (set X)) 
+theorem card_eq_finsum_partition {X : Type} [h : fintype X] {s : set (set X)} 
   (hS : setoid.is_partition s) : fincard' X = ∑' x in s, fincard' x := 
 begin
   conv_rhs { congr, skip, funext, rw card_eq_sum_one },
@@ -473,7 +472,7 @@ begin
       subst h2 } }
 end
 
-lemma finset.ne_empty_iff_exists_mem {α : Type u} {s : finset α} : s ≠ ∅ ↔ ∃ x : α, x ∈ s :=
+lemma finset.ne_empty_iff_exists_mem {M : Type u} {s : finset M} : s ≠ ∅ ↔ ∃ x : M, x ∈ s :=
 begin
   rw ←nonempty_iff_ne_empty,
   refl
@@ -527,37 +526,20 @@ begin
     { rintro ⟨a, _, rfl⟩,
       use a,
       simp } },
-  -- rw card_eq_finsum_partition _ (preimage_is_partition f),
-  -- rw finsum_eq_finsum_in_univ, 
-  -- simp_rw eq_finset_card',
-  -- simp only [finsum_in],
-  -- conv begin
-  --   to_lhs,
-  --   congr,
-  --   simp [set.mem_univ _],
-  -- end,
-  -- simp,
-  -- sorry
+end
+
+lemma card_classes (S : Type) [fintype S] {h : setoid S} :
+  fincard' S = ∑' i : quotient h, fincard' ((quotient.mk : S → quotient h) ⁻¹' {i}) :=
+(finsum_fibres (quotient.mk : S → quotient h)).symm
+
+lemma finsum_in_filter [fintype ι] (s : set ι) (p : ι → Prop) (f : ι → M) :
+  ∑' i in {i ∈ s | p i}, f i + ∑' i in {i ∈ s | ¬ p i}, f i = ∑' i in s, f i :=
+begin
+  -- change to finset.sum then use corresponding lemma
+  convert (finsum_union (_ : (disjoint {i ∈ s | p i} _))).symm,
+  { ext x; by_cases p x; finish }, -- case split shouldn't be needed I guess
+  { intro x, finish }
 end
 
 end fincard
 
---  fincard X = finsum y : Y, fincard (f⁻¹ y)
-
-/-
--- f : X → Y
--- y : range f
--- ∀ a : range f, f⁻¹ a ≃ f⁻¹ y
--- Then card (range f) * card (f⁻¹ y) = card X
-
--- f : X → Y
--- £X = ∑ y : Y, £(f⁻¹ y) -- assume X finite
-
-lemma sum_fibres (X Y : Type) (f : X → Y) [fintype X] :
-  fincard X = finsum y : Y, fincard (f⁻¹ y)
-
-sum_const : sum Y (λ x, c) = c * card
-
-card_equiv
-
--/

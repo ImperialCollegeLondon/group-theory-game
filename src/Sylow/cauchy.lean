@@ -2,8 +2,6 @@ import tactic
 import subgroup.theorems
 import data.zmod.basic
 
-#exit
-
 namespace mygroup
 
 
@@ -27,7 +25,7 @@ namespace mygroup
 
 /-- The type of vectors with terms from `G`, length `n`, and product equal to `1:G`. -/
 def array_prod_eq_one (G : Type*) [group G] (n : ℕ) : set (fin n → G) :=
-{f | f.to_list.prod = 1}
+{f | (list.of_fn f).prod = 1}
 
 variables {G : Type} [group G]
 
@@ -43,8 +41,6 @@ end
 
 lemma group.inv_mul_self (a : G) : a⁻¹ * a = 1 := group.mul_left_inv a
 
-#check list.prod_cons
-
 instance : is_associative G (*) := ⟨group.mul_assoc⟩
 open list
 
@@ -53,6 +49,7 @@ calc (a::l : list G).prod = foldl (*) (a * 1) l :
   by simp only [list.prod, foldl_cons, group.one_mul, group.mul_one]
   ... = _ : foldl_assoc
 
+#exit
 
 /-- Given a vector `v` of length `n`, make a vector of length `n+1` whose product is `1`,
 by consing the the inverse of the product of `v`. -/

@@ -1,29 +1,17 @@
-import group_theory.subgroup data.fintype.basic
 import tactic -- remove once library_search bug is fixed
-import group_theory.group_action
 import data.nat.prime
 import data.nat.modeq
 import orbit.random 
 import data.finsupp
---import orbit.orbit_stabilizer
+import orbit.orbit_stabilizer
+import for_mathlib.finsum
+
 noncomputable theory
 
 open set classical
 open function fintype
-local attribute [instance] prop_decidable
 
 open_locale classical
-
-#check @finsupp
-
-noncomputable def finsum {ι α} [add_comm_monoid α] (f : ι → α) : α :=
-if h : ∃ f' : ι →₀ α, f = f' then (classical.some h).sum (λ _ a, a) else 0
-
-noncomputable def finsum_in {ι α} [add_comm_monoid α] (s : set ι) (f : ι → α) : α :=
-finsum (λ i, if i ∈ s then f i else 0)
-
-localized "notation `∑` binders `, ` r:(scoped:67 f, finsum f) := r" in finsum
-localized "notation `∑` binders ` in ` s `, ` r:(scoped:67 f, finsum_in s f) := r" in finsum
 
 namespace action
 
@@ -31,6 +19,7 @@ variables {G : Type*} [group G] {S : Type*}
 variables {μ : laction G S}
 variables (a b c s: S)
 variables (g h : G)
+
 def orbit_rel : setoid S :=
 { r := λ a b, a ∈ orbit μ b,
   iseqv := ⟨begin

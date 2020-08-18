@@ -38,7 +38,7 @@ equals the cardinality of `H` multiplied with the number of left cosets of `H` -
 theorem lagrange [fintype G] : 
   fincard' G = fincard' H * fincard' { B | ∃ g : G, B = lcoset g H } := 
 begin
-  rw [card_eq_finsum_partition _ (lcoset_partition H), 
+  rw [card_eq_finsum_partition (lcoset_partition H), 
     mul_comm, finsum_const_nat],
   rintros x ⟨g, rfl⟩,
   exact eq_card_of_lcoset.symm

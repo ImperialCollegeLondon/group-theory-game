@@ -18,7 +18,7 @@ structure laction (G : Type) [group G] (S : Type) :=
 variables {G S : Type} [group G]
 variables {μ : laction G S}
 
-notation g ` •[ `:70 μ ` ] `:0 s:0 := μ.to_fun g s
+notation g ` •[`:70 μ `] `:0 s:70 := μ.to_fun g s
 local notation g ` • `:70  s:70  := μ.to_fun g s
 
 namespace laction
@@ -200,6 +200,135 @@ theorem orbit_stabilizer [h: fintype G] {a : S} (μ : laction G S) :
   fincard' G = fincard' (orbit μ a) * fincard' (stabilizer μ a) := 
 by rw [card_orbit_eq_num_lcoset, mul_comm]; exact lagrange.lagrange 
 
+/-! # fixed points -/
+
 end laction
+
+def fixed_points (μ : laction G S) : set S := {s : S | ∀ g : G, g •[μ] s = s }
+
+@[simp] lemma mem_fixed_points_iff (s : S) :
+  s ∈ fixed_points μ ↔ ∀ (g : G) , g • s = s := iff.rfl
+
+--Want to show that if s is in the set of fixed points of μ, then the orbit of s contains only s.#check
+lemma orbit_eq_singleton {s : S} {μ : laction G S} (h : s ∈ fixed_points μ) : orbit μ s = {s} := 
+begin
+  ext x, 
+  simp * at *, 
+end
+
+lemma mem_fixed_points {s : S} {μ : laction G S} (h : orbit μ s = {s}) :
+  s ∈ fixed_points μ :=
+begin
+  intros k,
+  apply mem_singleton_iff.1,
+  rw ←h,
+  use k
+end
+
+lemma orbit_eq_singleton_iff {s : S} {μ : laction G S} :
+orbit μ s = {s} ↔ (s ∈ fixed_points μ) :=
+⟨mem_fixed_points, orbit_eq_singleton⟩
+
+/-
+S : Type
+~ : equiv reln on S
+Common in maths departments to let Q = set of equiv classes
+
+Map cl : S -> Q, sends s to cl(s) = {t : t ~ s}
+
+What key properties do Q and S -> Q have?
+
+Key one is the "universal property"
+
+  If g : S -> T
+  and if g has the following property : it's constant on equiv classes
+  i.e. s1 ~ s2 -> g(s1) = g(s2) (*)
+
+  then there's a map g-bar from Q to T "induced by g"
+
+    Definition of g-bar: let q ∈ Q be an equiv class
+    q ⊆ S and is nonempty
+    choose s ∈ q <- MADE A CHOICE
+    define g-bar(q) := g(s)
+    What if I'd instead chosen s' ∈ q, s' ≠ s?
+    Then g(s)=g(s') by our assumption (*)
+    hence g-bar(q) doesn't depend on choice of s
+
+   Hence "g-bar is well-defined"
+
+Furthermore, S --(g)--> T
+             |       /\   
+             |      /    
+            (cl)  (g-bar)     
+             |    /      
+             \/  /       
+             Q -/
+
+/-
+
+             g = g-bar ∘ cl
+
+That's a property that cl has
+
+Conversely, if I have φ : Q -> T then I can compose with cl and
+get a map φ-tilde = φ ∘ cl : S -> T and I claim that if s1 and s2 are in S with s1 ~ s2
+then φ-tilde (s1) = φ-tilde (s2) (i.e. φ-tilde satisfies (*) above)
+
+So now we have two maps between the following sets:
+
+1) {g : S → T | if s1 ~ s2 then g(s1) = g(s2) }
+2) {φ : Q → T}
+
+Map from 1 to 2 sends g to g-bar
+Map from 2 to 1 sends φ to φ-tilde = φ ∘ cl
+
+Easy to check that these are inverse bijections
+
+In particular, we have cl : S → Q and composing with cl
+gives us a bijection from {Q → T} to {g : S → T | g satisfies (*)}
+
+Turns out that this characterises Q, the set of equiv classes, up to unique isomorphism
+and hence this bijection property can be used as a "definition of Q" in some sense
+
+In particular, Q doesn't _have_ to be equivalence classes! 
+
+Given S and an equiv reln, I now think of Q not as the set of equiv classes
+but as any set at all with a surjection from S satisfying this property.
+
+Annoyingly, my mental model of g-bar is "going downwards" but in Lean they
+call it quotient.lift
+
+
+
+
+
+
+
+
+
+
+
+equiv reln on S
+Q = quotient = type of equiv classes
+
+-/
+
+-- should now prove that for G acting on S, size of S = sum
+-- of size of orbits.
+
+/-- Orbits of an action -/
+def orbits (μ : laction G S) := setoid.classes
+  {r := λ (x y : S), x ∈ orbit μ y,
+   iseqv := ⟨laction.mem_orbit_refl,
+            λ x y, laction.mem_orbit_symm,
+            λ x y z, laction.mem_orbit_trans⟩}
+
+lemma orbit_mem_orbits (s : S) : orbit μ s ∈ orbits μ := ⟨s, rfl⟩
+
+lemma sum_card_orbits [fintype S] : ∑' o in (orbits μ), fincard' o = fincard' S :=
+(fincard.card_eq_finsum_partition (setoid.is_partition_classes _)).symm
+
+
+
 
 end mygroup
