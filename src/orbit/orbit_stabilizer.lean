@@ -97,6 +97,20 @@ end
 lemma in_orbit_of_inv' {s₁ s₂ : S} {g : G} (h : s₁ = g • s₂) : 
   s₂ = g⁻¹ • s₁ := by rw [h, map_assoc, group.mul_left_inv, map_one]
 
+lemma eq_orbit {s₀ s₁ : S} (t : S) 
+  (hs₁ : t ∈ 💫 s₀) (hs₂ : t ∈ 💫 s₁) : 💫 s₀ = 💫 s₁ :=
+begin
+  cases hs₁ with g₁ hg₁,
+  cases hs₂ with g₂ hg₂,
+  ext, split; rintro ⟨g, rfl⟩,
+    { rw [hg₁, laction_mul_inv, map_assoc] at hg₂,
+      rw [mem_orbit, hg₂, map_assoc],
+      exact ⟨g * (g₁⁻¹ * g₂), rfl⟩ },
+    { rw [hg₂, laction_mul_inv, map_assoc] at hg₁,
+      rw [mem_orbit, hg₁, map_assoc],
+      exact ⟨g * (g₂⁻¹ * g₁), rfl⟩ } 
+end
+
 end laction
 
 /-- The stabilizer of `s : S` is the subgroup which elements fixes `s` under the 
@@ -229,16 +243,6 @@ end
 lemma orbit_eq_singleton_iff {s : S} {μ : laction G S} :
   orbit μ s = {s} ↔ s ∈ fixed_points μ := ⟨mem_fixed_points, orbit_eq_singleton⟩
 
--- Is this really not in the library?
-lemma eq_singleton_iff_unique_mem {X : Type} {x : X} {s : set X} : 
-  s = {x} ↔ x ∈ s ∧ ∀ y ∈ s, x = y :=
-begin
-  split,
-    { rintro rfl, simp },
-    { rintro ⟨h₀, h₁⟩,
-      ext, split; finish }
-end
-
 --The following lemma is based on the one by the same name in the library,
 -- I believe it is needed to prove card_set_eq_card_fixed_points_sum_card_orbits
 lemma mem_fixed_points_iff_card_orbit_eq_one {s : S} {μ : laction G S}:
@@ -249,7 +253,7 @@ begin
     { simp [h] },
     { rw eq_singleton_iff_unique_mem,
       refine ⟨laction.mem_orbit_refl _, λ y hy, _⟩,
-      rcases (fincard.card_eq_one_iff_singleton _).1 h with ⟨x, hx⟩, 
+      rcases fincard.card_eq_one_iff_singleton.1 h with ⟨x, hx⟩, 
       rw hx at hy,
       rw [mem_singleton_iff.1 hy, ←mem_singleton_iff, ←hx],
       exact laction.mem_orbit_refl _ }
@@ -324,10 +328,6 @@ but as any set at all with a surjection from S satisfying this property.
 Annoyingly, my mental model of g-bar is "going downwards" but in Lean they
 call it quotient.lift
 
-
-
-
-
 equiv reln on S
 Q = quotient = type of equiv classes
 
@@ -345,9 +345,23 @@ def orbits (μ : laction G S) := setoid.classes
 
 lemma orbit_mem_orbits (s : S) : orbit μ s ∈ orbits μ := ⟨s, rfl⟩
 
+lemma orbit_unique {x : S} {s : set S} (hs : s ∈ orbits μ) : 
+  x ∈ s ↔ orbit μ x = s :=
+begin
+  unfold orbits at hs,
+  change s ∈ {s | ∃ y, s = {x | x ∈ orbit μ y}} at hs,
+  rcases hs with ⟨y, rfl⟩,
+  split; intro hx,
+    { change x ∈ orbit μ y at hx,
+      exact laction.eq_orbit x (laction.mem_orbit_refl _) hx },
+    { change orbit μ x = orbit μ y at hx,
+      rw ←hx, exact laction.mem_orbit_refl _ }
+end
+
 lemma sum_card_orbits [fintype S] : ∑' o in (orbits μ), fincard' o = fincard' S :=
 (fincard.card_eq_finsum_partition (setoid.is_partition_classes _)).symm
 
+/-
 def orbits_not_singleton (μ : laction G S): set (orbits μ) := {o : orbits μ | fincard' o > 1}
 
 --Should I rewrite the fixed points as a collection of singletons?
@@ -355,27 +369,97 @@ def singleton_orbits  (μ : laction G S) : set (orbits μ) := {o : orbits μ | f
 --It probably makes more sense to write it as the following lemma, though fixed_points is a subset of S 
 -- and {o : orbits μ | fincard' o = 1} is a subset of orbits  ↥
 
-#check fixed_points μ 
-#check singleton_orbits μ 
-#check orbits_not_singleton μ 
-#check orbits μ 
-
 lemma fixed_points_singletons [fintype S] (μ : laction G S) : 
-↥(fixed_points μ) = (singleton_orbits μ ) := 
+  ↥(fixed_points μ) = (singleton_orbits μ ) := 
 begin
  unfold fixed_points,
  unfold singleton_orbits,
  sorry
 end  
 
-#exit
 --The issue here is that types are different
 lemma foo [fintype S] (μ : laction G S):
 orbits μ = (orbits_not_singleton μ) ∪ singleton_orbits μ  := sorry 
+-/
 
+lemma dumb {n : ℕ} (hn : n ≤ 1) : n = 0 ∨ n = 1 := 
+begin
+  induction n, finish,
+  rw nat.succ_le_iff at hn,
+  change _ < 1 + 0 at hn,
+  rw nat.lt_one_add_iff at hn,
+  rw nat.le_zero_iff at hn,
+  right, rw hn,
+end
 
-lemma card_set_eq_card_fixed_points_sum_card_orbits [fintype S] : fincard' S = 
-fincard' (fixed_points μ) + ∑' o in (orbits_not_singleton μ), fincard' o := sorry
+lemma card_orbits_eq_one [fintype S] {s : set S} 
+  (hs₀ : s ∈ orbits μ) (hs₁ : fincard' s ≤ 1) : fincard' s = 1 :=
+begin
+  cases dumb hs₁,
+    { change s ∈ {s | ∃ y, s = {x | x ∈ orbit μ y}} at hs₀,
+      rcases hs₀ with ⟨x, hx⟩,
+      change s = orbit μ x at hx,
+      rw fincard.card_eq_zero_iff at h,
+      exfalso,
+      apply not_mem_empty x,
+      rw [←h, hx],
+      exact laction.mem_orbit_refl x },
+    { assumption }
+end
+
+def map_singleton (μ : laction G S) : (fixed_points μ) → 
+  ({o ∈ orbits μ | fincard' o ≤ 1} : set (set S)) :=
+λ s, ⟨orbit μ s, orbit_mem_orbits _,
+  let ⟨_, hs⟩ := s in le_of_eq (mem_fixed_points_iff_card_orbit_eq_one.1 hs)⟩
+
+@[simp] lemma map_singleton_def (s : S) (hs : s ∈ fixed_points μ) : 
+  (map_singleton μ ⟨s, hs⟩ : set S) = {s} :=
+begin
+  suffices : {m : S | ∃ (g : G), m = g • s} = {s},
+    simpa [map_singleton], 
+  finish,
+end
+
+lemma bijective_map_singleton [fintype S] (μ : laction G S) : 
+  function.bijective (map_singleton μ) :=
+begin
+  split,
+    { rintros ⟨x, hx⟩ ⟨y, hy⟩ hxy, congr,
+      rw ←singleton_eq_singleton_iff,
+      iterate 2 { rw ←map_singleton_def _ }, rw hxy },
+    { rintros ⟨y, hy₀, hy₁⟩,
+      rcases fincard.card_eq_one_iff_singleton.1 
+        (card_orbits_eq_one hy₀ hy₁) with ⟨x, rfl⟩,
+      refine ⟨⟨x, _⟩, _⟩,
+        { rw ←orbit_eq_singleton_iff,
+          exact (orbit_unique hy₀).1 (mem_singleton _) },
+        { suffices : {m : S | ∃ (g : G), m = g • x} = {x},
+            simpa [map_singleton],
+          suffices : x ∈ fixed_points μ,
+            finish,
+          rw ←orbit_eq_singleton_iff,
+          exact (orbit_unique hy₀).1 (mem_singleton _) } }
+end
+
+lemma card_fixed_points [fintype S] : fincard' (fixed_points μ) = 
+  let p := λ s : set S, fincard' s ≤ 1 in
+  ∑' o in { o ∈ orbits μ | p o }, fincard' o := 
+begin
+  dsimp only,
+  rw @finsum_const_nat (set S) (by apply_instance) _ 1 _,
+    { rw mul_one,
+      exact fincard.of_equiv (equiv.of_bijective _ $ bijective_map_singleton μ) },
+    { exact λ x ⟨hx₀, hx₁⟩, card_orbits_eq_one hx₀ hx₁ },
+end
+
+lemma card_set_eq_card_fixed_points_sum_card_orbits [fintype S] : 
+  fincard' S = fincard' (fixed_points μ) 
+             + let p := λ s : set S, fincard' s ≤ 1 in
+             ∑' o in { o ∈ (orbits μ) | ¬ p o }, fincard' o := 
+begin
+  rw [card_fixed_points, fincard.finsum_in_filter],
+  exact sum_card_orbits.symm
+end
 
 --card_eq_sum_one 
 --seems like orbits_not_singleton μ and singleton_orbits μ are not needed, 

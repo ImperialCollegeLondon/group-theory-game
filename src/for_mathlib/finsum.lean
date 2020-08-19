@@ -339,6 +339,13 @@ end
 theorem of_empty {X : Type*} (hX : X → false) : fincard' X = 0 :=
 by simp [fincard.of_equiv (equiv.equiv_empty hX)]
 
+theorem card_eq_zero_iff {X : Type*} [fintype X] (s : set X) : 
+  fincard' s = 0 ↔ s = ∅ := 
+begin
+  rw [eq_finset_card', finset.card_eq_zero, ←set.to_finset_empty],
+  apply set.to_finset_inj
+end
+
 lemma card_eq_sum_one_of_fintype {X : Type u} [h : fintype X] : 
   fincard' X = ∑' x : X, 1 :=
 begin
@@ -405,7 +412,7 @@ begin
   refine ⟨x, _⟩, ext; simp
 end
 
-theorem card_eq_one_iff_singleton {X : Type*} (s : set X) : 
+theorem card_eq_one_iff_singleton {X : Type*} {s : set X} : 
   fincard' s = 1 ↔ ∃ x : X, s = {x} :=
 begin
   split,
@@ -417,6 +424,31 @@ begin
         { finish [card_eq_zero_of_infinite h] } },
     { rintro ⟨_, rfl⟩,
       exact card_singleton_eq_one }
+end
+
+end fincard 
+
+-- Is this really not in the library?
+lemma set.eq_singleton_iff_unique_mem {X : Type*} {x : X} {s : set X} : 
+  s = {x} ↔ x ∈ s ∧ ∀ y ∈ s, x = y :=
+begin
+  split,
+    { rintro rfl, simp },
+    { rintro ⟨h₀, h₁⟩,
+      ext, split; finish }
+end
+
+namespace fincard
+
+theorem card_eq_one_iff_unique_mem {X : Type*} {s : set X} : 
+  fincard' s = 1 ↔ ∃! x : X, x ∈ s :=
+begin
+  rw card_eq_one_iff_singleton, 
+  unfold exists_unique,
+  split,
+    rintro ⟨_, _⟩, finish,
+    rintro ⟨x, _, _⟩, refine ⟨x, _⟩, 
+    finish [set.eq_singleton_iff_unique_mem],
 end
 
 private theorem prod_of_empty_left {X : Type*} (h : X → false) (Y : Type*) :
