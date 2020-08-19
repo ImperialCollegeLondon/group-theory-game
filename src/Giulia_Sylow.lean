@@ -29,17 +29,16 @@ def orbit_rel : setoid S :=
   end, 
   begin
    intros a b h,
-   cases h with g hg,
-   rw hg,
+   rcases h with ⟨g, rfl⟩,
    use g⁻¹ ,
    rw [μ.map_assoc, mul_left_inv, μ.map_one],
   end,
   begin
    intros a b c ha hb,
-   cases ha with g1 hg1,
-   cases hb with g2 hg2,
+   rcases ha with ⟨g1, rfl⟩,
+   rcases hb with ⟨g2, rfl⟩,
    use g1*g2,
-   rw [hg1, ← μ.map_assoc, ← hg2],
+   rw μ.map_assoc,
   end⟩ 
     }
 #check orbit

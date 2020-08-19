@@ -55,7 +55,7 @@ calc (a::l : list G).prod = foldl (*) (a * 1) l :
 by consing the the inverse of the product of `v`. -/
 def mk_vector_prod_eq_one (n : ℕ) (v : vector G n) : vector G (n+1) :=
 v.to_list.prod⁻¹ :: v
-
+--Is something missing here? Should we turn mk_vector_prod_eq_one into a list or a set?
 lemma mem_vectors_prod_eq_one {n : ℕ} (v : vector G n) :
   v ∈ vectors_prod_eq_one G n ↔ v.to_list.prod = 1 := iff.rfl
 
