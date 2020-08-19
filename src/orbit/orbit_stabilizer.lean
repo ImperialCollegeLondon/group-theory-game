@@ -328,6 +328,23 @@ lemma orbit_mem_orbits (s : S) : orbit μ s ∈ orbits μ := ⟨s, rfl⟩
 lemma sum_card_orbits [fintype S] : ∑' o in (orbits μ), fincard' o = fincard' S :=
 (fincard.card_eq_finsum_partition (setoid.is_partition_classes _)).symm
 
+def orbits_not_singleton [fintype S] (μ : laction G S): set (orbits μ) := {o : orbits μ | fincard' o > 1}
+
+--Should I rewrite the fixed points as a collection of singletons?
+def fixed_points_singletons [fintype S] (μ : laction G S) : set (orbits μ) := {o : orbits μ | fincard' o = 1}
+--It probably makes more sense to write it as the following lemma, though fixed_points is a subset of S an{o : orbits μ | fincard' o = 1}
+/-lemma fixed_points_singletons [fintype S] (μ : laction G S) : 
+fixed_points μ = {o : orbits μ | fincard' o = 1} := sorry-/
+#exit
+lemma foo [fintype S] (μ : laction G S):
+orbits μ = (orbits_not_singleton μ) + fixed_points_singletons μ := sorry   --problem with addition
+
+
+lemma card_set_eq_card_fixed_points_sum_card_orbits [fintype S] : fincard' S = 
+fincard' (fixed_points μ) + ∑' o in (orbits_not_singleton μ), fincard' o :=
+begin
+  sorry
+end  
 
 
 
