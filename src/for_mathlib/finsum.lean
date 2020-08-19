@@ -197,9 +197,18 @@ begin
   rw dif_pos (set.finite.of_fintype (_ : set ι)),
   rw [finset.sum_ite, sum_const_zero, add_zero],
   refine finset.sum_subset _ _,
-  { intro x, simp only [and_imp, mem_filter, imp_self, set.mem_to_finset, forall_true_iff]},
-  { simp only [function.mem_support, mem_filter, and_true, if_true, set.finite.mem_to_finset, set.mem_to_finset, eq_self_iff_true,
+  { intro x, simp only [and_imp, mem_filter, 
+                        imp_self, set.mem_to_finset, forall_true_iff]},
+  { simp only [function.mem_support, mem_filter, and_true, if_true, 
+               set.finite.mem_to_finset, set.mem_to_finset, eq_self_iff_true,
  classical.not_not, forall_true_iff] {contextual := tt} }
+end
+
+lemma finsum_in_def_of_finite''' (f : ι → M) {s : set ι} (h : s.finite) : 
+  ∑' x in s, f x = h.to_finset.sum f := 
+begin
+  rw ←finsum_in_eq_finset_sum f,
+  congr, simp,    
 end
 
 lemma finsum_def_of_finite [h : fintype ι] (f : ι → M) : 
@@ -330,6 +339,51 @@ end
 theorem of_empty {X : Type*} (hX : X → false) : fincard' X = 0 :=
 by simp [fincard.of_equiv (equiv.equiv_empty hX)]
 
+lemma card_eq_sum_one_of_fintype {X : Type u} [h : fintype X] : 
+  fincard' X = ∑' x : X, 1 :=
+begin
+  rw [eq_finset_card, finset.card_univ, finsum_def_of_finite],
+  unfold univ',
+  rw dif_pos (nonempty.intro h),
+  simp only [mul_one, nat.cast_id, nsmul_eq_mul, sum_const],
+  congr'
+end
+
+lemma card_eq_sum_one_of_nfintype {X : Type u} (h : ¬ nonempty (fintype X)) : 
+  fincard' X = ∑' x : X, 1 :=
+begin
+  unfold finsum,
+  rw dif_neg, exact fincard_eq_zero h,
+  suffices : function.support (λ (x : X), 1) = set.univ,
+    rw this, intro h',
+    exact h (nonempty.intro 
+      ⟨h'.to_finset, λ x, set.finite.mem_to_finset.2 (set.mem_univ _)⟩),
+  rw set.eq_univ_iff_forall,
+  intro x, rw function.mem_support, norm_num,
+end
+
+lemma card_eq_sum_one {X : Type u} : fincard' X = ∑' x : X, 1 :=
+begin
+  by_cases (nonempty (fintype X)),
+    { haveI := classical.choice h,
+      exact card_eq_sum_one_of_fintype },
+    { exact card_eq_sum_one_of_nfintype h }
+end
+
+lemma eq_finset_card'' {X : Type u} {s : set X} (h : s.finite) : 
+  fincard' s = h.to_finset.card := 
+begin
+  rw [card_eq_sum_one, ←finsum_in_eq_finsum (λ _, 1), 
+      finsum_in_def_of_finite''', finset.card_eq_sum_ones],
+end
+
+@[simp] theorem card_singleton_eq_one {X : Type*} {x : X} : 
+  fincard' ({x} : set X) = 1 :=
+begin
+  rw [eq_finset_card'' (set.finite_singleton x), set.finite.to_finset, finset.card_eq_one],
+  refine ⟨x, _⟩, ext; simp
+end
+
 private theorem prod_of_empty_left {X : Type*} (h : X → false) (Y : Type*) :
   fincard' (X × Y) = fincard' X * fincard' Y :=
 by rw [fincard.of_empty h, fincard.of_empty (h ∘ prod.fst), zero_mul]
@@ -387,37 +441,6 @@ begin
     { exact prod_of_infinite_right hX hY2},
   },
   { exact prod_of_infinite_left hX2 hY}
-end
-
-lemma card_eq_sum_one_of_fintype {X : Type u} [h : fintype X] : 
-  fincard' X = ∑' x : X, 1 :=
-begin
-  rw [eq_finset_card, finset.card_univ, finsum_def_of_finite],
-  unfold univ',
-  rw dif_pos (nonempty.intro h),
-  simp only [mul_one, nat.cast_id, nsmul_eq_mul, sum_const],
-  congr'
-end
-
-lemma card_eq_sum_one_of_nfintype {X : Type u} (h : ¬ nonempty (fintype X)) : 
-  fincard' X = ∑' x : X, 1 :=
-begin
-  unfold finsum,
-  rw dif_neg, exact fincard_eq_zero h,
-  suffices : function.support (λ (x : X), 1) = set.univ,
-    rw this, intro h',
-    exact h (nonempty.intro 
-      ⟨h'.to_finset, λ x, set.finite.mem_to_finset.2 (set.mem_univ _)⟩),
-  rw set.eq_univ_iff_forall,
-  intro x, rw function.mem_support, norm_num,
-end
-
-lemma card_eq_sum_one {X : Type u} : fincard' X = ∑' x : X, 1 :=
-begin
-  by_cases (nonempty (fintype X)),
-    { haveI := classical.choice h,
-      exact card_eq_sum_one_of_fintype },
-    { exact card_eq_sum_one_of_nfintype h }
 end
 
 end fincard 
