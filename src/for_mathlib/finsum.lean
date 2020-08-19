@@ -377,11 +377,46 @@ begin
       finsum_in_def_of_finite''', finset.card_eq_sum_ones],
 end
 
+end fincard
+
+lemma fintype.of_finite_support {X : Type u} 
+  (h : (function.support (λ _ : X, 1)).finite) : 
+  nonempty $ fintype X := 
+begin
+  unfold function.support at h,
+  replace h : (@set.univ X).finite, simpa using h,
+  exact nonempty.intro 
+    (@fintype.of_equiv X (set.univ) (classical.choice h) (equiv.set.univ X))
+end
+
+namespace fincard
+
+lemma card_eq_zero_of_infinite {X : Type u} {s : set X} (h : ¬ s.finite) : 
+  fincard' s = 0 := 
+begin
+  rw card_eq_sum_one,
+  exact finsum_def_of_infinite (λ h', h $ fintype.of_finite_support h')
+end
+
 @[simp] theorem card_singleton_eq_one {X : Type*} {x : X} : 
   fincard' ({x} : set X) = 1 :=
 begin
   rw [eq_finset_card'' (set.finite_singleton x), set.finite.to_finset, finset.card_eq_one],
   refine ⟨x, _⟩, ext; simp
+end
+
+theorem card_eq_one_iff_singleton {X : Type*} (s : set X) : 
+  fincard' s = 1 ↔ ∃ x : X, s = {x} :=
+begin
+  split,
+    { by_cases h : s.finite,
+        { rw [eq_finset_card'' h, finset.card_eq_one],
+          rintro ⟨x, hx⟩,
+          refine ⟨x, _⟩,
+          rw ←@set.finite.coe_to_finset _ s h, simp [hx] },
+        { finish [card_eq_zero_of_infinite h] } },
+    { rintro ⟨_, rfl⟩,
+      exact card_singleton_eq_one }
 end
 
 private theorem prod_of_empty_left {X : Type*} (h : X → false) (Y : Type*) :
