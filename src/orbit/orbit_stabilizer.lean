@@ -210,7 +210,8 @@ def fixed_points (μ : laction G S) : set S := {s : S | ∀ g : G, g •[μ] s =
   s ∈ fixed_points μ ↔ ∀ (g : G) , g • s = s := iff.rfl
 
 --Want to show that if s is in the set of fixed points of μ, then the orbit of s contains only s.#check
-lemma orbit_eq_singleton {s : S} {μ : laction G S} (h : s ∈ fixed_points μ) : orbit μ s = {s} := 
+lemma orbit_eq_singleton {s : S} {μ : laction G S} (h : s ∈ fixed_points μ) : 
+  orbit μ s = {s} := 
 begin
   ext x, 
   simp * at *, 
@@ -226,22 +227,32 @@ begin
 end
 
 lemma orbit_eq_singleton_iff {s : S} {μ : laction G S} :
-orbit μ s = {s} ↔ (s ∈ fixed_points μ) :=
-⟨mem_fixed_points, orbit_eq_singleton⟩
+  orbit μ s = {s} ↔ s ∈ fixed_points μ := ⟨mem_fixed_points, orbit_eq_singleton⟩
+
+-- Is this really not in the library?
+lemma eq_singleton_iff_unique_mem {X : Type} {x : X} {s : set X} : 
+  s = {x} ↔ x ∈ s ∧ ∀ y ∈ s, x = y :=
+begin
+  split,
+    { rintro rfl, simp },
+    { rintro ⟨h₀, h₁⟩,
+      ext, split; finish }
+end
 
 --The following lemma is based on the one by the same name in the library,
 -- I believe it is needed to prove card_set_eq_card_fixed_points_sum_card_orbits
 lemma mem_fixed_points_iff_card_orbit_eq_one {s : S} {μ : laction G S}:
-s ∈ fixed_points μ ↔ fincard'(orbit μ s) = 1 :=
+  s ∈ fixed_points μ ↔ fincard' (orbit μ s) = 1 :=
 begin
-  split,
-    {intro h,
-    replace h := orbit_eq_singleton_iff.2 h ,
-    rw h, 
-    --do we need to add a lemma saying that cardinality of a singleton is 1? There is one for card
-    sorry
-    },
-    {sorry},  
+  rw ←orbit_eq_singleton_iff,
+  split; intro h,
+    { simp [h] },
+    { rw eq_singleton_iff_unique_mem,
+      refine ⟨laction.mem_orbit_refl _, λ y hy, _⟩,
+      rcases (fincard.card_eq_one_iff_singleton _).1 h with ⟨x, hx⟩, 
+      rw hx at hy,
+      rw [mem_singleton_iff.1 hy, ←mem_singleton_iff, ←hx],
+      exact laction.mem_orbit_refl _ }
 end
 
 /-
