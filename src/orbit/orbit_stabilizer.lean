@@ -236,10 +236,9 @@ s ∈ fixed_points μ ↔ fincard'(orbit μ s) = 1 :=
 begin
   split,
     {intro h,
-  --I am sure there is a way to do this using change at h but I am failing at it
-    have h1: orbit μ s = {s},
-      apply orbit_eq_singleton_iff.2 h,
-    rw h1,   --do we need to add a lemma saying that cardinality of a singleton is 1? There is one for card
+    replace h := orbit_eq_singleton_iff.2 h ,
+    rw h, 
+    --do we need to add a lemma saying that cardinality of a singleton is 1? There is one for card
     sorry
     },
     {sorry},  
