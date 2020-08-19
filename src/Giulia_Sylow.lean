@@ -104,26 +104,13 @@ begin
       rintro x ⟨g, rfl⟩,
       refine ⟨g, rfl⟩ }
 end
-def foo  := {o | ∃ (s : S) (h : @card(orbit μ s) finite_orbit.fintype > 1), 
-@card (orbit μ s) finite_orbit.fintype = o}
-def foo2 := {o | ∃ s : S, orbit μ s = o}
-def foo3 (o) [h : fintype o] := card o  > 1
-#check foo
 
 #check finset.filter
 
-#check foo
 
 -- temp exit to do one last boring thing
 #exit
---lemma finite_foo : @finite ℕ (foo) := sorry
---If S is a finite group then card S = card fixed_points G S + Σcard Oᵢ , 
---where the sum runs over orbits of size > 1.
-lemma card_set_eq_card_fixed_points_sum_card_orbits (μ : laction G S)
- [fintype S] : --how to write the different s_i in S? How to specify I only want the s_i 
- --whose orbit has size > 1?
- card S = card(fixed_points μ) + ∑ o in foo , id o := sorry
---TODO: write adequate indexing and express sum correctly
+
 --set_option pp.implicit true 
 --If G is a group with card pⁿ, where p is prime and n ≥ 1, S is a finite set acted upon by G, 
 --then card S cong card fixed points of S mod p.
@@ -145,8 +132,11 @@ lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S)
 --def p_group (g : G) (p : ℕ ) (h : prime p) : sorry 
 /-OR SHOULD I MAKE IT A CLASS? Using previous definition of group structure-/
 #exit
+--THERE IS A WHOLE FILE DEDICATED TO CAUCHY THEOREM
 theorem cauchy_theorem [group G][fintype G] {p : ℕ} (hp : p.prime) (h : p ∣ (fincard G)): 
 ∃ (S : subgroup G), fincard S = p := sorry
 --need to define order of an element
+
+
 
 end action

@@ -229,6 +229,22 @@ lemma orbit_eq_singleton_iff {s : S} {μ : laction G S} :
 orbit μ s = {s} ↔ (s ∈ fixed_points μ) :=
 ⟨mem_fixed_points, orbit_eq_singleton⟩
 
+--The following lemma is based on the one by the same name in the library,
+-- I believe it is needed to prove card_set_eq_card_fixed_points_sum_card_orbits
+lemma mem_fixed_points_iff_card_orbit_eq_one {s : S} {μ : laction G S}:
+s ∈ fixed_points μ ↔ fincard'(orbit μ s) = 1 :=
+begin
+  split,
+    {intro h,
+  --I am sure there is a way to do this using change at h but I am failing at it
+    have h1: orbit μ s = {s},
+      apply orbit_eq_singleton_iff.2 h,
+    rw h1,   --do we need to add a lemma saying that cardinality of a singleton is 1? There is one for card
+    sorry
+    },
+    {sorry},  
+end
+
 /-
 S : Type
 ~ : equiv reln on S
@@ -302,12 +318,6 @@ call it quotient.lift
 
 
 
-
-
-
-
-
-
 equiv reln on S
 Q = quotient = type of equiv classes
 
@@ -328,24 +338,34 @@ lemma orbit_mem_orbits (s : S) : orbit μ s ∈ orbits μ := ⟨s, rfl⟩
 lemma sum_card_orbits [fintype S] : ∑' o in (orbits μ), fincard' o = fincard' S :=
 (fincard.card_eq_finsum_partition (setoid.is_partition_classes _)).symm
 
-def orbits_not_singleton [fintype S] (μ : laction G S): set (orbits μ) := {o : orbits μ | fincard' o > 1}
+def orbits_not_singleton (μ : laction G S): set (orbits μ) := {o : orbits μ | fincard' o > 1}
 
 --Should I rewrite the fixed points as a collection of singletons?
-def fixed_points_singletons [fintype S] (μ : laction G S) : set (orbits μ) := {o : orbits μ | fincard' o = 1}
---It probably makes more sense to write it as the following lemma, though fixed_points is a subset of S an{o : orbits μ | fincard' o = 1}
-/-lemma fixed_points_singletons [fintype S] (μ : laction G S) : 
-fixed_points μ = {o : orbits μ | fincard' o = 1} := sorry-/
+def singleton_orbits  (μ : laction G S) : set (orbits μ) := {o : orbits μ | fincard' o = 1}
+--It probably makes more sense to write it as the following lemma, though fixed_points is a subset of S 
+-- and {o : orbits μ | fincard' o = 1} is a subset of orbits  ↥
+
+#check fixed_points μ 
+#check singleton_orbits μ 
+#check orbits_not_singleton μ 
+#check orbits μ 
+
+lemma fixed_points_singletons [fintype S] (μ : laction G S) : 
+↥(fixed_points μ) = (singleton_orbits μ ) := 
+begin
+ unfold fixed_points,
+ unfold singleton_orbits,
+ sorry
+end  
+
 #exit
+--The issue here is that types are different
 lemma foo [fintype S] (μ : laction G S):
-orbits μ = (orbits_not_singleton μ) + fixed_points_singletons μ := sorry   --problem with addition
+orbits μ = (orbits_not_singleton μ) ∪ singleton_orbits μ := sorry 
 
 
 lemma card_set_eq_card_fixed_points_sum_card_orbits [fintype S] : fincard' S = 
-fincard' (fixed_points μ) + ∑' o in (orbits_not_singleton μ), fincard' o :=
-begin
-  sorry
-end  
-
+fincard' (fixed_points μ) + ∑' o in (orbits_not_singleton μ), fincard' o := sorry
 
 
 end mygroup
