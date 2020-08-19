@@ -360,11 +360,13 @@ end
 #exit
 --The issue here is that types are different
 lemma foo [fintype S] (μ : laction G S):
-orbits μ = (orbits_not_singleton μ) ∪ singleton_orbits μ := sorry 
+orbits μ = (orbits_not_singleton μ) ∪ singleton_orbits μ  := sorry 
 
 
 lemma card_set_eq_card_fixed_points_sum_card_orbits [fintype S] : fincard' S = 
 fincard' (fixed_points μ) + ∑' o in (orbits_not_singleton μ), fincard' o := sorry
 
-
+--card_eq_sum_one 
+--seems like orbits_not_singleton μ and singleton_orbits μ are not needed, 
+--I can rewrite the lemma above using finsum_in_filter
 end mygroup
