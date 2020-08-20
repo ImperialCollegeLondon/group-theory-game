@@ -467,6 +467,7 @@ lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S)
  begin
   -- we want to show that card (orbit μ s) ∣ p^n for all s : S by orbit-stabilizer
   -- note that since G is finite we have finite orbits
+  --Too many haves but just trial, will tidy it up
   have claim : ∀ s : S, fincard'( orbit μ s ) ∣ p^n , 
     {intro s, rw ← hG,
     use (fincard' (stabilizer μ s)),
@@ -478,7 +479,20 @@ lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S)
     --need to write suffices but gives error
     simp [sub_eq_add_neg],
     cases claim s with k hk,
-    sorry
+   
+    have pow_pos: p ^ n > 0,
+    --want to use that p is prime, hence p^n is positive
+      {exact nat.pow_pos (nat.prime.pos hp) n},
+    have fin_pos: fincard' ↥(orbit μ s) > 0,
+      {rw hk at pow_pos,
+      apply pos_of_mul_pos_right _ (nat.cast_nonneg k),
+      linarith},
+    have hfin: fincard' ↥(orbit μ s) = (p^n)/k ,
+      {finish},
+    --Now I want to use the fact that we are summing over the cardinality 
+    --of orbits of size greater than one, hence by claim each fincard must divide some 
+    --power of p, thus the sum of fincards must be divisible by p.
+   sorry    
  end
 
 end mygroup
