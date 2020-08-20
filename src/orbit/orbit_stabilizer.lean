@@ -1,5 +1,5 @@
 import subgroup.lagrange
-
+import data.nat.modeq -- added by Giulia
 open set classical function
 
 open_locale classical
@@ -452,7 +452,7 @@ begin
     { exact λ x ⟨hx₀, hx₁⟩, card_orbits_eq_one hx₀ hx₁ },
 end
 
-lemma card_set_eq_card_fixed_points_sum_card_orbits [fintype S] : 
+lemma card_set_eq_card_fixed_points_sum_card_orbits [fintype S] (μ : laction G S): 
   fincard' S = fincard' (fixed_points μ) 
              + let p := λ s : set S, fincard' s ≤ 1 in
              ∑' o in { o ∈ (orbits μ) | ¬ p o }, fincard' o := 
@@ -461,7 +461,24 @@ begin
   exact sum_card_orbits.symm
 end
 
---card_eq_sum_one 
---seems like orbits_not_singleton μ and singleton_orbits μ are not needed, 
---I can rewrite the lemma above using finsum_in_filter
+lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S) 
+ [fintype S] [fintype G] {s : S}(p : ℕ) (hp : p.prime) (n : ℕ) (hn : n ≥ 1) (hG: fincard' G = p^n):
+ nat.modeq p (fincard' S) (fincard' (fixed_points μ) ) := 
+ begin
+  -- we want to show that card (orbit μ s) ∣ p^n for all s : S by orbit-stabilizer
+  -- note that since G is finite we have finite orbits
+  have claim : ∀ s : S, fincard'( orbit μ s ) ∣ p^n , 
+    {intro s, rw ← hG,
+    use (fincard' (stabilizer μ s)),
+    rw laction.orbit_stabilizer
+    },
+    rw card_set_eq_card_fixed_points_sum_card_orbits μ,
+    dsimp,
+    refine nat.modeq.modeq_of_dvd _,
+    --need to write suffices but gives error
+    simp [sub_eq_add_neg],
+    cases claim s with k hk,
+    sorry
+ end
+
 end mygroup
