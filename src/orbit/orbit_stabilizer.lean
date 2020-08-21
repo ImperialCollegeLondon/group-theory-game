@@ -1,5 +1,6 @@
 import subgroup.lagrange
 import data.nat.modeq -- added by Giulia
+import data.nat.prime  -- added by Giulia
 open set classical function
 
 open_locale classical
@@ -476,12 +477,17 @@ lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S)
     rw card_set_eq_card_fixed_points_sum_card_orbits μ,
     dsimp,
     refine nat.modeq.modeq_of_dvd _,
-    --need to write suffices but gives error
+    
   suffices: ↑p ∣ ↑∑' (o : set S) in ({o ∈ orbits μ | 1 < fincard' ↥o} : set (set S)), fincard' ↥o,
     simpa [sub_eq_add_neg],
-    cases claim s with k hk,
-   
-  /-have pow_pos: p ^ n > 0,
+    norm_cast,
+  apply fincard.finsum_divisible_by ,
+  
+
+  --use dvd_prime_pow
+  
+  /-cases claim s with k hk,
+    have pow_pos: p ^ n > 0,
   --want to use that p is prime, hence p^n is positive
     {exact nat.pow_pos (nat.prime.pos hp) n},
   have fin_pos: fincard' ↥(orbit μ s) > 0,
