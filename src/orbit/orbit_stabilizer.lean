@@ -463,19 +463,30 @@ begin
 end
 
 
-/--lemma foo_one {p d n : ℕ }(hp: p.prime) (hd: d = p^n): d = 1 ∨ p ∣ d := 
+lemma foo_one {p d n : ℕ }(hp: p.prime) (hd: d = p^n): d = 1 ∨ p ∣ d := 
 begin
   cases n,
   left, 
   simpa,
   right,
   rw hd,
-  rw nat.succ_eq_add_one,
-  sorry
+  simp [nat.succ_eq_add_one, nat.pow_succ]
 end
  
 
-lemma foo_two {p d n : ℕ }(hp: p.prime) (hd: d ∣ p^n): ∃ (m ≤ n), d = p^m := sorry--/
+/- This lemma is dvd_prime_pow
+lemma foo_two {p d n : ℕ }(hp: p.prime) (hd: d ∣ p^n): ∃ (m ≤ n), d = p^m := 
+begin
+  induction n with hn,
+  rw nat.pow_zero at hd,
+  use 0, 
+  split,
+  linarith,
+  rw nat.pow_zero, 
+  exact nat.dvd_one.mp hd,
+  rw nat.succ_eq_add_one at *,
+  exact (nat.dvd_prime_pow hp).mp hd  
+end  -/
 
 lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S) 
  [fintype S] [fintype G](p : ℕ) (hp : p.prime) (n : ℕ) (hG: fincard' G = p^n):
@@ -483,7 +494,7 @@ lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S)
  begin
   -- we want to show that card (orbit μ s) ∣ p^n for all s : S by orbit-stabilizer
   -- note that since G is finite we have finite orbits
-  --Too many haves but just trial, will tidy it up
+ 
   have claim : ∀ s : S, fincard'( orbit μ s ) ∣ p^n , 
     {intro s, rw ← hG,
     use (fincard' (stabilizer μ s)),
@@ -494,14 +505,15 @@ lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S)
     refine nat.modeq.modeq_of_dvd _,
     
   suffices: ↑p ∣ ↑∑' (o : set S) in ({o ∈ orbits μ | 1 < fincard' ↥o} : set (set S)), fincard' ↥o,
-    simpa [sub_eq_add_neg],
-    norm_cast,
+    {simpa [sub_eq_add_neg]},
+  norm_cast,
   apply fincard.finsum_divisible_by,
-  intros orb _,
-  
-  cases H with horb card_orb,
-  convert nat.dvd_prime_pow hp,
- --use dvd_prime_pow
+  /-have: ∀ (s : S), fincard' ↥(orbit μ s) = 1 ∨ p ∣ fincard' ↥(orbit μ s),
+    intro s,
+    cases claim s with _ _,
+    have h1: fincard' ↥(orbit μ s) ∣ p^n,
+      finish,-/
+ --Need to find a way to work with claim and obtain exact expression to apply dvd_prime_pow       
  --Now we are left with orbits whose size is greater than one, which by claim means that their cardinality
  --must be p^j for some  1 ≤ j ≤ n. It follows that p divides the sum of the cardinalities of such orbits.
    sorry
