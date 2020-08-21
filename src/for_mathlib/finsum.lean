@@ -631,5 +631,19 @@ begin
   { intro x, finish }
 end
 
+lemma finsum_nsmul [fintype ι] (s : set ι) (n : ℕ) (f : ι → M) :
+  (∑' x in s, n •ℕ (f x)) = n •ℕ ((∑' x in s, f x)) :=
+begin
+  iterate 2 { rw finsum_in_def_of_finite },
+  exact finset.sum_nsmul _ _ _
+end
+
+lemma finsum_divisible_by [fintype ι] (s : set ι) (k : ℕ) (f : ι → ℕ) 
+  (hf : ∀ x ∈ s, k ∣ f x) : k ∣ ∑' x in s, f x :=
+begin
+  rw finsum_in_def_of_finite,
+  apply dvd_sum, simpa,
+end
+
 end fincard
 
