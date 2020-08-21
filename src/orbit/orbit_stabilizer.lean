@@ -462,7 +462,7 @@ begin
 end
 
 lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S) 
- [fintype S] [fintype G] {s : S}(p : ℕ) (hp : p.prime) (n : ℕ) (hn : n ≥ 1) (hG: fincard' G = p^n):
+ [fintype S] [fintype G] {s : S}(p : ℕ) (hp : p.prime) (n : ℕ) (hG: fincard' G = p^n):
  nat.modeq p (fincard' S) (fincard' (fixed_points μ) ) := 
  begin
   -- we want to show that card (orbit μ s) ∣ p^n for all s : S by orbit-stabilizer
@@ -477,22 +477,23 @@ lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S)
     dsimp,
     refine nat.modeq.modeq_of_dvd _,
     --need to write suffices but gives error
-    simp [sub_eq_add_neg],
+  suffices: ↑p ∣ ↑∑' (o : set S) in ({o ∈ orbits μ | 1 < fincard' ↥o} : set (set S)), fincard' ↥o,
+    simpa [sub_eq_add_neg],
     cases claim s with k hk,
    
-    have pow_pos: p ^ n > 0,
-    --want to use that p is prime, hence p^n is positive
-      {exact nat.pow_pos (nat.prime.pos hp) n},
-    have fin_pos: fincard' ↥(orbit μ s) > 0,
-      {rw hk at pow_pos,
-      apply pos_of_mul_pos_right _ (nat.cast_nonneg k),
-      linarith},
-    have hfin: fincard' ↥(orbit μ s) = (p^n)/k ,
-      {finish},
-    --Now I want to use the fact that we are summing over the cardinality 
-    --of orbits of size greater than one, hence by claim each fincard must divide some 
-    --power of p, thus the sum of fincards must be divisible by p.
-   sorry    
+  /-have pow_pos: p ^ n > 0,
+  --want to use that p is prime, hence p^n is positive
+    {exact nat.pow_pos (nat.prime.pos hp) n},
+  have fin_pos: fincard' ↥(orbit μ s) > 0,
+    {rw hk at pow_pos,
+    apply pos_of_mul_pos_right _ (nat.cast_nonneg k),
+    linarith},
+  have hfin: fincard' ↥(orbit μ s) = (p^n)/k ,
+    {finish},-/
+
+ --Now we are left with orbits whose size is greater than one, which by claim means that their cardinality
+ --must be p^j for some  1 ≤ j ≤ n. It follows that p divides the sum of the cardinalities of such orbits.
+   sorry
  end
 
 end mygroup
