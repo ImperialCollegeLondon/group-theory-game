@@ -508,15 +508,35 @@ lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S)
     {simpa [sub_eq_add_neg]},
   norm_cast,
   apply fincard.finsum_divisible_by,
-  /-have: ∀ (s : S), fincard' ↥(orbit μ s) = 1 ∨ p ∣ fincard' ↥(orbit μ s),
-    intro s,
+
+  have: ∀ (s : S), fincard' ↥(orbit μ s) = 1 ∨ p ∣ fincard' ↥(orbit μ s),
+  { intro s,
     cases claim s with _ _,
     have h1: fincard' ↥(orbit μ s) ∣ p^n,
-      finish,-/
- --Need to find a way to work with claim and obtain exact expression to apply dvd_prime_pow       
- --Now we are left with orbits whose size is greater than one, which by claim means that their cardinality
- --must be p^j for some  1 ≤ j ≤ n. It follows that p divides the sum of the cardinalities of such orbits.
-   sorry
+    { use w, exact h },
+    rw nat.dvd_prime_pow hp at h1,
+    rcases h1 with ⟨ a, _, ha ⟩ , 
+    rw ha,
+    cases a with _ _,
+    rw nat.pow_zero,
+    left, 
+    refl,
+    right,
+    rw nat.pow_succ,
+    use p^a,
+    rw mul_comm,
+    },
+  intro x,
+  rintro h,
+  cases h with hl hr,
+  cases hl with s hs,
+  change x = orbit μ s at hs,
+  rw hs,
+  cases this s,
+  rw hs at hr,
+  rw h at hr,
+  linarith,
+  assumption
  end
 
 end mygroup
