@@ -849,15 +849,13 @@ end quotient
 --Try to define order of an element in a group G as follows:
 --Define a homomorphism from φg: ℤ →* G that sends n to g^n and define the order of g to be 
 --the smallest positive element in the kernel 
-/-open mygroup.subgroup mygroup.group_hom normal subgroup.ge
+open mygroup.subgroup mygroup.group_hom normal subgroup.ge
 
 variables {G : Type} [group G] 
-def order_map {g : G}: ℤ →* G :=
-{ to_fun := λ n, g^n,
-  map_mul' := sorry 
-}
-
+def order_map {g : G}:  ℤ → G :=  λ n, ⦃n⦄^g 
+--order of g to be the kernel of this map
+--define order with Type add_subgroup  ℤ , an ideal of ℤ 
 --We define the map, then look at the kernel and need to find a way to select the specific 
 -- element we need
--/
+
 end mygroup
