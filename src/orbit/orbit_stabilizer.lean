@@ -462,8 +462,8 @@ begin
   exact sum_card_orbits.symm
 end
 
-
-lemma foo_one {p d n : ℕ }(hp: p.prime) (hd: d = p^n): d = 1 ∨ p ∣ d := 
+--I don't think this is needed anymore
+lemma pow_prime_eq_one_or_dvd_prime {p d n : ℕ }(hp: p.prime) (hd: d = p^n): d = 1 ∨ p ∣ d := 
 begin
   cases n,
   left, 
@@ -488,30 +488,22 @@ begin
   exact (nat.dvd_prime_pow hp).mp hd  
 end  -/
 
-lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S) 
+--Are these names okay? Should I leave these lemmas here?
+lemma card_orbit_div_pow_p (μ : laction G S) 
  [fintype S] [fintype G](p : ℕ) (hp : p.prime) (n : ℕ) (hG: fincard' G = p^n):
- nat.modeq p (fincard' S) (fincard' (fixed_points μ) ) := 
+ ∀ s : S, fincard'( orbit μ s ) ∣ p^n :=
  begin
-  -- we want to show that card (orbit μ s) ∣ p^n for all s : S by orbit-stabilizer
-  -- note that since G is finite we have finite orbits
- 
-  have claim : ∀ s : S, fincard'( orbit μ s ) ∣ p^n , 
-    {intro s, rw ← hG,
+   intro s, rw ← hG,
     use (fincard' (stabilizer μ s)),
-    rw laction.orbit_stabilizer
-    },
-    rw card_set_eq_card_fixed_points_sum_card_orbits μ,
-    dsimp,
-    refine nat.modeq.modeq_of_dvd _,
-    
-  suffices: ↑p ∣ ↑∑' (o : set S) in ({o ∈ orbits μ | 1 < fincard' ↥o} : set (set S)), fincard' ↥o,
-    {simpa [sub_eq_add_neg]},
-  norm_cast,
-  apply fincard.finsum_divisible_by,
+    rw laction.orbit_stabilizer,
+ end  
 
-  have: ∀ (s : S), fincard' ↥(orbit μ s) = 1 ∨ p ∣ fincard' ↥(orbit μ s),
-  { intro s,
-    cases claim s with _ _,
+lemma card_orbit_eq_one_or_dvd_p (μ : laction G S) 
+[fintype S] [fintype G](p : ℕ) (hp : p.prime) (n : ℕ) (hG: fincard' G = p^n): 
+∀ (s : S), fincard' ↥(orbit μ s) = 1 ∨ p ∣ fincard' ↥(orbit μ s) :=
+begin
+  intro s,
+    cases (card_orbit_div_pow_p μ p hp n hG) s with _ _,
     have h1: fincard' ↥(orbit μ s) ∣ p^n,
     { use w, exact h },
     rw nat.dvd_prime_pow hp at h1,
@@ -525,16 +517,32 @@ lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S)
     rw nat.pow_succ,
     use p^a,
     rw mul_comm,
-    },
-  intro x,
-  rintro h,
+end  
+
+
+
+lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S) 
+ [fintype S] [fintype G](p : ℕ) (hp : p.prime) (n : ℕ) (hG: fincard' G = p^n):
+ nat.modeq p (fincard' S) (fincard' (fixed_points μ) ) := 
+ begin
+  have claim : ∀ s : S, fincard'( orbit μ s ) ∣ p^n , 
+    {exact card_orbit_div_pow_p μ p hp n hG },
+  rw card_set_eq_card_fixed_points_sum_card_orbits μ,
+  dsimp,
+  refine nat.modeq.modeq_of_dvd _,
+  suffices: ↑p ∣ ↑∑' (o : set S) in ({o ∈ orbits μ | 1 < fincard' ↥o} : set (set S)), fincard' ↥o,
+    {simpa [sub_eq_add_neg]},
+  norm_cast,
+  apply fincard.finsum_divisible_by,
+  have: ∀ (s : S), fincard' ↥(orbit μ s) = 1 ∨ p ∣ fincard' ↥(orbit μ s),
+    { exact card_orbit_eq_one_or_dvd_p μ p hp n hG },
+  rintro x h,
   cases h with hl hr,
   cases hl with s hs,
   change x = orbit μ s at hs,
   rw hs,
   cases this s,
-  rw hs at hr,
-  rw h at hr,
+  rw [hs, h] at hr,
   linarith,
   assumption
  end
