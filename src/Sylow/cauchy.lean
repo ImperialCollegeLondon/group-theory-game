@@ -1,9 +1,21 @@
 import tactic 
 import subgroup.theorems
 import data.zmod.basic
-
+/-import group_theory.group_action
+import group_theory.quotient_group
+import group_theory.order_of_element
+import data.zmod.basic
+import data.fintype.card
+import data.list.rotate
+-/
 namespace mygroup
 
+open equiv fintype finset mul_action function
+open equiv.perm subgroup list quotient_group
+open_locale big_operators
+universes u v w
+
+local attribute [instance, priority 10] subtype.fintype set_fintype classical.prop_decidable
 
 /- want to prove the theorem that says
    that if p | |G| then G has an element of order p
@@ -49,13 +61,25 @@ calc (a::l : list G).prod = foldl (*) (a * 1) l :
   by simp only [list.prod, foldl_cons, group.one_mul, group.mul_one]
   ... = _ : foldl_assoc
 
-#exit
+--#exit
 
 /-- Given a vector `v` of length `n`, make a vector of length `n+1` whose product is `1`,
 by consing the the inverse of the product of `v`. -/
 def mk_vector_prod_eq_one (n : ℕ) (v : vector G n) : vector G (n+1) :=
 v.to_list.prod⁻¹ :: v
+
+
 --Is something missing here? Should we turn mk_vector_prod_eq_one into a list or a set?
+--Copied the following bit from library
+lemma mk_vector_prod_eq_one_injective (n : ℕ) : injective (@mk_vector_prod_eq_one G _ n) :=
+λ ⟨v, _⟩ ⟨w, _⟩ h, subtype.eq (show v = w, by injection h with h; injection h)
+
+/-- The type of vectors with terms from `G`, length `n`, and product equal to `1:G`. -/
+def vectors_prod_eq_one (G : Type*) [group G] (n : ℕ) : set (vector G n) :=
+{v | v.to_list.prod = 1}
+
+
+
 lemma mem_vectors_prod_eq_one {n : ℕ} (v : vector G n) :
   v ∈ vectors_prod_eq_one G n ↔ v.to_list.prod = 1 := iff.rfl
 
@@ -77,7 +101,6 @@ lemma mem_vectors_prod_eq_one_iff {n : ℕ} (v : vector G (n + 1)) :
 `vectors_prod_eq_one G n`, where `G` is a multiplicative group. -/
 def rotate_vectors_prod_eq_one (G : Type*) [group G] (n : ℕ)
   (m : multiplicative (zmod n)) (v : vectors_prod_eq_one G n) : vectors_prod_eq_one G n :=
-sorry
 --⟨⟨v.1.to_list.rotate m.val, by simp⟩, prod_rotate_eq_one_of_prod_eq_one v.2 _⟩
 
 instance rotate_vectors_prod_eq_one.mul_action (n : ℕ) [fact (0 < n)] :

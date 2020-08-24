@@ -526,12 +526,12 @@ lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S)
  nat.modeq p (fincard' S) (fincard' (fixed_points μ) ) := 
  begin
   have claim : ∀ s : S, fincard'( orbit μ s ) ∣ p^n , 
-    {exact card_orbit_div_pow_p μ p hp n hG },
+    { exact card_orbit_div_pow_p μ p hp n hG },
   rw card_set_eq_card_fixed_points_sum_card_orbits μ,
   dsimp,
   refine nat.modeq.modeq_of_dvd _,
   suffices: ↑p ∣ ↑∑' (o : set S) in ({o ∈ orbits μ | 1 < fincard' ↥o} : set (set S)), fincard' ↥o,
-    {simpa [sub_eq_add_neg]},
+    { simpa [sub_eq_add_neg] },
   norm_cast,
   apply fincard.finsum_divisible_by,
   have: ∀ (s : S), fincard' ↥(orbit μ s) = 1 ∨ p ∣ fincard' ↥(orbit μ s),
