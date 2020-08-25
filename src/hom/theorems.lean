@@ -848,8 +848,9 @@ end quotient
 --Try to define order of an element in a group G as follows:
 --Define a homomorphism from φg: ℤ →* G that sends n to g^n and define the order of g to be 
 --the smallest positive element in the kernel 
-open mygroup.subgroup mygroup.group_hom normal subgroup.ge
 /-
+open mygroup.subgroup mygroup.group_hom normal subgroup.ge
+
 --We want to express ℤ as a group under addition
 instance : group ℤ := {
   mul := (+),
