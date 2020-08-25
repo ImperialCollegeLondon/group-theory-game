@@ -134,13 +134,13 @@ def is_conjugate (H K : subgroup G) :=
   ∃ g : G, { c | ∃ h ∈ H, c = g⁻¹ * h * g } = K
 
 
-def normalizer {A : set G} : subgroup G := 
-{ carrier := {g : G | ∀ a : A , ∃ b : A , g * a * g⁻¹ = b},
+def normalizer {H : subgroup G} : subgroup G := 
+{ carrier := {g : G | ∀ a : H , ∃ b : H , g * a * g⁻¹ = b},
   one_mem' := 
     begin
       intro a,
       rw [group.one_mul, group.one_inv, group.mul_one],
-      simp,
+      use a,
     end,
   mul_mem' := 
     begin  --there is definitely a much better way to do this
@@ -164,9 +164,8 @@ def normalizer {A : set G} : subgroup G :=
   inv_mem' := 
     begin
       intros x hx a,
-      specialize hx a,
-      cases hx with c hc,
-      rw group.inv_inv,
+      cases hx a with c hc,
+      rw group.inv_inv,      
       --need to finish
       sorry 
       
