@@ -547,4 +547,17 @@ lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S)
   assumption
  end
 
+
+
+--Definition of p-group for finite groups, not using definition of order of an element explicitly
+-- The following definition should be stated as an iff corollary
+--does it hold with n ≥ 0?
+class p_group [fintype G] {p : ℕ}{hp: p.prime}{n : ℕ}{hn : n ≥ 1} extends group G :=
+(card_pow_p: fincard' G = p^n)
+
+--A p-subgroup is a subgroup of a group G which is itself a p-group
+class p_subgroup [fintype G][H : subgroup G] {p : ℕ}{hp: p.prime}{n : ℕ}{hn : n ≥ 1} extends subgroup G :=
+(card_pow_p: fincard' (set H) = p^n)
+
+
 end mygroup

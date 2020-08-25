@@ -844,15 +844,23 @@ order_iso.trans (subgroups_of_quotient_order_iso N) $
   order_iso.symm subgroup_ge_bot_order_iso
 
 end quotient
-
-
+#exit
 --Try to define order of an element in a group G as follows:
 --Define a homomorphism from φg: ℤ →* G that sends n to g^n and define the order of g to be 
 --the smallest positive element in the kernel 
 open mygroup.subgroup mygroup.group_hom normal subgroup.ge
 
 variables {G : Type} [group G] 
-def order_map {g : G}:  ℤ → G :=  λ n, ⦃n⦄^g 
+def order_map [group G]{g : G} [additive ℤ] :  additive ℤ →* G := 
+{ to_fun := λ n, ⦃n⦄^g,
+  map_mul' := sorry }
+
+/-def 𝒾 (H : subgroup G) : H →* G :=
+{ to_fun := λ h, (h : G),
+  map_mul' := λ _ _, rfl }-/
+
+
+def order_of_elem {g : G} := kernel (order_map)
 --order of g to be the kernel of this map
 --define order with Type add_subgroup  ℤ , an ideal of ℤ 
 --We define the map, then look at the kernel and need to find a way to select the specific 
