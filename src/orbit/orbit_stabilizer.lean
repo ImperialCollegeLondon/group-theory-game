@@ -133,6 +133,46 @@ def stabilizer (μ : laction G S) (s : S) : subgroup G :=
 def is_conjugate (H K : subgroup G) := 
   ∃ g : G, { c | ∃ h ∈ H, c = g⁻¹ * h * g } = K
 
+
+def normalizer {A : set G} : subgroup G := 
+{ carrier := {g : G | ∀ a : A , ∃ b : A , g * a * g⁻¹ = b},
+  one_mem' := 
+    begin
+      intro a,
+      rw [group.one_mul, group.one_inv, group.mul_one],
+      simp,
+    end,
+  mul_mem' := 
+    begin  --there is definitely a much better way to do this
+      intros x y hx hy a,
+      specialize hy a,
+      cases hy with b hyb,
+      specialize hx b,
+      cases hx with c hxc,
+      use c,
+      rw [group.inv_mul, ← group.mul_assoc], 
+      apply group.mul_right_cancel x,
+      rw [group.mul_assoc, group.mul_left_inv, group.mul_one],
+      apply group.mul_left_cancel x⁻¹,   
+      repeat {rw ← group.mul_assoc}, 
+      rw [group.mul_left_inv, group.one_mul, hyb],
+      apply group.mul_left_cancel x,
+      rw [← group.mul_assoc, ← group.mul_assoc, group.mul_right_inv, group.one_mul],
+      apply group.mul_right_cancel x⁻¹,
+      simp [group.mul_assoc, group.mul_right_inv, group.mul_one, hxc],
+    end,
+  inv_mem' := 
+    begin
+      intros x hx a,
+      specialize hx a,
+      cases hx with c hc,
+      rw group.inv_inv,
+      --need to finish
+      sorry 
+      
+    end   
+  }
+
 namespace laction
 
 @[simp]
