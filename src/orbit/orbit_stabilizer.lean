@@ -598,13 +598,13 @@ def is_p_subgroup (H : subgroup G) (p : ℕ) : Prop :=  ∃ n : ℕ , fincard' (
 
 --Given a subset H of a group G, its conjugate is also a subgroup of G
 def conjugate_subgroup [group G] (g : G) (H : subgroup G) :  subgroup G :=
-{ carrier := { k| ∃ h ∈ H, k = g⁻¹ * h * g },
+{ carrier := { k| ∃ h ∈ H, k = g * h * g⁻¹ },
   one_mem' := 
     begin
       use (1 : G),
       split,
       apply H.one_mem',
-      rw [group.mul_one, group.mul_left_inv],
+      rw [group.mul_one, group.mul_right_inv],
     end,
   mul_mem' :=
     begin
@@ -646,8 +646,20 @@ def conjugation_action [group G]: laction G (subgroup G) :=
       ext,
       split,
       intro hx,
-      rcases hx with ⟨h, ⟨h1, h2⟩⟩, --need to finish
+      rcases hx with ⟨h, ⟨⟨k, ⟨j, hj⟩⟩, h2⟩⟩, --need to finish
+      rw hj at h2,
+      tidy,           
+      rw ← group.mul_assoc,
+      rw h2,
+      rw group.mul_assoc,
+      apply group.mul_eq_of_eq_inv_mul,
+      symmetry,
       sorry
+      --apply group.mul_left_cancel s⁻¹,
+      --apply group.mul_right_cancel s,
+
+     -- rw ← group.inv_mul s t,    
+
     end  
      }
 
