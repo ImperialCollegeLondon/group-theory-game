@@ -1,6 +1,7 @@
 import subgroup.lagrange
 import data.nat.modeq -- added by Giulia
 import data.nat.prime  -- added by Giulia
+import orbit.random    -- added by Giulia
 open set classical function
 
 open_locale classical
@@ -155,7 +156,7 @@ def normalizer {A : set G} : subgroup G :=
       dsimp at *,
       rw hx (x⁻¹ * a * x⁻¹⁻¹),
       simp [group.mul_assoc],      
-    end   
+    end,   
   }
 
 namespace laction
@@ -573,7 +574,6 @@ lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S)
  end
 
 
-
 --Definition of p-group for finite groups, not using definition of order of an element explicitly
 -- The following definition should be stated as an iff corollary
 --does it hold with n ≥ 0?
@@ -581,8 +581,27 @@ class p_group [fintype G] {p : ℕ}{hp: p.prime}{n : ℕ}{hn : n ≥ 1} extends 
 (card_pow_p: fincard' G = p^n)
 
 --A p-subgroup is a subgroup of a group G which is itself a p-group
-class p_subgroup [fintype G][H : subgroup G] {p : ℕ}{hp: p.prime}{n : ℕ}{hn : n ≥ 1} extends subgroup G :=
+class p_subgroup [fintype G][H : subgroup G] {p : ℕ}{hp: p.prime}{n : ℕ} extends subgroup G :=
 (card_pow_p: fincard' (set H) = p^n)
 
+--Need to fix problems with imports and add definitions
+
+--Consider the group G acting on the set of all its subgroups by conjugation. Then stab H = norm H.
+
+
+#exit 
+
+--If H is a p-subgroup of a finite group G, then [N(H) : H] is congruent mod p to [G : H]
+--Need to show H is normal in G and in N(H)
+lemma index_normalizer_congr_index_modp [fintype G][H : subgroup G]{p : ℕ}{hp: p.prime}[H p_subgroup] :
+nat.modeq p  (index_subgroup H) (index_subgroup H) := sorry
+
+lemma normalizer_neq_subgroup [fintype G][H : subgroup G]{p : ℕ}{hp: p.prime}[H p_subgroup] :
+ p ∣ (index_subgroup) → normalizer H ≠ H := sorry
+
+
+theorem sylow_one [fintype G] {p m n: ℕ}{hn : n ≥ 1} {hp : p.prime} {hG : fincard' G = p^n * m} {hdiv : ¬ p ∣ m}:
+(∀ (i ≤ n), ∃ (H : subgroup G), fincard' H = p^i) := sorry
+-- and want to write that each of these subgroups of cardinality p^i is normal in a subgroup of cardinality p^(i+1)
 
 end mygroup
