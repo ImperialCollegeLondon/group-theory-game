@@ -645,27 +645,30 @@ def conjugation_action [group G]: laction G (subgroup G) :=
       intros s t H,
       ext,
       split,
-      intro hx,
-      rcases hx with ⟨h, ⟨⟨k, ⟨j, hj⟩⟩, h2⟩⟩, --need to finish
-      rw hj at h2,
-      tidy,           
-      rw ← group.mul_assoc,
-      rw h2,
-      rw group.mul_assoc,
-      apply group.mul_eq_of_eq_inv_mul,
-      symmetry,
-      sorry
-      --apply group.mul_left_cancel s⁻¹,
-      --apply group.mul_right_cancel s,
+      unfold conjugate_subgroup,
+        {intro hx,
+        rcases hx with ⟨h, ⟨⟨k, ⟨j, hj⟩⟩, h2⟩⟩, 
+        rw hj at h2,
+        tidy,                                  --should tidy be non terminal?
+        rw [← group.mul_assoc, h2, group.mul_assoc],
+        apply group.mul_eq_of_eq_inv_mul,
+        symmetry,
+        iterate 4 {rw ← group.mul_assoc},
+        rw [group.mul_left_inv, group.one_mul]},
 
-     -- rw ← group.inv_mul s t,    
-
+      { intro hx,
+        rcases hx with ⟨ h, ⟨hh, hj⟩⟩,
+        tidy,                                  --should tidy be non terminal?
+        rw ← group.mul_assoc,
+        rw ← group.mul_assoc,
+        rw  group.mul_assoc,
+        assumption},
     end  
      }
 
 -- ∃ g : G, { c | ∃ h ∈ H, c = g⁻¹ * h * g }
 --Consider the group G acting on the set of all its subgroups by conjugation. Then stab H = norm H.
--- Where do I specify the conjugation?
+-- Where do I specify the conjugation? SHOULD DO NORMALIZER EQ STABILIZER
 lemma stabilizer_eq_normalizer [group G] (H : set G) (μ : laction G (set G)):
  stabilizer μ (H : set G) = normalizer (H : set G):=
  begin
