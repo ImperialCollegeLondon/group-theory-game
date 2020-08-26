@@ -157,13 +157,7 @@ def normalizer {A : set G} : subgroup G :=
       simp [group.mul_assoc],      
     end   
   }
-/-def normalizer : subgroup G :=
-{ carrier := {g : G | ∀ n, n ∈ H ↔ g * n * g⁻¹ ∈ H},
-  one_mem' := by simp,
-  mul_mem' := λ a b (ha : ∀ n, n ∈ H ↔ a * n * a⁻¹ ∈ H) (hb : ∀ n, n ∈ H ↔ b * n * b⁻¹ ∈ H) n,
-    by { rw [hb, ha], simp [mul_assoc] },
-  inv_mem' := λ a (ha : ∀ n, n ∈ H ↔ a * n * a⁻¹ ∈ H) n,
-    by { rw [ha (a⁻¹ * n * a⁻¹⁻¹)], simp [mul_assoc] } }-/
+
 namespace laction
 
 @[simp]
