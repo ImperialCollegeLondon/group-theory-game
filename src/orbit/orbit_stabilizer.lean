@@ -630,9 +630,26 @@ def conjugate_subgroup [group G] (g : G) (H : subgroup G) :  subgroup G :=
 
 
 def conjugation_action [group G]: laction G (subgroup G) :=
-{ to_fun := λ (g : G) (H : subgroup G), { k| ∃ h ∈ H, k = g⁻¹ * h * g },
-  map_one' := _,
-  map_assoc' := _ }
+{ to_fun := λ (g : G) (H : subgroup G), conjugate_subgroup g H,
+  map_one' := 
+    begin
+      intro H,
+      unfold conjugate_subgroup,
+      norm_num,
+      ext,
+      split,
+      repeat { intro hx, exact hx},         
+    end  ,
+  map_assoc' := 
+    begin
+      intros s t H,
+      ext,
+      split,
+      intro hx,
+      rcases hx with ⟨h, ⟨h1, h2⟩⟩, --need to finish
+      sorry
+    end  
+     }
 
 -- ∃ g : G, { c | ∃ h ∈ H, c = g⁻¹ * h * g }
 --Consider the group G acting on the set of all its subgroups by conjugation. Then stab H = norm H.
