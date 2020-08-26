@@ -1,6 +1,6 @@
 import group.theorems -- basic interface for groups
 import group_theory.group_action
-
+import for_mathlib.finsum
 /-!
 
 Basic definitions for subgroups in group theory.
@@ -21,6 +21,7 @@ structure subgroup (G : Type) [group G] :=
 (one_mem' : (1 : G) ∈ carrier)
 (mul_mem' {x y} : x ∈ carrier → y ∈ carrier → x * y ∈ carrier)
 (inv_mem' {x} : x ∈ carrier → x⁻¹ ∈ carrier)
+
 
 -- Defintion of normal subgroup (in a bundled form)
 structure normal (G : Type) [group G] extends subgroup G :=
@@ -97,6 +98,11 @@ instance normal_has_mem : has_mem G (normal G) := ⟨λ m K, m ∈ K.carrier⟩
 
 instance normal_to_set : has_coe (normal G) (set G) := ⟨λ K, K.carrier⟩
 
+/-- Returns index of a subgroup in a group -/ 
+noncomputable def index (H : subgroup G) : ℕ := fincard' G / fincard' H
+
+/-- `index' H J` returns the index of J in H -/ 
+noncomputable def index'(H : subgroup G) (J : subgroup G): ℕ := fincard' H / fincard' J
 
 -- Defining cosets thats used in some lemmas
 def lcoset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = g * k}
