@@ -596,12 +596,43 @@ open mygroup.subgroup
 
 def is_p_subgroup (H : subgroup G) (p : ℕ) : Prop :=  ∃ n : ℕ , fincard' (H) = p^n 
 
---I want X to be the set of all subgroups of G
+--Given a subset H of a group G, its conjugate is also a subgroup of G
+def conjugate_subgroup [group G] (g : G) (H : subgroup G) :  subgroup G :=
+{ carrier := { k| ∃ h ∈ H, k = g⁻¹ * h * g },
+  one_mem' := 
+    begin
+      use (1 : G),
+      split,
+      apply H.one_mem',
+      rw [group.mul_one, group.mul_left_inv],
+    end,
+  mul_mem' :=
+    begin
+      rintros x y ⟨s, hs, h1⟩ ⟨t, ht, h2⟩,
+      use s * t,
+      split,
+      apply H.mul_mem' hs ht,
+      rw [h1, h2],
+      simp [group.mul_assoc],
+    end  ,
+  inv_mem' := 
+    begin 
+      dsimp,
+      rintros x ⟨s, hs, hx⟩,
+      use s⁻¹,
+      split,
+      apply H.inv_mem' hs,
+      apply group.inv_eq_of_mul_eq_one,
+      rw hx,
+      simp [group.mul_assoc],      
+    end }
 
-/-def conjugation_action [group G]( X : set (subgroup G)) : laction G X :=
-{ to_fun := λ (g : G) (H : X), { k| ∃ h ∈ H, k = g⁻¹ * h * g },
+
+
+def conjugation_action [group G]: laction G (subgroup G) :=
+{ to_fun := λ (g : G) (H : subgroup G), { k| ∃ h ∈ H, k = g⁻¹ * h * g },
   map_one' := _,
-  map_assoc' := _ }-/
+  map_assoc' := _ }
 
 -- ∃ g : G, { c | ∃ h ∈ H, c = g⁻¹ * h * g }
 --Consider the group G acting on the set of all its subgroups by conjugation. Then stab H = norm H.
