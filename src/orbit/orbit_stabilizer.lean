@@ -549,7 +549,7 @@ end
 
 lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S) 
  [fintype S] [fintype G](p : ℕ) (hp : p.prime) (n : ℕ) (hG: fincard' G = p^n):
- nat.modeq p (fincard' S) (fincard' (fixed_points μ) ) := 
+ (fincard' S) ≡ (fincard' (fixed_points μ) ) [MOD p] := 
  begin
   have claim : ∀ s : S, fincard'( orbit μ s ) ∣ p^n , 
     { exact card_orbit_div_pow_p μ p hp n hG },
@@ -586,10 +586,9 @@ class p_subgroup (G : Type) [group G] [fintype G] (p : ℕ) extends subgroup G :
 
 --Need to fix problems with imports and add definitions
 
---Consider the group G acting on the set of all its subgroups by conjugation. Then stab H = norm H.
 
---If H is a p-subgroup of a finite group G, then [N(H) : H] is congruent mod p to [G : H]
---Need to show H is normal in G and in N(H)
+
+
 #check subgroup.index
 #where 
 open mygroup.subgroup
@@ -597,6 +596,24 @@ open mygroup.subgroup
 
 def is_p_subgroup (H : subgroup G) (p : ℕ) : Prop :=  ∃ n : ℕ , fincard' (H) = p^n 
 
+--I want X to be the set of all subgroups of G
+
+/-def conjugation_action [group G]( X : set (subgroup G)) : laction G X :=
+{ to_fun := λ (g : G) (H : X), { k| ∃ h ∈ H, k = g⁻¹ * h * g },
+  map_one' := _,
+  map_assoc' := _ }-/
+
+-- ∃ g : G, { c | ∃ h ∈ H, c = g⁻¹ * h * g }
+--Consider the group G acting on the set of all its subgroups by conjugation. Then stab H = norm H.
+-- Where do I specify the conjugation?
+lemma stabilizer_eq_normalizer [group G] (H : set G) (μ : laction G (set G)):
+ stabilizer μ (H : set G) = normalizer (H : set G):=
+ begin
+   unfold stabilizer,
+   unfold normalizer,
+   simp,
+   sorry
+ end   
 
 lemma index_normalizer_congr_index_modp [fintype G]{p : ℕ} (hp: p.prime) (H : subgroup G) (h: is_p_subgroup H p):
   (index' (normalizer (H : set G)) H ) ≡ (index H) [MOD p] := sorry
