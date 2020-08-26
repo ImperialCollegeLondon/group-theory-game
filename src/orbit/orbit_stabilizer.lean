@@ -659,9 +659,7 @@ def conjugation_action [group G]: laction G (subgroup G) :=
       { intro hx,
         rcases hx with ⟨ h, ⟨hh, hj⟩⟩,
         tidy,                                  --should tidy be non terminal?
-        rw ← group.mul_assoc,
-        rw ← group.mul_assoc,
-        rw  group.mul_assoc,
+        rw [← group.mul_assoc, ← group.mul_assoc, group.mul_assoc],
         assumption},
     end  
      }
