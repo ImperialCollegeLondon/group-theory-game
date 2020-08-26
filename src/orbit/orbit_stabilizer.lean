@@ -133,45 +133,37 @@ def stabilizer (μ : laction G S) (s : S) : subgroup G :=
 def is_conjugate (H K : subgroup G) := 
   ∃ g : G, { c | ∃ h ∈ H, c = g⁻¹ * h * g } = K
 
-
-def normalizer {H : subgroup G} : subgroup G := 
-{ carrier := {g : G | ∀ a : H , ∃ b : H , g * a * g⁻¹ = b},
+--  The normalizer of a subset of G is a subgroup of G 
+def normalizer {A : set G} : subgroup G := 
+{ carrier := {g : G | ∀ n, n ∈ A ↔ g * n * g⁻¹ ∈ A},
   one_mem' := 
     begin
       intro a,
       rw [group.one_mul, group.one_inv, group.mul_one],
-      use a,
     end,
   mul_mem' := 
-    begin  --there is definitely a much better way to do this
+    begin  
       intros x y hx hy a,
-      specialize hy a,
-      cases hy with b hyb,
-      specialize hx b,
-      cases hx with c hxc,
-      use c,
-      rw [group.inv_mul, ← group.mul_assoc], 
-      apply group.mul_right_cancel x,
-      rw [group.mul_assoc, group.mul_left_inv, group.mul_one],
-      apply group.mul_left_cancel x⁻¹,   
-      repeat {rw ← group.mul_assoc}, 
-      rw [group.mul_left_inv, group.one_mul, hyb],
-      apply group.mul_left_cancel x,
-      rw [← group.mul_assoc, ← group.mul_assoc, group.mul_right_inv, group.one_mul],
-      apply group.mul_right_cancel x⁻¹,
-      simp [group.mul_assoc, group.mul_right_inv, group.mul_one, hxc],
+      dsimp at *,
+      rw hy,
+      rw hx,
+      simp [group.mul_assoc],
     end,
   inv_mem' := 
     begin
-      intros x hx a,
-      cases hx a with c hc,
-      rw group.inv_inv,      
-      --need to finish
-      sorry 
-      
+      intros x hx a, 
+      dsimp at *,
+      rw hx (x⁻¹ * a * x⁻¹⁻¹),
+      simp [group.mul_assoc],      
     end   
   }
-
+/-def normalizer : subgroup G :=
+{ carrier := {g : G | ∀ n, n ∈ H ↔ g * n * g⁻¹ ∈ H},
+  one_mem' := by simp,
+  mul_mem' := λ a b (ha : ∀ n, n ∈ H ↔ a * n * a⁻¹ ∈ H) (hb : ∀ n, n ∈ H ↔ b * n * b⁻¹ ∈ H) n,
+    by { rw [hb, ha], simp [mul_assoc] },
+  inv_mem' := λ a (ha : ∀ n, n ∈ H ↔ a * n * a⁻¹ ∈ H) n,
+    by { rw [ha (a⁻¹ * n * a⁻¹⁻¹)], simp [mul_assoc] } }-/
 namespace laction
 
 @[simp]
