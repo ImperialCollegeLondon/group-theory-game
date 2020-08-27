@@ -667,14 +667,57 @@ def conjugation_action [group G]: laction G (subgroup G) :=
 -- ∃ g : G, { c | ∃ h ∈ H, c = g⁻¹ * h * g }
 --Consider the group G acting on the set of all its subgroups by conjugation. Then stab H = norm H.
 -- Where do I specify the conjugation? SHOULD DO NORMALIZER EQ STABILIZER
-lemma stabilizer_eq_normalizer [group G] (H : set G) (μ : laction G (set G)):
- stabilizer μ (H : set G) = normalizer (H : set G):=
- begin
-   unfold stabilizer,
-   unfold normalizer,
-   simp,
-   sorry
- end   
+
+lemma normalizer_eq_stabilizer [group G] (H : subgroup G) : 
+normalizer H.carrier = stabilizer (conjugation_action) H := 
+begin
+  ext,
+  split,
+    intro hx,
+    ext1 y,
+    split, 
+      intro hy,
+      rcases hy with ⟨s, ⟨h, hh⟩⟩,
+      rw hh,
+      cases hx s with h1 h2,
+      change x * s * x⁻¹ ∈ H.carrier,
+      change s ∈ H.carrier at h,
+      exact h1 h,
+
+      intros hy,
+      split,
+      unfold normalizer at hx,     
+      cases hx y with h1 h2,
+      sorry
+end  
+
+
+def normalizer' [group G] (H : subgroup G) :=
+ stabilizer (conjugation_action) H
+ 
+
+lemma normalizer_eq_stabilizer' [group G] (H : subgroup G) : 
+(normalizer' H  : set G) = {g : G | ∀ n, n ∈ H ↔ g * n * g⁻¹ ∈ H} := 
+begin
+  unfold normalizer',
+  unfold_coes,
+  unfold stabilizer,
+  unfold conjugation_action,
+ -- unfold conjugate_subgroup,
+  norm_num,
+  ext,
+  split,
+  intro h,
+  norm_num,
+  intro n,
+  simp at *,
+  unfold conjugate_subgroup at h,
+  simp at *,
+  split,
+  intro hn,
+  sorry
+end  
+
 
 lemma index_normalizer_congr_index_modp [fintype G]{p : ℕ} (hp: p.prime) (H : subgroup G) (h: is_p_subgroup H p):
   (index' (normalizer (H : set G)) H ) ≡ (index H) [MOD p] := sorry
