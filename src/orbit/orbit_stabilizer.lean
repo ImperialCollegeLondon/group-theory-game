@@ -668,27 +668,34 @@ def conjugation_action [group G]: laction G (subgroup G) :=
 --Consider the group G acting on the set of all its subgroups by conjugation. Then stab H = norm H.
 -- Where do I specify the conjugation? SHOULD DO NORMALIZER EQ STABILIZER
 
-lemma normalizer_eq_stabilizer [group G] (H : subgroup G) : 
+lemma normalizer_eq_stabilizer [group G] (H : subgroup G): 
 normalizer H.carrier = stabilizer (conjugation_action) H := 
 begin
+  unfold conjugation_action,
+  unfold conjugate_subgroup,
+  unfold stabilizer,
+  unfold normalizer,
+  norm_num,
   ext,
   split,
-    intro hx,
+  {  intro hx,
+    norm_num,
+    simp at *,
     ext1 y,
-    split, 
+    split,
       intro hy,
-      rcases hy with ⟨s, ⟨h, hh⟩⟩,
-      rw hh,
-      cases hx s with h1 h2,
-      change x * s * x⁻¹ ∈ H.carrier,
-      change s ∈ H.carrier at h,
-      exact h1 h,
+      rcases hy with ⟨m, ⟨hm, ym⟩⟩,
+      cases hx m with h1 h2,
+      rw ym,
+      apply h1 hm,
 
       intros hy,
       split,
-      unfold normalizer at hx,     
-      cases hx y with h1 h2,
-      sorry
+      sorry  
+  },
+
+    {sorry},
+    
 end  
 
 
@@ -699,7 +706,23 @@ def normalizer' [group G] (H : subgroup G) :=
 lemma normalizer_eq_stabilizer' [group G] (H : subgroup G) : 
 (normalizer' H  : set G) = {g : G | ∀ n, n ∈ H ↔ g * n * g⁻¹ ∈ H} := 
 begin
-  unfold normalizer',
+   ext1,
+   split,
+    intro hx,
+    dsimp at *,
+    intro n,
+    split, 
+      intro hn,
+      unfold_coes at hx,
+      unfold normalizer' at hx,
+      unfold stabilizer at hx,
+      unfold conjugation_action at hx,
+      unfold conjugate_subgroup at hx,
+      simp at *,
+      
+      sorry
+
+  /-unfold normalizer',
   unfold_coes,
   unfold stabilizer,
   unfold conjugation_action,
@@ -715,7 +738,7 @@ begin
   simp at *,
   split,
   intro hn,
-  sorry
+  sorry-/
 end  
 
 
