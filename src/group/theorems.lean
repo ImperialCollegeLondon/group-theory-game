@@ -268,7 +268,7 @@ attribute [simp] mul_left_cancel_iff mul_right_cancel_iff inv_mul inv_inv
   one_inv
 
 
-@[simp] theorem inv_eq_iff {a b : G}: a⁻¹ = b⁻¹ ↔ a = b :=
+@[simp] theorem inv_inj_iff {a b : G}: a⁻¹ = b⁻¹ ↔ a = b :=
 begin
   split,
   {  intro h,
@@ -279,6 +279,12 @@ begin
     refl}  
 end   
 
+theorem inv_eq {a b : G}: a⁻¹ = b ↔ b⁻¹ = a :=
+begin
+  split;
+  {rintro rfl,
+   rw inv_inv}
+end  
 end group
 
 end mygroup
