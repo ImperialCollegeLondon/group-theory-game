@@ -72,6 +72,9 @@ theorem mul_mem {x y : G} : x ∈ H → y ∈ H → x * y ∈ H := subgroup.mul_
 /-- A subgroup is closed under inverse -/
 theorem inv_mem {x : G} : x ∈ H → x⁻¹ ∈ H := subgroup.inv_mem' _ 
 
+@[simp] theorem inv_mem_iff {x :G} : x⁻¹ ∈ H ↔ x ∈ H := ⟨λ hx, group.inv_inv x ▸ H.inv_mem hx , H.inv_mem ⟩ 
+
+
 -- Coersion to group
 -- Coercion from subgroup to underlying type -/
 

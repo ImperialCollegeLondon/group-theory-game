@@ -267,6 +267,18 @@ by conv_rhs { rw [←(mul_left_inv (1 : G)), mul_one] }
 attribute [simp] mul_left_cancel_iff mul_right_cancel_iff inv_mul inv_inv 
   one_inv
 
+
+@[simp] theorem inv_eq_iff {a b : G}: a⁻¹ = b⁻¹ ↔ a = b :=
+begin
+  split,
+  {  intro h,
+    rw ← inv_inv a,
+    rw h,
+    rw inv_inv b},
+  { rintro rfl,
+    refl}  
+end   
+
 end group
 
 end mygroup
