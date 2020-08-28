@@ -48,7 +48,7 @@ begin
 end  
 
 
-lemma normalizer_eq_stabilizer' (H : subgroup G) : 
+lemma normalizer'_eq_set_normalizer (H : subgroup G) : 
 (normalizer' H  : set G) = {g : G | ∀ n, n ∈ H ↔ g * n * g⁻¹ ∈ H} := 
 begin
   ext1,

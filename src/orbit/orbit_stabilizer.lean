@@ -665,35 +665,4 @@ def conjugation_action [group G]: laction G (subgroup G) :=
 lemma mem_normalizer_iff [group G] {H : subgroup G} (x : G):
   x ∈ normalizer H.carrier ↔ ∀ k : G, k ∈ H ↔ x * k * x⁻¹ ∈ H := by refl
 
-/-lemma normalizer_eq_stabilizer [group G] (H : subgroup G): 
-normalizer H.carrier = stabilizer (conjugation_action) H := 
-begin
-  unfold conjugation_action,
-  unfold conjugate_subgroup,
-  unfold stabilizer,
-  unfold normalizer,
-  norm_num,
-  ext,
-  split,
-  {  intro hx,
-    norm_num,
-    simp at *,
-    ext1 y,
-    split,
-      intro hy,
-      rcases hy with ⟨m, ⟨hm, ym⟩⟩,
-      cases hx m with h1 h2,
-      rw ym,
-      apply h1 hm,
-
-      intros hy,
-      split,
-      sorry  
-  },
-
-    {sorry},
-    
-end  -/
-
-
 end mygroup
