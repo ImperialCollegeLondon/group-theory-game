@@ -57,6 +57,14 @@ begin
   refl,      
 end
 
+lemma normalizer_eq_normalizer' (H : subgroup G) : normalizer H.carrier = normalizer' H :=
+begin
+  apply subgroup.ext'_iff.1,
+  change (normalizer H.carrier).carrier = ↑(normalizer' H),
+  rw normalizer'_eq_set_normalizer,
+  refl,
+end
+
 lemma index_normalizer_congr_index_modp [fintype G] {p : ℕ} (hp: p.prime)
   (H : subgroup G) (h: is_p_subgroup H p) :
   (index' (normalizer (H : set G)) H ) ≡ (index H) [MOD p] := sorry
