@@ -489,78 +489,58 @@ begin
 end
 
 --I don't think this is needed anymore
-lemma pow_prime_eq_one_or_dvd_prime {p d n : ℕ }(hp: p.prime) (hd: d = p^n): d = 1 ∨ p ∣ d := 
+lemma pow_prime_eq_one_or_dvd_prime {p d n : ℕ} (hp: p.prime) (hd: d = p^n) : 
+  d = 1 ∨ p ∣ d := 
 begin
   cases n,
-  left, 
-  simpa,
-  right,
-  rw hd,
-  simp [nat.succ_eq_add_one, nat.pow_succ]
+  left, rw hd, refl,
+  right, simp [hd, nat.succ_eq_add_one, nat.pow_succ]
 end
- 
 
-/- This lemma is dvd_prime_pow
-lemma foo_two {p d n : ℕ }(hp: p.prime) (hd: d ∣ p^n): ∃ (m ≤ n), d = p^m := 
+-- Are these names okay? Should I leave these lemmas here?
+lemma card_orbit_div_pow_p [fintype S] [fintype G] (μ : laction G S)
+  (p : ℕ) (hp : p.prime) (n : ℕ) (hG : fincard' G = p ^ n):
+  ∀ s : S, fincard'( orbit μ s ) ∣ p^n :=
 begin
-  induction n with hn,
-  rw nat.pow_zero at hd,
-  use 0, 
-  split,
-  linarith,
-  rw nat.pow_zero, 
-  exact nat.dvd_one.mp hd,
-  rw nat.succ_eq_add_one at *,
-  exact (nat.dvd_prime_pow hp).mp hd  
-end  -/
-
---Are these names okay? Should I leave these lemmas here?
-lemma card_orbit_div_pow_p (μ : laction G S) 
- [fintype S] [fintype G](p : ℕ) (hp : p.prime) (n : ℕ) (hG: fincard' G = p^n):
- ∀ s : S, fincard'( orbit μ s ) ∣ p^n :=
- begin
-   intro s, rw ← hG,
+  intro s, rw ← hG,
     use (fincard' (stabilizer μ s)),
     rw laction.orbit_stabilizer,
- end  
-
-lemma card_orbit_eq_one_or_dvd_p (μ : laction G S) 
-[fintype S] [fintype G](p : ℕ) (hp : p.prime) (n : ℕ) (hG: fincard' G = p^n): 
-∀ (s : S), fincard' ↥(orbit μ s) = 1 ∨ p ∣ fincard' ↥(orbit μ s) :=
-begin
-  intro s,
-    cases (card_orbit_div_pow_p μ p hp n hG) s with _ _,
-    have h1: fincard' ↥(orbit μ s) ∣ p^n,
-    { use w, exact h },
-    rw nat.dvd_prime_pow hp at h1,
-    rcases h1 with ⟨ a, _, ha ⟩ , 
-    rw ha,
-    cases a with _ _,
-    rw nat.pow_zero,
-    left, 
-    refl,
-    right,
-    rw nat.pow_succ,
-    use p^a,
-    rw mul_comm,
 end  
 
+lemma card_orbit_eq_one_or_dvd_p [fintype S] [fintype G] (μ : laction G S) 
+  (p : ℕ) (hp : p.prime) (n : ℕ) (hG : fincard' G = p ^ n) : 
+  ∀ (s : S), fincard' (orbit μ s) = 1 ∨ p ∣ fincard' (orbit μ s) :=
+begin
+  intro s,
+  cases (card_orbit_div_pow_p μ p hp n hG) s with _ _,
+  have h1: fincard' ↥(orbit μ s) ∣ p^n,
+    { use w, exact h },
+  rw nat.dvd_prime_pow hp at h1,
+  rcases h1 with ⟨a, _, ha⟩, 
+  rw ha,
+  cases a with _ _,
+    { rw nat.pow_zero,
+      left, refl },
+    { right,
+      rw nat.pow_succ,
+      use p^a, rw mul_comm }
+end  
 
-
-lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S) 
- [fintype S] [fintype G](p : ℕ) (hp : p.prime) (n : ℕ) (hG: fincard' G = p^n):
- (fincard' S) ≡ (fincard' (fixed_points μ) ) [MOD p] := 
- begin
+lemma card_set_congr_card_fixed_points_mod_prime [fintype S] [fintype G]
+  (μ : laction G S) (p : ℕ) (hp : p.prime) (n : ℕ) (hG : fincard' G = p ^ n) :
+  fincard' S ≡ fincard' (fixed_points μ) [MOD p] := 
+begin
   have claim : ∀ s : S, fincard'( orbit μ s ) ∣ p^n , 
     { exact card_orbit_div_pow_p μ p hp n hG },
   rw card_set_eq_card_fixed_points_sum_card_orbits μ,
   dsimp,
   refine nat.modeq.modeq_of_dvd _,
-  suffices: ↑p ∣ ↑∑' (o : set S) in ({o ∈ orbits μ | 1 < fincard' ↥o} : set (set S)), fincard' ↥o,
+  suffices: ↑p ∣ ↑∑' (o : set S) in 
+    ({o ∈ orbits μ | 1 < fincard' o} : set (set S)), fincard' ↥o,
     { simpa [sub_eq_add_neg] },
   norm_cast,
   apply fincard.finsum_divisible_by,
-  have: ∀ (s : S), fincard' ↥(orbit μ s) = 1 ∨ p ∣ fincard' ↥(orbit μ s),
+  have: ∀ (s : S), fincard' (orbit μ s) = 1 ∨ p ∣ fincard' (orbit μ s),
     { exact card_orbit_eq_one_or_dvd_p μ p hp n hG },
   rintro x h,
   cases h with hl hr,
@@ -571,12 +551,13 @@ lemma card_set_congr_card_fixed_points_mod_prime (μ : laction G S)
   rw [hs, h] at hr,
   linarith,
   assumption
- end
+end
 
-
---Definition of p-group for finite groups, not using definition of order of an element explicitly
 -- The following definition should be stated as an iff corollary
---does it hold with n ≥ 0?
+-- Does it hold with n ≥ 0?
+
+-- Definition of p-group for finite groups, not using definition of order of 
+-- an element explicitly
 class p_group [fintype G] (p : ℕ) extends group G :=
 (card_pow_p: ∃ n : ℕ , fincard' G = p^n)
 
@@ -586,11 +567,10 @@ class p_subgroup (G : Type) [group G] [fintype G] (p : ℕ) extends subgroup G :
 
 --Need to fix problems with imports and add definitions
 
-
-
 open mygroup.subgroup
 
-def is_p_subgroup (H : subgroup G) (p : ℕ) : Prop :=  ∃ n : ℕ , fincard' (H) = p^n 
+def is_p_subgroup (H : subgroup G) (p : ℕ) : Prop := 
+  ∃ n : ℕ , fincard' (H) = p ^ n 
 
 --Given a subset H of a group G, its conjugate is also a subgroup of G
 def conjugate_subgroup [group G] (g : G) (H : subgroup G) :  subgroup G :=
@@ -623,8 +603,6 @@ def conjugate_subgroup [group G] (g : G) (H : subgroup G) :  subgroup G :=
       simp [group.mul_assoc],      
     end }
 
-
-
 def conjugation_action [group G]: laction G (subgroup G) :=
 { to_fun := λ (g : G) (H : subgroup G), conjugate_subgroup g H,
   map_one' := 
@@ -632,15 +610,13 @@ def conjugation_action [group G]: laction G (subgroup G) :=
       intro H,
       unfold conjugate_subgroup,
       norm_num,
-      ext,
-      split,
-      repeat { intro hx, exact hx},         
+      ext, split,
+      repeat { intro hx, exact hx },         
     end  ,
   map_assoc' := 
     begin
       intros s t H,
-      ext,
-      split,
+      ext, split,
       unfold conjugate_subgroup,
         {intro hx,
         rcases hx with ⟨h, ⟨⟨k, ⟨j, hj⟩⟩, h2⟩⟩, 
@@ -650,17 +626,15 @@ def conjugation_action [group G]: laction G (subgroup G) :=
         apply group.mul_eq_of_eq_inv_mul,
         symmetry,
         iterate 4 {rw ← group.mul_assoc},
-        rw [group.mul_left_inv, group.one_mul]},
-
+        rw [group.mul_left_inv, group.one_mul] },
       { intro hx,
-        rcases hx with ⟨ h, ⟨hh, hj⟩⟩,
+        rcases hx with ⟨h, ⟨hh, hj⟩⟩,
         tidy,                                  --should tidy be non terminal?
         rw [← group.mul_assoc, ← group.mul_assoc, group.mul_assoc],
-        assumption},
-    end  
-     }
+        assumption },
+    end }
 
---Consider the group G acting on the set of all its subgroups by conjugation. Then stab H = norm H.
+-- Consider the group G acting on the set of all its subgroups by conjugation. Then stab H = norm H.
 -- Where do I specify the conjugation? SHOULD DO NORMALIZER EQ STABILIZER
 lemma mem_normalizer_iff [group G] {H : subgroup G} (x : G):
   x ∈ normalizer H.carrier ↔ ∀ k : G, k ∈ H ↔ x * k * x⁻¹ ∈ H := by refl
