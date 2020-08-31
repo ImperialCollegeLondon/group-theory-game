@@ -1,5 +1,5 @@
 import orbit.orbit_stabilizer
-
+import subgroup.lagrange --why is it not working?
 namespace mygroup
 
 open classical function set mygroup.subgroup mygroup.group
@@ -55,6 +55,10 @@ begin
   change (normalizer H.carrier).carrier = normalizer' H,
   rw normalizer'_eq_set_normalizer, refl,
 end
+
+--Need to coerce lcoset_partition to a collection of sets?
+--def dumb_action (H : subgroup  G) : laction G (lcoset_partition H) := {_}
+
 
 
 lemma index_normalizer_congr_index_modp [fintype G] 
