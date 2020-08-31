@@ -100,17 +100,12 @@ lemma mem_vectors_prod_eq_one_iff {n : ℕ} (v : vector G (n + 1)) :
 /-- The rotation action of `zmod n` (viewed as multiplicative group) on
 `vectors_prod_eq_one G n`, where `G` is a multiplicative group. -/
 
---Need to understand exactly what is going on in the term mode proof and why it does not work here
 def rotate_vectors_prod_eq_one (G : Type*) [group G] (n : ℕ)
-  (m : multiplicative (zmod n)) (v : vectors_prod_eq_one G n) : vectors_prod_eq_one G n := 
-  { val := v, 
-    property :=
-    begin
-     sorry
-    end
-     }
---original term mode proof in library     
---⟨⟨v.1.to_list.rotate m.val, by simp⟩, prod_rotate_eq_one_of_prod_eq_one (mem_vectors_prod_eq_one (v.1)) _⟩
+  (m : multiplicative (zmod n)) (v : vectors_prod_eq_one G n) : vectors_prod_eq_one G n :=
+⟨⟨v.1.to_list.rotate m.val, by simp⟩, prod_rotate_eq_one_of_prod_eq_one v.2 _⟩
+
+--Need to understand exactly what is going on in the term mode proof and why it does not work here
+--Make a cyclic group of order n, called Cₙ
 
 instance rotate_vectors_prod_eq_one.mul_action (n : ℕ) [fact (0 < n)] :
   mul_action (multiplicative (zmod n)) (vectors_prod_eq_one G n) :=
