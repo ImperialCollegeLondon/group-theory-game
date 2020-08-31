@@ -16,6 +16,8 @@ max and min (and even sup and inf).
 We will prove this here.
 -/
 
+open_locale classical
+
 namespace mygroup
 
 open group set
@@ -134,6 +136,29 @@ With that it follows that subgroups form a complete lattice!
 -/
 instance : complete_lattice (subgroup G) :=
 {.. galois_insertion.lift_complete_lattice gi}
+
+private def trivial : subgroup G := 
+  ⟨{(1 : G)}, set.mem_singleton 1, 
+    λ _ _ hx hy, by rw set.mem_singleton_iff at *; simp [hx, hy],
+    λ _ hx, by rw set.mem_singleton_iff at *; rw hx; exact group.one_inv⟩
+
+lemma bot_eq_trivial : (⊥ : subgroup G) = trivial :=
+begin
+  apply le_antisymm,
+    { change closure (∅ : set G) ≤ _,
+      rw closure_le, finish },
+    { intros x hx,
+      change x ∈ {(1 : G)} at hx, 
+      rw set.mem_singleton_iff at hx,
+      subst hx, unfold_coes, rw mem_coe,
+      exact one_mem ⊥ }
+end 
+
+lemma bot_eq_singleton_one : ((⊥ : subgroup G) : set G) = {1} :=
+by rw bot_eq_trivial; refl
+
+lemma fincard_bot : fincard' (⊥ : subgroup G) = 1 :=
+by rw [← @fincard.card_singleton_eq_one _ (1 : G), ← bot_eq_singleton_one]; refl
 
 -- scary example!
 -- SL₂(ℝ) acts on the upper half plane {z : ℂ | Im(z) > 0}
