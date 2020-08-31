@@ -657,7 +657,7 @@ begin
   rcases g with ⟨_, t, ht, n, hn, rfl⟩,
   refine ⟨⟨t, ht⟩, _⟩,
   rw [aux_hom_def, ←coe_eq_mk, mk_eq'],
-  simpa [group.mul_assoc] using inv_mem ↑N hn,
+  simp [group.mul_assoc, show n⁻¹ ∈ N, by exact inv_mem (N : subgroup G) hn]
 end
 
 def second_iso_theorem' (T : subgroup G) (N : normal G) :
