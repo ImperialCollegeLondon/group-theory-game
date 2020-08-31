@@ -1,5 +1,5 @@
 import orbit.orbit_stabilizer
-import subgroup.lagrange --why is it not working?
+import subgroup.definitions
 namespace mygroup
 
 open classical function set mygroup.subgroup mygroup.group
@@ -56,8 +56,15 @@ begin
   rw normalizer'_eq_set_normalizer, refl,
 end
 
+
+def set_of_cosets (H : subgroup G) := { B | ∃ g : G, B = lcoset g H }
+--Why is there a problem with the notation?
 --Need to coerce lcoset_partition to a collection of sets?
---def dumb_action (H : subgroup  G) : laction G (lcoset_partition H) := {_}
+#exit --HOW TO WRITE h as an element of G in to_fun?
+def dumb_action (H : subgroup  G): laction G (set_of_cosets H) := 
+{ to_fun := λ (h : H) (lcoset g H) , lcoset (h *g)  H ,
+  map_one' := _,--when g ∈ H
+  map_assoc' := _ }
 
 lemma index_normalizer_congr_index_modp [fintype G] 
   {p : ℕ} (hp: p.prime) (H : subgroup G) (h: is_p_subgroup H p) :
