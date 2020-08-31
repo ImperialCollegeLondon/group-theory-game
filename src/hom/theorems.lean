@@ -847,42 +847,22 @@ def subgroups_of_quotient_order_iso' (N : normal G) :
 order_iso.trans (subgroups_of_quotient_order_iso N) $
   order_iso.symm subgroup_ge_bot_order_iso
 
+-- We would like a lemma that states : Given `G` groups, `N : normal G`, the 
+-- preimage of `H : subgroup G /ₘ N` under the natural map from `G` to `G /ₘ N`
+-- is a subgroup of `G` with order `|H||N|`.
+
+def foo (N : normal G) (H : subgroup (G /ₘ N)) : subgroup G := 
+{ carrier := mk N ⁻¹' H,
+  one_mem' := one_mem H,
+  mul_mem' := λ _ _ hx hy, mul_mem H hx hy,
+  inv_mem' := λ _ hx, inv_mem H hx }
+
+lemma foo_card (N : normal G) (H : subgroup (G /ₘ N)) :
+  fincard' (foo N H) = fincard' H * fincard' N :=
+begin
+  sorry
+end
+
 end quotient
-
---Try to define order of an element in a group G as follows:
---Define a homomorphism from φg: ℤ →* G that sends n to g^n and define the order of g to be 
---the smallest positive element in the kernel 
-/-
-open mygroup.subgroup mygroup.group_hom normal subgroup.ge
-
---We want to express ℤ as a group under addition
-instance : group ℤ := {
-  mul := (+),
-  one := (0),
-  inv := has_neg.neg,
-  mul_assoc := add_assoc,
-  one_mul := zero_add ,
-  mul_left_inv := neg_add_self}
-
-variables {G : Type} [group G] 
-def order_map [group G]{g : G} :  ℤ →* G := 
-{ to_fun := λ n, ⦃n⦄^g,
-  map_mul' := 
-  begin
-    intros x y,
-    rw ← group.pow_add,
-    refl,   
-  end
-}
---The order should actually be the the smallest positive integer in the following kernel
---How to prove it exists?
-def kernel_of_order [group G] {g : G} {order_map: ℤ →* G} :=
- kernel order_map
-
- -/
---order of g to be the kernel of this map
---define order with Type add_subgroup  ℤ , an ideal of ℤ 
---We define the map, then look at the kernel and need to find a way to select the specific 
--- element we need
 
 end mygroup
