@@ -74,15 +74,14 @@ theorem inv_mem {x : G} : x ∈ H → x⁻¹ ∈ H := subgroup.inv_mem' _
 
 @[simp] theorem inv_mem_iff {x :G} : x⁻¹ ∈ H ↔ x ∈ H := ⟨λ hx, group.inv_inv x ▸ H.inv_mem hx , H.inv_mem ⟩ 
 
-
 -- Coersion to group
--- Coercion from subgroup to underlying type -/
+-- Coercion from subgroup to underlying type
 
 instance : has_coe (subgroup G) (set G) := ⟨subgroup.carrier⟩
 
 lemma mem_coe' {g : G} : g ∈ (H : set G) ↔ g ∈ H := iff.rfl
 
-instance (K : subgroup G) : group ↥K :=
+instance of_subgroup (K : subgroup G) : group ↥K :=
 { mul := λ a b, ⟨a.1 * b.1, K.mul_mem' a.2 b.2⟩,
   one := ⟨1, K.one_mem'⟩,
   inv := λ a, ⟨a⁻¹, K.inv_mem' a.2⟩,
@@ -145,6 +144,9 @@ begin
     simp * at *,
   ext x, exact h x
 end
+
+instance of_normal (N : normal G) : group ↥N := 
+  subgroup.of_subgroup (N : subgroup G)
 
 end normal
 

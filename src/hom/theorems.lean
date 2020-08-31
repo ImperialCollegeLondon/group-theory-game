@@ -195,27 +195,6 @@ begin
       exact ⟨x, hx⟩ }
 end
 
-def C_infty := ℤ
-
-instance : has_le C_infty := { le := ((≤) : ℤ → ℤ → Prop) }
-
-instance group_order : group C_infty := {
-  mul := ((+) : ℤ → ℤ → ℤ), one := (0 : ℤ), inv := λ x, (- x : ℤ),
-  mul_assoc := show ∀ x y z : ℤ, x + y + z = x + (y + z), by exact add_assoc,
-  one_mul := show ∀ x, (0 : ℤ) + x = x, by exact zero_add,
-  mul_left_inv := show ∀ x : ℤ, - x + x = 0, by exact neg_add_self }
-
-def order_map (g : G) : C_infty →* G := 
-{ to_fun := λ n, ⦃n⦄^g,
-  map_mul' := λ x y, by rw ← group.pow_add; refl }
-
-noncomputable def order (g : G) := let ker := kernel (order_map g) in 
-  if h : ∃ o ∈ ker, ∀ k ∈ ker, o ≤ k then classical.some h else (0 : ℤ)
-
-@[simp] lemma order_def (g : G) : order g =  
-  if h : ∃ o ∈ kernel (order_map g), ∀ k ∈ kernel (order_map g), o ≤ k 
-  then classical.some h else (0 : ℤ) := rfl
-
 end group_hom
 
 -- pushforward and pullback of subgroups
@@ -857,10 +836,27 @@ def foo (N : normal G) (H : subgroup (G /ₘ N)) : subgroup G :=
   mul_mem' := λ _ _ hx hy, mul_mem H hx hy,
   inv_mem' := λ _ hx, inv_mem H hx }
 
-lemma foo_card (N : normal G) (H : subgroup (G /ₘ N)) :
-  fincard' (foo N H) = fincard' H * fincard' N :=
+lemma foo_le (N : normal G) (H : subgroup (G /ₘ N)) : 
+  (N : set G) ⊆ foo N H := λ n hn, 
+show _ ∈ H, by { convert one_mem H, rw [← mem_kernel, kernel_mk], exact hn }
+
+-- The way to think about this is that `mk⁻¹ H` is the new group with `N` its 
+-- normal subgroup. Now, by `kernel_mk` we have `kernel mk = N` so by the 
+-- first isomorphism theorem `mk⁻¹ H /ₘ N ≅ H`
+
+lemma foo_iso (N : normal G) (H : subgroup (G /ₘ N)) :
+  foo N H /ₘ comap (𝒾 $ foo N H) N ≅ H :=
 begin
-  sorry
+  apply quotient_kernel_iso_of_surjective',
+  swap 3,
+    { refine 
+      { to_fun := λ x, ⟨mk N x.1, x.2⟩,
+        map_mul' := λ _ _, rfl } },
+    { intro y,
+      cases y with y hy,
+      dsimp,
+      refine ⟨⟨_, _⟩, _⟩; sorry
+    }, sorry
 end
 
 end quotient
