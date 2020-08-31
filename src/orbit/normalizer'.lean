@@ -58,11 +58,20 @@ end
 
 lemma index_normalizer_congr_index_modp [fintype G] 
   {p : ℕ} (hp: p.prime) (H : subgroup G) (h: is_p_subgroup H p) :
-  index' (normalizer (H : set G)) H ≡ index H [MOD p] := sorry
+  index' (normalizer (H : set G)) H ≡ index H [MOD p] := sorry  
+--I want to say that here H acts on the set of cosets X = G/H by φ : H × X → X, (h, gH) ↦ hgH. 
+--Then the set of points fixed by the action of H is X^H = {gH ∈ X | hgH = gH ∀ h ∈ H}
+--We want to show that hgH=gH ∀ h ∈ H ↔ g ∈ normalizer H. Hence X^H= (normalizer H)/H.
+-- Applying the lemma card_set_congr_card_fixed_points_mod_prime 
+--we show that |(normalizer H)/H| ≡ |G/H|[MOD p], i.e. index' (normalizer (H : set G)) H ≡ index H [MOD p] 
+
 
 lemma normalizer_neq_subgroup [fintype G] 
   (H : subgroup G) {p : ℕ} (hp: p.prime) (h: is_p_subgroup H p) : 
   p ∣ index H → normalizer (H : set G) ≠ H := sorry
+--We rewrite p ∣ (index' (normalizer (H : set G)) H) using the previous lemma.
+--This implies (index' (normalizer (H : set G)) H) ≠ 1, and hence we get the conclusion.
+
 
 theorem sylow_one_part1 [fintype G] 
   {p m n: ℕ} {hp : p.prime} {hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m} : 
