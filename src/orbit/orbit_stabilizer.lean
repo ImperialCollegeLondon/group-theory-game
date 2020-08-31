@@ -621,7 +621,8 @@ def conjugation_action [group G]: laction G (subgroup G) :=
         {intro hx,
         rcases hx with ⟨h, ⟨⟨k, ⟨j, hj⟩⟩, h2⟩⟩, 
         rw hj at h2,
-        tidy,                                  --should tidy be non terminal?
+        suffices: x = s * t * k * (t⁻¹ * s⁻¹),
+         tidy,                                  --should tidy be non terminal?
         rw [← group.mul_assoc, h2, group.mul_assoc],
         apply group.mul_eq_of_eq_inv_mul,
         symmetry,
@@ -629,7 +630,8 @@ def conjugation_action [group G]: laction G (subgroup G) :=
         rw [group.mul_left_inv, group.one_mul] },
       { intro hx,
         rcases hx with ⟨h, ⟨hh, hj⟩⟩,
-        tidy,                                  --should tidy be non terminal?
+        suffices: x ∈ conjugate_subgroup s (conjugate_subgroup t H),
+          tidy,                                  --should tidy be non terminal?
         rw [← group.mul_assoc, ← group.mul_assoc, group.mul_assoc],
         assumption },
     end }
