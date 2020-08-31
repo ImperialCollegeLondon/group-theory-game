@@ -22,7 +22,8 @@ instance : comm_group C_infty :=
 { mul_comm := show ∀ x y : ℤ, x + y = y + x, by exact add_comm
   .. show group C_infty, by apply_instance }
 
-lemma C_infty_mul_comm (x y : C_infty) : x * y = y * x := by simp
+lemma C_infty_mul_comm (x y : C_infty) : x * y = y * x := 
+  comm_group.mul_comm x y
 
 def order_map (g : G) : C_infty →* G := 
 { to_fun := λ n, ⦃n⦄^g,
