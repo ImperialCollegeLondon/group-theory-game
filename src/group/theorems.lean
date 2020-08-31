@@ -285,6 +285,10 @@ begin
   {rintro rfl,
    rw inv_inv}
 end  
+
+@[simp] theorem mul_comm {G : Type} [comm_group G] (g h : G) : 
+  g * h = h * g := comm_group.mul_comm g h
+
 end group
 
 end mygroup

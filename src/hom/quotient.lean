@@ -104,7 +104,7 @@ begin
 end
 
 -- With that we find `quotient R` form a group
-instance : group (quotient R) := 
+instance of_quotient : group (quotient R) := 
 { mul := (*), one := (1), inv := has_inv.inv,
   mul_assoc := λ _ _ _, mul_assoc',
   one_mul := λ _, one_mul',
@@ -209,7 +209,6 @@ begin
   rw mk_eq,
   exact lcoset_eq
 end
-
 
 end quotient
 
