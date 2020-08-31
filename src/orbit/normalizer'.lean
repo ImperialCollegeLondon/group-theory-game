@@ -59,8 +59,6 @@ end
 --Need to coerce lcoset_partition to a collection of sets?
 --def dumb_action (H : subgroup  G) : laction G (lcoset_partition H) := {_}
 
-
-
 lemma index_normalizer_congr_index_modp [fintype G] 
   {p : ℕ} (hp: p.prime) (H : subgroup G) (h: is_p_subgroup H p) :
   index' (normalizer (H : set G)) H ≡ index H [MOD p] := sorry  

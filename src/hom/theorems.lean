@@ -125,22 +125,15 @@ lemma mem_kernel {g : G} : g ∈ kernel f ↔ f g = 1 :=
   end
  -- ⟨λ h, mem_singleton_iff.1 $ mem_preimage.1 h, λ h, h⟩
 
-lemma mem_kernel_of_eq {f : G →* H} {a b : G} (h : f a = f b) :
+lemma mem_kernel_of_eq {a b : G} (h : f a = f b) :
   b⁻¹ * a ∈ kernel f :=
 begin
-  rw [← group.mul_left_cancel_iff (f b⁻¹), ← map_mul] at h,
-  symmetry' at h,
-  rw ← map_mul at h,
-  rw [group.mul_left_inv, map_one] at h,
-  apply mem_singleton_iff.1,
-  apply mem_preimage.1,
-  apply mem_singleton_iff.2,
-  symmetry, exact h,
---original proof
-  /-rw [mem_kernel, map_mul, map_inv,
+  rw [mem_kernel, map_mul, map_inv,
     ←group.mul_left_cancel_iff (f b)],
-  simp [←mul_assoc, h]-/
+  simp [←mul_assoc, h]
 end
+
+lemma one_mem_kernel (f : G →* H) : (1 : G) ∈ kernel f := map_one f
 
 lemma mem_image {h : H} : h ∈ image f ↔ ∃ g, f g = h := iff.rfl
 
@@ -152,17 +145,7 @@ attribute [simp] mem_kernel mem_image
 /-- A homomorphism `f` is injective iff. `f` has kernel `{1}` -/
 theorem injective_iff_kernel_eq_one :
   injective f ↔ (kernel f : set G) = {1} :=
-begin -- Should we split this up into maby smaller proofs or should we keep it?
-
- --Was trying to rewrite proof differently, need to ask some things
-/-split; intro hf,
-  unfold injective at hf,
-  have h : ∀ {a b : G},  f a = f b → (b⁻¹*a) ∈ kernel f,
-    { intros a b h1,
-      apply mem_kernel_of_eq,
-      exact h1,
-    }, -/
-
+begin
   split; intro hf,
     { show f ⁻¹' {1} = {1},
       ext, split; intro hx,
@@ -211,6 +194,27 @@ begin
         by rw hf; exact mem_univ _) with ⟨x, hx⟩,
       exact ⟨x, hx⟩ }
 end
+
+def C_infty := ℤ
+
+instance : has_le C_infty := { le := ((≤) : ℤ → ℤ → Prop) }
+
+instance group_order : group C_infty := {
+  mul := ((+) : ℤ → ℤ → ℤ), one := (0 : ℤ), inv := λ x, (- x : ℤ),
+  mul_assoc := show ∀ x y z : ℤ, x + y + z = x + (y + z), by exact add_assoc,
+  one_mul := show ∀ x, (0 : ℤ) + x = x, by exact zero_add,
+  mul_left_inv := show ∀ x : ℤ, - x + x = 0, by exact neg_add_self }
+
+def order_map (g : G) : C_infty →* G := 
+{ to_fun := λ n, ⦃n⦄^g,
+  map_mul' := λ x y, by rw ← group.pow_add; refl }
+
+noncomputable def order (g : G) := let ker := kernel (order_map g) in 
+  if h : ∃ o ∈ ker, ∀ k ∈ ker, o ≤ k then classical.some h else (0 : ℤ)
+
+@[simp] lemma order_def (g : G) : order g =  
+  if h : ∃ o ∈ kernel (order_map g), ∀ k ∈ kernel (order_map g), o ≤ k 
+  then classical.some h else (0 : ℤ) := rfl
 
 end group_hom
 
