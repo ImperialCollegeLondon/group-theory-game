@@ -63,7 +63,7 @@ def set_of_lcosets (H : subgroup G) := { B | ∃ g : G, B = lcoset g H }
 --HOW TO WRITE h as an element of G in to_fun?
 
 
-#exit
+--#exit
 def dumb_fun' (H : subgroup G) (g' : G) (lcoset g H : set_of_lcosets H) := lcoset (g' * g) H
 
 
@@ -102,6 +102,8 @@ theorem sylow_one_part1 [fintype G]
 /-class sylow_p_subgroup (G : Type) [group G] [fintype G] (p : ℕ) extends p_subgroup G :=
 (maximal: ⊥ )-/
 
+--need to define is_sylow_p_subgroup
+
 lemma conjugates_eq_cardinality (g : G) (H : subgroup G) : fincard' H = fincard' (conjugate_subgroup g H) := sorry 
 
 /-def conjugate_isomorphic (g : G) (H : subgroup G): H ≅ conjugate_subgroup g H :=
@@ -119,5 +121,10 @@ lemma conjugates_eq_cardinality (g : G) (H : subgroup G) : fincard' H = fincard'
 --Hence x K x⁻¹ = H.
 
 
+--Define the number of Sylow p-subgroups of G.
+def number_sylow_p {p : ℕ} {hp : p.prime}: fincard' {K ∣ is_sylow_p_subgroup K p}
+
+theorem sylow_three [fintype G]{p m n: ℕ} {hp : p.prime}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m}:
+(number_sylow_p ≡ 1 [MOD p]) ∧ (number_sylow_p ∣ m) := sorry 
 
 end mygroup
