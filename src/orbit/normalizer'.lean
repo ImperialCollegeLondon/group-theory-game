@@ -122,9 +122,9 @@ lemma conjugates_eq_cardinality (g : G) (H : subgroup G) : fincard' H = fincard'
 
 
 --Define the number of Sylow p-subgroups of G. 
-def number_sylow_p {p : ℕ} {hp : p.prime}: fincard' {K ∣ is_sylow_p_subgroup K p}
+def number_sylow_p {p : ℕ} {hp : p.prime}:= fincard' {K ∣ is_sylow_p_subgroup K p}
 
-theorem sylow_three_part1 [fintype G]{p m n: ℕ} {hp : p.prime}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m}:
+theorem sylow_three_part1 [fintype G]{p m n: ℕ}{hp : p.prime}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m}:
 number_sylow_p ≡ 1 [MOD p] := sorry 
 theorem sylow_three_part2 [fintype G]{p m n: ℕ} {hp : p.prime}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m}:
 number_sylow_p ∣ m := sorry 
