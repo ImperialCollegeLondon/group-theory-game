@@ -286,9 +286,14 @@ begin
    rw inv_inv}
 end  
 
+-- **TODO** is this a good simp lemma? I don't think RHS is
+-- strictly simpler than LHS.
 @[simp] theorem mul_comm {G : Type} [comm_group G] (g h : G) : 
   g * h = h * g := comm_group.mul_comm g h
 
+-- **TODO** open an issue about abel only working with `*`. We
+-- have `group` working but not `comm_group`. It
+-- would be an interesting exercise to get `abel` working.
 end group
 
 end mygroup
