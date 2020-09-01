@@ -87,7 +87,13 @@ end⟩
 
 def dumb_action (H : subgroup  G): laction G (lcosets H) := 
 { to_fun := dumb_fun H,
-  map_one' := sorry,--when g ∈ H
+  map_one' := 
+  begin 
+    intro S,
+    unfold dumb_fun,
+    sorry,
+    --rw mem_set_of_eq,
+  end,  
   map_assoc' := sorry }
 
 lemma index_normalizer_congr_index_modp [fintype G] 
