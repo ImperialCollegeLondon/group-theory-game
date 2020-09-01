@@ -16,13 +16,28 @@ https://en.wikipedia.org/wiki/Cauchy%27s_theorem_(group_theory)
 If a finite group $G$ has order a multiple of $p$ then
 $G$ has an element of order $p$.
 
+# Main Definitions.
+
+## variables
+
+(G : Type)
+[group G]
+(n : ℕ)
+
+* `array_prod_eq_one : set (fin n → G)` : lists of length n in G whose product is 1
+
 -/
+
 
 
 namespace mygroup
 
 open equiv fintype finset mul_action function
 open equiv.perm subgroup list quotient_group
+
+
+
+
 open_locale big_operators
 universes u v w
 
@@ -33,7 +48,9 @@ local attribute [instance, priority 10] subtype.fintype set_fintype classical.pr
 
    Proposed proof:
 
-1) Let X be the set of lists of p elements of G whose product is 1 -- a definition and hence a stroke of genius
+1) Let X be the set of lists of p elements of G whose product is 1 
+  -- a definition and hence a stroke of genius.
+  -- Status : DONE
 2) Note that cyclic shift is a permutation of X
 3) Note that #X=|G|^{p-1} is a multiple of p
 4) Hence # fixed point is a multiple of p by some standard theorem
@@ -44,7 +61,9 @@ local attribute [instance, priority 10] subtype.fintype set_fintype classical.pr
 
 /-! # making X -/
 
--- from mathlib
+--#check subtype.prod
+def vector.prod_eq_one' (G : Type) [group G] (n : ℕ) : set (vector G n) :=
+{v : vector G n | v.to_list.prod = 1}
 
 /-- The type of vectors with terms from `G`, length `n`, and product equal to `1:G`. -/
 def array_prod_eq_one (G : Type*) [group G] (n : ℕ) : set (fin n → G) :=
@@ -52,19 +71,24 @@ def array_prod_eq_one (G : Type*) [group G] (n : ℕ) : set (fin n → G) :=
 
 variables {G : Type} [group G]
 
-#check mul_left_inj
+--#check @mul_left_inj
+--#check @mul_right_cancel_iff
+
 #check mul_right_cancel_iff
+#print mul_right_cancel_iff
 
 def group.mul_left_inj (a b c : G) : b * a = c * a ↔ b = c :=
 begin
+  --  **TODO(anyone)** -- why can't we remove "group" here?
   exact group.mul_right_cancel_iff a b c,
 end
 
---#check inv_mul_self
+--#check @inv_mul_self
 
 lemma group.inv_mul_self (a : G) : a⁻¹ * a = 1 := group.mul_left_inv a
 
 instance : is_associative G (*) := ⟨group.mul_assoc⟩
+
 open list
 
 lemma list.prod_cons (a : G) (l : list G) : list.prod (a :: l) = a * l.prod :=
@@ -72,10 +96,9 @@ calc (a::l : list G).prod = foldl (*) (a * 1) l :
   by simp only [list.prod, foldl_cons, group.one_mul, group.mul_one]
   ... = _ : foldl_assoc
 
---#exit
-
 /-- Given a vector `v` of length `n`, make a vector of length `n+1` whose product is `1`,
 by consing the the inverse of the product of `v`. -/
+-- ** TODO ** I thought we were using 
 def mk_vector_prod_eq_one (n : ℕ) (v : vector G n) : vector G (n+1) :=
 v.to_list.prod⁻¹ :: v
 
@@ -111,9 +134,10 @@ lemma mem_vectors_prod_eq_one_iff {n : ℕ} (v : vector G (n + 1)) :
 /-- The rotation action of `zmod n` (viewed as multiplicative group) on
 `vectors_prod_eq_one G n`, where `G` is a multiplicative group. -/
 
-def rotate_vectors_prod_eq_one (G : Type*) [group G] (n : ℕ)
+def rotate_vectors_prod_eq_one (G : Type) [group G] (n : ℕ)
   (m : multiplicative (zmod n)) (v : vectors_prod_eq_one G n) : vectors_prod_eq_one G n :=
-⟨⟨v.1.to_list.rotate m.val, by simp⟩, prod_rotate_eq_one_of_prod_eq_one v.2 _⟩
+sorry
+--⟨⟨v.1.to_list.rotate m.val, by simp⟩, prod_rotate_eq_one_of_prod_eq_one v.2 _⟩
 
 --Need to understand exactly what is going on in the term mode proof and why it does not work here
 --Make a cyclic group of order n, called Cₙ
