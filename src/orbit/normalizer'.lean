@@ -121,10 +121,21 @@ lemma conjugates_eq_cardinality (g : G) (H : subgroup G) : fincard' H = fincard'
 --Hence x K x⁻¹ = H.
 
 
---Define the number of Sylow p-subgroups of G.
+--Define the number of Sylow p-subgroups of G. 
 def number_sylow_p {p : ℕ} {hp : p.prime}: fincard' {K ∣ is_sylow_p_subgroup K p}
 
 theorem sylow_three [fintype G]{p m n: ℕ} {hp : p.prime}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m}:
 (number_sylow_p ≡ 1 [MOD p]) ∧ (number_sylow_p ∣ m) := sorry 
+--By Sylow 1 ∃ a Sylow p-subgroup P, so we set X = Sylp(G) = {Sylow p-groups in G}
+--Then P acts on X by μ : P × X → X, (x, Q) ↦ xQx⁻¹ (this is what we defined conjugate_action to be)
+--By card_set_congr_card_fixed_points_mod_prime we have
+-- number_sylow_p = fincard' X ≡ fincard' (fixed points μ) [MOD p]. Want to show fincard' (fixed points μ) = 1.
+--Let P ∈ fixed points μ and Q ∈ fixed points μ. Then P is a subgroup of normalizer Q
+--Both P and Q are Sylow p-subgroups of normalizer Q, so ∃ x ∈ normalizer Q s.t. xQx⁻¹ = P (Sylow 2)
+--By def of normalizer Q we have Q = P, so fixed_points μ = {P}, proving the first part of the theorem.end
+--Now if P acts on X by conjugation ∃ orbit X = orbit G P.
+--By orbit-stabilizer number_sylow_p = (fincard' X) ∣ (fincard' G)=p^n *m which implies it divides m.
+
+
 
 end mygroup
