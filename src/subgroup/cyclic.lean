@@ -117,13 +117,33 @@ def nat.coe' : (ℕ ↪ C_infty) :=
 { to_fun := λ i, (i : ℤ),
   inj' := λ a b, int.of_nat.inj }
 
-#check classical.some_spec
-
 @[reducible] noncomputable def inv_fun_aux (x : cyclic n) :=
 (classical.indefinite_description _ (exists_mk x))
 
 lemma useful (a b : ℤ) (ha1 : 0 ≤ a) (ha2 : a < n) (hb1 : 0 ≤ b)
-  (hb2 : b < n) (h : (n : ℤ) ∣ (a - b)) : a = b := sorry
+  (hb2 : b < n) (h : (n : ℤ) ∣ (a - b)) : a = b :=
+begin
+  cases h with d hd,
+  have h : d = 0 ∨ d ≤ -1 ∨ 1 ≤ d,
+    rcases lt_trichotomy d 0 with _ | _ | _,
+      right, left, linarith,
+      left, exact h,
+      right, right, linarith,
+  rcases h with rfl | h | h,
+  { simpa [sub_eq_zero] using hd },
+  { have hd2 : a - b ≤ -n,
+      rw hd,
+      convert int.mul_le_mul_of_nonneg_left h (show (0 : ℤ) ≤ n, by linarith),
+      ring,
+    exfalso,
+    linarith },
+  { have hd2 : (n : ℤ) ≤ a - b,
+      rw hd,
+      convert int.mul_le_mul_of_nonneg_left h (show (0 : ℤ) ≤ n, by linarith),
+      ring,
+    exfalso,
+    linarith },
+end
 
 --set_option pp.proofs true
 noncomputable def fin.equiv (hn : 0 < n) : fin n ≃ cyclic n :=
@@ -186,6 +206,13 @@ noncomputable def fin.equiv (hn : 0 < n) : fin n ≃ cyclic n :=
     ring
   end,
 } 
+
+lemma fincard_cyclic (hn : 0 < n) : fincard' (cyclic n) = n :=
+begin
+  rw ←fincard.of_equiv (fin.equiv n hn),
+  rw ← fincard.card_eq_fincard,
+  exact fintype.card_fin n,
+end
 
 -- noncomputable instance (hn : 0 < n) : fintype (cyclic n) :=
 -- { elems := finset.map (fin.coe n) $ finset.range n,
