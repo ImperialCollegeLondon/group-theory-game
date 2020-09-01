@@ -61,25 +61,27 @@ def is_lcoset (H : subgroup G) (B : set G) : Prop := ∃ g : G, B = lcoset g H
 
 def lcosets (H : subgroup G) := {B : set G // is_lcoset H B}
 
--- x ~ y -> g x ~ g y
-
-
---Why is there a problem with the notation?
---Need to coerce lcoset_partition to a collection of sets?
---HOW TO WRITE h as an element of G in to_fun?
-
-
---#exit
 def dumb_fun' (H : subgroup G) (g' : G) (X : set G) : set G :=
   {t | ∃ x : G, x ∈ X ∧ t = g' * x}
 
 def dumb_fun (H : subgroup G) (g' : G) (X : lcosets H) : lcosets H :=
-⟨dumb_fun' H g' X.1, begin
-  cases X with g hg,
-  -- use something
-  sorry  
-end
-⟩
+⟨dumb_fun' H g' X.1, 
+begin
+  rcases X with ⟨g , ⟨w, rfl⟩⟩, 
+  use (g' * w),
+  unfold dumb_fun',
+  ext, 
+  split,
+  { intro hx,
+    rcases hx with ⟨hx_w, ⟨h, hh, rfl⟩, rfl⟩,
+    use h,
+    simpa [group.mul_assoc] 
+  },
+  { rintro ⟨h, hh, rfl⟩,
+    use w * h,
+    simpa [group.mul_assoc]    
+  },
+end⟩
 
 
 
