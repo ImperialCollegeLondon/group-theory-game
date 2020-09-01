@@ -57,24 +57,36 @@ begin
 end
 
 
-def set_of_lcosets (H : subgroup G) := { B | ∃ g : G, B = lcoset g H }
+def is_lcoset (H : subgroup G) (B : set G) : Prop := ∃ g : G, B = lcoset g H
+
+def lcosets (H : subgroup G) := {B : set G // is_lcoset H B}
+
+-- x ~ y -> g x ~ g y
+
+
 --Why is there a problem with the notation?
 --Need to coerce lcoset_partition to a collection of sets?
 --HOW TO WRITE h as an element of G in to_fun?
 
 
 --#exit
-def dumb_fun' (H : subgroup G) (g' : G) (lcoset g H : set_of_lcosets H) := lcoset (g' * g) H
+def dumb_fun' (H : subgroup G) (g' : G) (X : set G) : set G :=
+  {t | ∃ x : G, x ∈ X ∧ t = g' * x}
+
+def dumb_fun (H : subgroup G) (g' : G) (X : lcosets H) : lcosets H :=
+⟨dumb_fun' H g' X.1, begin
+  cases X with g hg,
+  -- use something
+  sorry  
+end
+⟩
 
 
-def dumb_fun (H : subgroup G) (h : H) (lcoset g H : set_of_lcosets H) := lcoset (h.1 * g) H
 
-
-
-def dumb_action (H : subgroup  G): laction G (set_of_lcosets H) := 
-{ to_fun := λ (h : H) (lcoset g H) , lcoset (h *g)  H ,
-  map_one' := _,--when g ∈ H
-  map_assoc' := _ }
+def dumb_action (H : subgroup  G): laction G (lcosets H) := 
+{ to_fun := dumb_fun H,
+  map_one' := sorry,--when g ∈ H
+  map_assoc' := sorry }
 
 lemma index_normalizer_congr_index_modp [fintype G] 
   {p : ℕ} (hp: p.prime) (H : subgroup G) (h: is_p_subgroup H p) :
@@ -106,19 +118,14 @@ theorem sylow_one_part1 [fintype G]
 
 
 def conjugate_iso (g : G) (H : subgroup G) : H ≅ conjugate_subgroup g H :=
-{ to_fun := λ (h : H) , g * h * g⁻¹ , --why is it not working?
-  map_mul' := _,
-  is_bijective := _ }
+{ to_fun := λ (h : H) , ⟨g * h * g⁻¹, begin use [h, h.2] end⟩,-- --why is it not working?
+  map_mul' := sorry,
+  is_bijective := sorry }
 
 
-
-lemma conjugates_eq_cardinality (g : G) (H : subgroup G) : fincard' H = fincard' (conjugate_subgroup g H) := sorry 
-
-/-def conjugate_isomorphic (g : G) (H : subgroup G): H ≅ conjugate_subgroup g H :=
-{ to_fun := λ (h : H), g * h * g⁻¹,
-  map_mul' := _,
-  is_bijective := _ }-/
-
+-- group iso -> equiv -> same cardinality
+lemma conjugates_eq_cardinality (g : G) (H : subgroup G) :
+  fincard' H = fincard' (conjugate_subgroup g H) := sorry 
 
 /-theorem sylow_two [fintype G]{p : ℕ} {hp : p.prime} (h₁ : is_sylow_p_subgroup H p)(h₂ : is_sylow_p_subgroup K p) : 
 ∃ (g : G), H = conjugate_subgroup g K  := sorry -/ -- need coercion from sylow p subgroup to subgroup
@@ -128,14 +135,16 @@ lemma conjugates_eq_cardinality (g : G) (H : subgroup G) : fincard' H = fincard'
 --implies that the conjugate of K by x is a subgroup of H. Since conjugates are isomorphic they have the same cardinality.
 --Hence x K x⁻¹ = H.
 
+def is_sylow_p_subgroup (K : subgroup G) {p : ℕ} (hp : p.prime) : Prop := sorry
 
 --Define the number of Sylow p-subgroups of G. 
-def number_sylow_p {p : ℕ} {hp : p.prime}:= fincard' {K ∣ is_sylow_p_subgroup K p}
+noncomputable def number_sylow_p (G : Type) [group G] {p : ℕ} (hp : p.prime) := fincard' {K : subgroup G // is_sylow_p_subgroup K hp}
 
-theorem sylow_three_part1 [fintype G]{p m n: ℕ}{hp : p.prime}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m}:
-number_sylow_p ≡ 1 [MOD p] := sorry 
+theorem sylow_three_part1 [fintype G]{p m n: ℕ}{hp : p.prime}
+  {hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m}:
+number_sylow_p G hp ≡ 1 [MOD p] := sorry 
 theorem sylow_three_part2 [fintype G]{p m n: ℕ} {hp : p.prime}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m}:
-number_sylow_p ∣ m := sorry 
+number_sylow_p G hp ∣ m := sorry 
 --By Sylow 1 ∃ a Sylow p-subgroup P, so we set X = Sylp(G) = {Sylow p-groups in G}
 --Then P acts on X by μ : P × X → X, (x, Q) ↦ xQx⁻¹ (this is what we defined conjugate_action to be)
 --By card_set_congr_card_fixed_points_mod_prime we have
