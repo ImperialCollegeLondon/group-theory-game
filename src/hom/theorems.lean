@@ -232,6 +232,34 @@ def comap (f : G →* H) (K : subgroup H) : subgroup G :=
     by rw f.map_mul; exact mul_mem K hx hy,
   inv_mem' := λ x hx, show f x⁻¹ ∈ K, by rw f.map_inv; exact inv_mem K hx }
 
+def gc (f : G →* H) : galois_connection (map f) (comap f) :=
+begin
+  rintros A B,
+  show f.to_fun '' A.carrier ⊆ B.carrier ↔ A.carrier ⊆ f.to_fun ⁻¹' B.carrier,
+  finish
+end
+
+
+theorem closure_image (f : G →* H) (S : set G) :
+  closure (f '' S) = map f (closure S) :=
+begin
+  apply lattice.le_antisymm,
+  { rw closure_le,
+    simp,
+    refine subset.trans (le_closure _) _,
+    change closure S ≤ comap f (map f (closure S)),
+    apply galois_connection.le_u_l (gc f)
+  },
+  { refine galois_connection.l_le (gc f) _,
+    rw closure_le,
+    have h : S ⊆ f ⁻¹' ( f '' S),
+      intro x, finish,
+    refine set.subset.trans h _,
+    show f ⁻¹' _ ⊆ f ⁻¹' _,
+    mono,
+    apply le_closure }
+end
+
 end subgroup
 
 namespace quotient
