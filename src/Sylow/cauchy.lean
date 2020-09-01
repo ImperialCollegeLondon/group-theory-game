@@ -8,6 +8,17 @@ import data.zmod.basic
 import data.fintype.card
 import data.list.rotate
 -/
+/-!
+# Cauchy's Theorem.
+
+https://en.wikipedia.org/wiki/Cauchy%27s_theorem_(group_theory)
+
+If a finite group $G$ has order a multiple of $p$ then
+$G$ has an element of order $p$.
+
+-/
+
+
 namespace mygroup
 
 open equiv fintype finset mul_action function
