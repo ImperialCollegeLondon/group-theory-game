@@ -57,11 +57,21 @@ begin
 end
 
 
-def set_of_cosets (H : subgroup G) := { B | ∃ g : G, B = lcoset g H }
+def set_of_lcosets (H : subgroup G) := { B | ∃ g : G, B = lcoset g H }
 --Why is there a problem with the notation?
 --Need to coerce lcoset_partition to a collection of sets?
-#exit --HOW TO WRITE h as an element of G in to_fun?
-def dumb_action (H : subgroup  G): laction G (set_of_cosets H) := 
+--HOW TO WRITE h as an element of G in to_fun?
+
+
+#exit
+def dumb_fun' (H : subgroup G) (g' : G) (lcoset g H : set_of_lcosets H) := lcoset (g' * g) H
+
+
+def dumb_fun (H : subgroup G) (h : H) (lcoset g H : set_of_lcosets H) := lcoset (h.1 * g) H
+
+
+
+def dumb_action (H : subgroup  G): laction G (set_of_lcosets H) := 
 { to_fun := λ (h : H) (lcoset g H) , lcoset (h *g)  H ,
   map_one' := _,--when g ∈ H
   map_assoc' := _ }
@@ -88,5 +98,26 @@ theorem sylow_one_part1 [fintype G]
   ∀ (i ≤ n), ∃ H : subgroup G, fincard' H = p ^ i := sorry
 -- and want to write that each of these subgroups of cardinality p^i is normal 
 -- in a subgroup of cardinality p^(i+1)
+
+/-class sylow_p_subgroup (G : Type) [group G] [fintype G] (p : ℕ) extends p_subgroup G :=
+(maximal: ⊥ )-/
+
+lemma conjugates_eq_cardinality (g : G) (H : subgroup G) : fincard' H = fincard' (conjugate_subgroup g H) := sorry 
+
+/-def conjugate_isomorphic (g : G) (H : subgroup G): H ≅ conjugate_subgroup g H :=
+{ to_fun := λ (h : H), g * h * g⁻¹,
+  map_mul' := _,
+  is_bijective := _ }-/
+
+
+/-theorem sylow_two [fintype G]{p : ℕ} {hp : p.prime} (h₁ : is_sylow_p_subgroup H p)(h₂ : is_sylow_p_subgroup K p) : 
+∃ (g : G), H = conjugate_subgroup g K  := sorry -/ -- need coercion from sylow p subgroup to subgroup
+-- Consider the action of K on the set X of cosets of H in G μ: K × X → X, (y, xH) ↦ yxH. 
+--Consider the points fixed by the action. Notice that since H is a Sylow p subgroup then p does not divide 
+--fincard' X = index H, hence fincard'(fixed points μ ) ≠ 0. We then want to show that xH ∈ fixed_points μ 
+--implies that the conjugate of K by x is a subgroup of H. Since conjugates are isomorphic they have the same cardinality.
+--Hence x K x⁻¹ = H.
+
+
 
 end mygroup
