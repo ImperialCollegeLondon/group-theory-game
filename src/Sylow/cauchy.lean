@@ -135,16 +135,14 @@ lemma mem_vectors_prod_eq_one_iff {n : ℕ} (v : vector G (n + 1)) :
     rintro ⟨⟨l, hl⟩, rfl⟩,
     simp [list.prod_cons],
   end⟩
-  
-/-- The rotation action of `zmod n` (viewed as multiplicative group) on
-`vectors_prod_eq_one G n`, where `G` is a multiplicative group. -/
 
-def cyclic.generator {n : ℕ} : cyclic n := quotient.mk _ (1 : ℤ)
+theorem cauchy (G : Type) [group G] [fintype G] (p : ℕ) (hp : p.prime)
+  (hpG : p ∣ fincard' G) : ∃ H : subgroup G, fincard' H = p := 
+begin
+  sorry
+end
 
-lemma cyclic.generator_generates (n : ℕ) :
-  closure ({cyclic.generator} : set (cyclic n)) = ⊤ :=
-sorry
---{(@cyclic.generator n : cyclic n)} = ⊤ := sorry
+#exit
 
 def rotate_vectors_prod_eq_one (G : Type) [group G] (n : ℕ)
   (m : cyclic n) (v : vector.prod_eq_one G n) : vector.prod_eq_one G n :=
