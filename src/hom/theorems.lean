@@ -872,7 +872,7 @@ def quotient.comap (N : normal G) (H : subgroup (G /ₘ N)) : subgroup G := subg
 --   mul_mem' := λ _ _ hx hy, mul_mem H hx hy,
 --   inv_mem' := λ _ hx, inv_mem H hx }
 
-lemma foo_le (N : normal G) (H : subgroup (G /ₘ N)) : 
+lemma quotient.comap_le (N : normal G) (H : subgroup (G /ₘ N)) : 
   (N : set G) ⊆ quotient.comap N H := λ n hn, 
 show _ ∈ H, by { convert one_mem H, rw [← mem_kernel, kernel_mk], exact hn }
 
@@ -880,7 +880,7 @@ show _ ∈ H, by { convert one_mem H, rw [← mem_kernel, kernel_mk], exact hn }
 -- normal subgroup. Now, by `kernel_mk` we have `kernel mk = N` so by the 
 -- first isomorphism theorem `mk⁻¹ H /ₘ N ≅ H`
 
-lemma foo_iso (N : normal G) (H : subgroup (G /ₘ N)) :
+lemma quotient.comap_iso (N : normal G) (H : subgroup (G /ₘ N)) :
   quotient.comap N H /ₘ comap (𝒾 $ quotient.comap N H) N ≅ H :=
   let f : quotient.comap N H →* H :=
     { to_fun := λ x, ⟨mk N x.1, x.2⟩,
