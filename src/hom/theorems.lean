@@ -1,5 +1,4 @@
-import hom.quotient
-import subgroup.lattice
+import subgroup.lagrange
 
 open_locale classical
 
@@ -865,12 +864,8 @@ order_iso.trans (subgroups_of_quotient_order_iso N) $
 -- preimage of `H : subgroup G /ₘ N` under the natural map from `G` to `G /ₘ N`
 -- is a subgroup of `G` with order `|H||N|`.
 
-def quotient.comap (N : normal G) (H : subgroup (G /ₘ N)) : subgroup G := subgroup.comap (mk N) H
--- #exit 
--- { carrier := mk N ⁻¹' H,
---   one_mem' := one_mem H,
---   mul_mem' := λ _ _ hx hy, mul_mem H hx hy,
---   inv_mem' := λ _ hx, inv_mem H hx }
+def quotient.comap (N : normal G) (H : subgroup (G /ₘ N)) : subgroup G := 
+  subgroup.comap (mk N) H
 
 lemma quotient.comap_le (N : normal G) (H : subgroup (G /ₘ N)) : 
   (N : set G) ⊆ quotient.comap N H := λ n hn, 
@@ -886,27 +881,29 @@ lemma quotient.comap_iso (N : normal G) (H : subgroup (G /ₘ N)) :
     { to_fun := λ x, ⟨mk N x.1, x.2⟩,
       map_mul' := λ _ _, rfl } in
 quotient_kernel_iso_of_surjective' (begin
-      rintro ⟨y, hy⟩,
-    change y ∈ H at hy,
+    rintro ⟨y, hy⟩,
     rcases exists_mk y with ⟨g, rfl⟩,
-    use [g, hy],
-    refl
+    use [g, hy], refl
   end : surjective f)
   begin
     ext x,
-    rw mem_kernel,
-    rw mem_comap,
-    simp [f],
+    rw [mem_kernel, mem_comap],
     unfold coe_fn has_coe_to_fun.coe,
-    simp,
+    simp only [to_fun_eq_coe, subtype.val_eq_coe],
     cases x with x hx,
     change _ ↔ x ∈ N,
     conv_rhs begin rw ←@kernel_mk _ _ N, end,
     rw mem_kernel,
-    show _ = (⟨(1 : G /ₘ N), _⟩ : H) ↔ _,
-    simp
+    show _ = (⟨(1 : G /ₘ N), _⟩ : H) ↔ _, simp
   end
 
+lemma quotient.comap_card_eq [fintype G] (N : normal G) (H : subgroup (G /ₘ N)) : 
+  fincard' (quotient.comap N H) = 
+  fincard' (normal.comap (𝒾 $ quotient.comap N H) N) * fincard' H :=
+begin
+  rw [fincard.of_equiv (mul_equiv_of_iso (iso_symm (quotient.comap_iso N H))).to_equiv,
+     ← lagrange.card_quotient_eq_mul]
+end
 
 end quotient
 

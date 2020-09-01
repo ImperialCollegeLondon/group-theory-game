@@ -6,7 +6,7 @@ namespace mygroup
 
 namespace lagrange
 
-open mygroup.quotient mygroup.subgroup fincard
+open mygroup.quotient mygroup.subgroup fincard function
 
 variables {G : Type} [group G] {H : subgroup G}
 
@@ -42,6 +42,34 @@ begin
     mul_comm, finsum_const_nat],
   rintros x ⟨g, rfl⟩,
   exact eq_card_of_lcoset.symm
+end
+
+def to_lcosets (N : normal G) : G /ₘ N → { B | ∃ g : G, B = lcoset g N } :=
+λ x, let f : G → { B | ∃ g : G, B = lcoset g N } := λ g, ⟨g ⋆ N, ⟨g, rfl⟩⟩ in 
+  lift_on x f (λ a b h, by simpa [h])
+
+lemma to_lcosets_mk {N : normal G} (g : G) : 
+  (to_lcosets N (g : G /ₘ N)).val = lcoset g N := rfl
+
+lemma bijective_to_lcosets {N : normal G} : bijective (to_lcosets N) :=
+begin
+  split,
+    { intros x y hxy,
+      rcases exists_mk x with ⟨x, rfl⟩,
+      rcases exists_mk y with ⟨y, rfl⟩,
+      rw [mk_eq, ← to_lcosets_mk, hxy, to_lcosets_mk] },
+    { rintro ⟨_, g, rfl⟩, exact ⟨g, subtype.eq (to_lcosets_mk g)⟩ }
+end
+
+noncomputable def to_lcosets_equiv (N : normal G) : 
+  G /ₘ N ≃ { B | ∃ g : G, B = lcoset g N } :=
+equiv.of_bijective (to_lcosets N) bijective_to_lcosets
+
+theorem card_quotient_eq_mul [fintype G] (N : normal G) : 
+  fincard' G = fincard' N * fincard' (G /ₘ N) :=
+begin
+  rw @lagrange _ _ (N : subgroup G),
+  congr' 1, exact of_equiv (to_lcosets_equiv N).symm
 end
 
 end lagrange
