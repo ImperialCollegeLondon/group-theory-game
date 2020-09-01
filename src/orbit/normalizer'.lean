@@ -104,6 +104,14 @@ theorem sylow_one_part1 [fintype G]
 
 --need to define is_sylow_p_subgroup
 
+
+def conjugate_iso (g : G) (H : subgroup G) : H ≅ conjugate_subgroup g H :=
+{ to_fun := λ (h : H) , g * h * g⁻¹ , --why is it not working?
+  map_mul' := _,
+  is_bijective := _ }
+
+
+
 lemma conjugates_eq_cardinality (g : G) (H : subgroup G) : fincard' H = fincard' (conjugate_subgroup g H) := sorry 
 
 /-def conjugate_isomorphic (g : G) (H : subgroup G): H ≅ conjugate_subgroup g H :=
