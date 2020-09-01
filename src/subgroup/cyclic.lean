@@ -29,30 +29,23 @@ lemma C_infty_generator :
   closure ({(1 : ℤ)} : set C_infty) = ⊤ :=
 begin
   rw eq_top_iff,
-  intros x h37,
-  clear h37,
-  show x ∈ (closure (({1} : set ℤ)) : subgroup C_infty),
+  intros x _,
+  change _ ∈ (closure ({1} : set ℤ) : subgroup C_infty),
   rw mem_closure_iff,
   intros H hH,
   rw singleton_subset_iff at hH,
   convert @pow_mem _ _ H 1 x hH,
   unfold group.pow,
   apply int.induction_on x,
-  { refl },
-  { intros i hi,
-    rw group.iterate_succ,
-    rw ←hi,
-    exact add_comm (i : ℤ) 1,
-  },
-  { intros i hi,
-    rw sub_eq_add_neg,
-    rw add_comm,
-    rw ←int.iterate.comp,
-    rw ←hi,
-    rw int.iterate.neg_one,
-    refl }
+    { refl },
+    { intros i hi,
+      rw [group.iterate_succ, ←hi],
+      exact add_comm (i : ℤ) 1 },
+    { intros i hi,
+      rw [sub_eq_add_neg, add_comm, ← int.iterate.comp, 
+          ← hi, int.iterate.neg_one],
+      refl }
 end
-
 
 def order_map (g : G) : C_infty →* G := 
 { to_fun := λ n, ⦃n⦄^g,
@@ -92,11 +85,7 @@ instance cyclic.comm_group (k : ℤ) : comm_group (cyclic k) :=
 
 def generator {n : ℕ} : cyclic n := quotient.mk _ (1 : ℤ)
 
---#check closure_image
---#check map_closure
-
 variable (n : ℕ)
-
 local notation `q` := quotient.mk (mod n)
 
 lemma generator_generates (n : ℕ) :
@@ -131,21 +120,18 @@ begin
       right, right, linarith,
   rcases h with rfl | h | h,
   { simpa [sub_eq_zero] using hd },
-  { have hd2 : a - b ≤ -n,
-      rw hd,
-      convert int.mul_le_mul_of_nonneg_left h (show (0 : ℤ) ≤ n, by linarith),
-      ring,
-    exfalso,
-    linarith },
-  { have hd2 : (n : ℤ) ≤ a - b,
-      rw hd,
-      convert int.mul_le_mul_of_nonneg_left h (show (0 : ℤ) ≤ n, by linarith),
-      ring,
-    exfalso,
-    linarith },
+    { have hd2 : a - b ≤ -n,
+        rw hd,
+        convert int.mul_le_mul_of_nonneg_left h (show (0 : ℤ) ≤ n, by linarith),
+        ring,
+      linarith },
+    { have hd2 : (n : ℤ) ≤ a - b,
+        rw hd,
+        convert int.mul_le_mul_of_nonneg_left h (show (0 : ℤ) ≤ n, by linarith),
+        ring,
+      linarith },
 end
 
---set_option pp.proofs true
 noncomputable def fin.equiv (hn : 0 < n) : fin n ≃ cyclic n :=
 { to_fun := λ i, q (i.val : ℤ),
   inv_fun := λ x, ⟨int.nat_abs ((inv_fun_aux n x).val % (n : ℤ)),
@@ -160,10 +146,9 @@ noncomputable def fin.equiv (hn : 0 < n) : fin n ≃ cyclic n :=
   left_inv := begin
     rintro ⟨x, hx⟩,
     tidy,
-    have h : (x : ℤ).nat_abs = x := int.nat_abs_of_nat x,
-    convert h,
-    suffices : ((inv_fun_aux n (⇑(mk (mod ↑n)) (x : ℤ))).val % ↑n : ℤ) = x,
-    exact this,
+    convert (int.nat_abs_of_nat x),
+    suffices : ((inv_fun_aux n ((mk (mod ↑n)) (x : ℤ))).val % n : ℤ) = x,
+      exact this,
     have h2 := (inv_fun_aux n (q (x : ℤ))).2,
     change q _ = q _ at h2,
     generalize h3 : (inv_fun_aux n (⇑(mk (mod ↑n)) (x : ℤ))).val = z,
@@ -174,52 +159,37 @@ noncomputable def fin.equiv (hn : 0 < n) : fin n ≃ cyclic n :=
     change (-(x : ℤ)) + (z : ℤ) = _ at hd,
     have hn2 : (n : ℤ) ≠ 0 := by linarith,
     apply useful n,
-    { refine int.mod_nonneg _ hn2 },
-    { convert int.mod_lt _ hn2, simp },
-    { linarith },
-    { norm_num, exact hx },
-    { rw neg_add_eq_iff_eq_add at hd,
-      rw hd,
-      use 0,
-      rw mul_zero,
-      rw sub_eq_zero,
-      suffices : (x : ℤ) % n = x,
-        simpa,
-      apply int.mod_eq_of_lt, linarith, norm_num, assumption },
+      { refine int.mod_nonneg _ hn2 },
+      { convert int.mod_lt _ hn2, simp },
+      { linarith },
+      { norm_num, exact hx },
+      { rw neg_add_eq_iff_eq_add at hd,
+        rw hd, use 0, rw [mul_zero, sub_eq_zero],
+        suffices : (x : ℤ) % n = x,
+          simpa,
+        apply int.mod_eq_of_lt, linarith, norm_num, assumption }
   end,
   right_inv := begin
     intro x,
     have h : q _ = x := (inv_fun_aux n x).2,
-    simp,
+      simp,
     convert h using 1,
     apply mk_eq'.2,
-    clear h,
     let z : ℤ := (inv_fun_aux n x).val,
     change -z + int.nat_abs (z % n) ∈ _,
     have h := int.mod_add_div z n,
-    conv_lhs begin
-      congr,rw ←h,
-    end,
-    have h2 : 0 ≤ z % n := int.mod_nonneg _ (by linarith : (n : ℤ) ≠ (0 : ℤ) ),
-    use -(z / ↑n),
-    rw ←int.eq_nat_abs_of_zero_le h2,
+    conv_lhs begin congr, rw ←h, end,
+    use -(z / ↑n), 
+    rw ←int.eq_nat_abs_of_zero_le 
+      (int.mod_nonneg _ (by linarith : (n : ℤ) ≠ (0 : ℤ) )), 
     ring
-  end,
-} 
+  end } 
 
 lemma fincard_cyclic (hn : 0 < n) : fincard' (cyclic n) = n :=
 begin
-  rw ←fincard.of_equiv (fin.equiv n hn),
-  rw ← fincard.card_eq_fincard,
+  rw [←fincard.of_equiv (fin.equiv n hn), ← fincard.card_eq_fincard],
   exact fintype.card_fin n,
 end
-
--- noncomputable instance (hn : 0 < n) : fintype (cyclic n) :=
--- { elems := finset.map (fin.coe n) $ finset.range n,
---   complete := begin
-        
---   end
--- }
 
 end cyclic
 
