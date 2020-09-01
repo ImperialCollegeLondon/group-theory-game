@@ -73,6 +73,9 @@ def infi (H : ι → subgroup G) : subgroup G :=
 
 def closure (S : set G) : subgroup G := Inf {H | S ⊆ H}
 
+lemma mem_closure_iff {S : set G} {x : G} : x ∈ closure S ↔ ∀ H : subgroup G, S ⊆ H → x ∈ H :=
+mem_bInter_iff
+
 /- We will now prove some lemmas that are helpful in proving subgroups 
 form a galois_insertion with the coercion to set-/
 
