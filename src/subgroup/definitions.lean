@@ -1,6 +1,6 @@
 import group.theorems -- basic interface for groups
-import group_theory.group_action
 import for_mathlib.finsum
+import group.group_powers
 /-!
 
 Basic definitions for subgroups in group theory.
@@ -11,6 +11,8 @@ Not for the mathematician beginner.
 -- We're always overwriting group theory here so we always work in
 -- a namespace
 namespace mygroup
+
+open mygroup.group
 
 /- subgroups (bundled) -/
 
@@ -71,6 +73,24 @@ theorem mul_mem {x y : G} : x ∈ H → y ∈ H → x * y ∈ H := subgroup.mul_
 
 /-- A subgroup is closed under inverse -/
 theorem inv_mem {x : G} : x ∈ H → x⁻¹ ∈ H := subgroup.inv_mem' _ 
+
+theorem pow_mem {x : G} {n : ℤ} : x ∈ H → ⦃n⦄^x ∈ H :=
+begin
+  intro hx,
+  apply int.induction_on n,
+  { rw group.zero_pow, exact H.one_mem },
+  { intros i hi,
+    convert H.mul_mem hi hx,
+    rw group.pow_add,
+    rw group.one_pow,
+  },
+  { intros i hi,
+    convert H.mul_mem hi (H.inv_mem hx),
+    rw ←group.pow_neg_one_inv,
+    rw ←group.pow_add,
+    congr'
+  }
+end
 
 @[simp] theorem inv_mem_iff {x :G} : x⁻¹ ∈ H ↔ x ∈ H := ⟨λ hx, group.inv_inv x ▸ H.inv_mem hx , H.inv_mem ⟩ 
 

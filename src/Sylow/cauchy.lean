@@ -1,13 +1,8 @@
 import tactic 
 import subgroup.theorems
 import data.zmod.basic
-/-import group_theory.group_action
-import group_theory.quotient_group
-import group_theory.order_of_element
-import data.zmod.basic
-import data.fintype.card
-import data.list.rotate
--/
+import subgroup.cyclic
+
 /-!
 # Cauchy's Theorem.
 
@@ -24,7 +19,7 @@ $G$ has an element of order $p$.
 [group G]
 (n : ℕ)
 
-* `array_prod_eq_one : set (fin n → G)` : lists of length n in G whose product is 1
+* `array_prod_eq_one : set (vector G n)` : lists of length n in G whose product is 1
 
 -/
 
@@ -33,12 +28,11 @@ $G$ has an element of order $p$.
 namespace mygroup
 
 open equiv fintype finset mul_action function
-open equiv.perm subgroup list quotient_group
-
-
+open equiv.perm mygroup.subgroup list mygroup.group
 
 
 open_locale big_operators
+
 universes u v w
 
 local attribute [instance, priority 10] subtype.fintype set_fintype classical.prop_decidable
@@ -74,13 +68,12 @@ variables {G : Type} [group G]
 --#check @mul_left_inj
 --#check @mul_right_cancel_iff
 
-#check mul_right_cancel_iff
-#print mul_right_cancel_iff
+open mygroup.group
 
-def group.mul_left_inj (a b c : G) : b * a = c * a ↔ b = c :=
+lemma group.mul_left_inj (a b c : G) : b * a = c * a ↔ b = c :=
 begin
   --  **TODO(anyone)** -- why can't we remove "group" here?
-  exact group.mul_right_cancel_iff a b c,
+  exact mul_right_cancel_iff a b c,
 end
 
 --#check @inv_mul_self
@@ -98,44 +91,63 @@ calc (a::l : list G).prod = foldl (*) (a * 1) l :
 
 /-- Given a vector `v` of length `n`, make a vector of length `n+1` whose product is `1`,
 by consing the the inverse of the product of `v`. -/
--- ** TODO ** I thought we were using 
-def mk_vector_prod_eq_one (n : ℕ) (v : vector G n) : vector G (n+1) :=
+@[reducible] def vector.to_succ_prod_eq_one {n : ℕ} (v : vector G n) : vector G (n+1) :=
 v.to_list.prod⁻¹ :: v
-
 
 --Is something missing here? Should we turn mk_vector_prod_eq_one into a list or a set?
 --Copied the following bit from library
-lemma mk_vector_prod_eq_one_injective (n : ℕ) : injective (@mk_vector_prod_eq_one G _ n) :=
+lemma vector.to_succ_prod_eq_one_injective (n : ℕ) :
+  injective (@vector.to_succ_prod_eq_one G _ n) :=
 λ ⟨v, _⟩ ⟨w, _⟩ h, subtype.eq (show v = w, by injection h with h; injection h)
 
 /-- The type of vectors with terms from `G`, length `n`, and product equal to `1:G`. -/
-def vectors_prod_eq_one (G : Type*) [group G] (n : ℕ) : set (vector G n) :=
+@[reducible] def vector.prod_eq_one (G : Type) [group G] (n : ℕ) : set (vector G n) :=
 {v | v.to_list.prod = 1}
 
-
-
 lemma mem_vectors_prod_eq_one {n : ℕ} (v : vector G n) :
-  v ∈ vectors_prod_eq_one G n ↔ v.to_list.prod = 1 := iff.rfl
+  v ∈ vector.prod_eq_one G n ↔ v.to_list.prod = 1 := iff.rfl
+
+--#print vector.tail
+/-
+def vector.tail : Π {α : Type u} {n : ℕ}, vector α n → vector α (n - 1) :=
+λ {α : Type u} {n : ℕ}, vector.tail._main
+-/
+--def vector.tail' {α : Type u} {n : ℕ} : vector α n.succ → vector α n :=
+--vector.tail
 
 lemma mem_vectors_prod_eq_one_iff {n : ℕ} (v : vector G (n + 1)) :
-  v ∈ vectors_prod_eq_one G (n + 1) ↔ v ∈ set.range (@mk_vector_prod_eq_one G _ n) :=
+  v ∈ vector.prod_eq_one G (n + 1) ↔
+  v ∈ set.range (vector.to_succ_prod_eq_one : vector G n → vector G (n + 1)) :=
 ⟨λ (h : v.to_list.prod = 1), ⟨v.tail,
   begin
-    unfold mk_vector_prod_eq_one,
-    conv {to_rhs, rw ← vector.cons_head_tail v},
-    suffices : (v.tail.to_list.prod)⁻¹ = v.head,
-    { rw this },
-    rw [← group.mul_left_inj v.tail.to_list.prod, group.inv_mul_self, ← list.prod_cons,
-      ← vector.to_list_cons, vector.cons_head_tail, h]
-  end⟩,
-  λ ⟨w, hw⟩, by rw [mem_vectors_prod_eq_one, ← hw, mk_vector_prod_eq_one,
-    vector.to_list_cons, list.prod_cons, group.inv_mul_self]⟩
-
+    rcases v with ⟨l, hl⟩,
+    cases l with h t, cases hl,
+    simp at h,
+    simp [vector.tail],
+    apply vector.to_list_injective,
+    simp,
+    rw list.prod_cons at h,
+    apply mul_right_cancel t.prod,
+    rw h,
+    simp,
+  end⟩, 
+  begin
+    rintro ⟨⟨l, hl⟩, rfl⟩,
+    simp [list.prod_cons],
+  end⟩
+  
 /-- The rotation action of `zmod n` (viewed as multiplicative group) on
 `vectors_prod_eq_one G n`, where `G` is a multiplicative group. -/
 
+def cyclic.generator {n : ℕ} : cyclic n := quotient.mk _ (1 : ℤ)
+
+lemma cyclic.generator_generates (n : ℕ) :
+  closure ({cyclic.generator} : set (cyclic n)) = ⊤ :=
+sorry
+--{(@cyclic.generator n : cyclic n)} = ⊤ := sorry
+
 def rotate_vectors_prod_eq_one (G : Type) [group G] (n : ℕ)
-  (m : multiplicative (zmod n)) (v : vectors_prod_eq_one G n) : vectors_prod_eq_one G n :=
+  (m : cyclic n) (v : vector.prod_eq_one G n) : vector.prod_eq_one G n :=
 sorry
 --⟨⟨v.1.to_list.rotate m.val, by simp⟩, prod_rotate_eq_one_of_prod_eq_one v.2 _⟩
 

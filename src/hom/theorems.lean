@@ -260,6 +260,13 @@ begin
     apply le_closure }
 end
 
+theorem closure_singleton (f : G →* H) (g : G) :
+  closure ({f g} : set H) = map f (closure ({g})) :=
+begin
+  convert closure_image f ({g} : set G),
+  finish,
+end
+
 end subgroup
 
 namespace quotient

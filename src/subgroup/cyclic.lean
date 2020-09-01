@@ -25,6 +25,17 @@ instance : comm_group C_infty :=
 lemma C_infty_mul_comm (x y : C_infty) : x * y = y * x := 
   comm_group.mul_comm x y
 
+lemma C_infty_generator : C_infty := (1 : ℤ)
+
+#check group.pow_one
+lemma C_infty_generator_generates :
+  closure ({C_infty_generator} : set C_infty) = ⊤ :=
+begin
+  rw eq_top_iff,
+  intros x h37,
+end
+
+
 def order_map (g : G) : C_infty →* G := 
 { to_fun := λ n, ⦃n⦄^g,
   map_mul' := λ x y, by rw ← group.pow_add; refl }
@@ -46,10 +57,12 @@ def mod (k : ℤ) : normal C_infty :=
 
 def cyclic (k : ℤ) := C_infty /ₘ mod k
 
-instance cyclic_group (k : ℤ) : group (cyclic k) := 
+namespace cyclic
+
+instance cyclic.group (k : ℤ) : group (cyclic k) := 
   by unfold cyclic; apply_instance
 
-instance cyclic_comm_group (k : ℤ) : comm_group (cyclic k) := 
+instance cyclic.comm_group (k : ℤ) : comm_group (cyclic k) := 
 { mul_comm := 
     begin
       intros x y,
@@ -58,5 +71,24 @@ instance cyclic_comm_group (k : ℤ) : comm_group (cyclic k) :=
       rw [coe_mul, C_infty_mul_comm, ← coe_mul]
     end,
   .. show group (cyclic k), by apply_instance }
+
+def generator {n : ℕ} : cyclic n := quotient.mk _ (1 : ℤ)
+
+--#check closure_image
+--#check map_closure
+
+
+lemma generator_generates (n : ℕ) :
+  closure ({cyclic.generator} : set (cyclic n)) = ⊤ :=
+begin
+  rw eq_top_iff,
+  rintro x h37,
+  let q := quotient.mk (mod n),
+  suffices : x ∈ map q (closure {(1 : ℤ)}),
+    rw ←closure_singleton at this,
+    exact this,
+  
+
+end
 
 end mygroup
