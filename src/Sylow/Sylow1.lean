@@ -181,6 +181,36 @@ begin
     refine le_trans _ hin, simp,
   specialize hi useful2,
   cases hi with H hH,
+  
+  have fact1: p ∣ index H,
+  {  unfold index,
+     rw [hG, hH],
+     rw [show n = i + (n - i), by  simp [← nat.add_sub_assoc useful2 _]],
+      rw [nat.pow_add, nat.mul_assoc, nat.mul_comm, nat.mul_div_assoc, nat.div_self _, nat.mul_assoc, nat.mul_one],
+      use p^(n - i - 1) * m,
+      ring,
+      rw nat.mul_assoc,
+      congr,
+      rw ← nat.pow_succ,
+      congr',
+      rw nat.succ_eq_add_one,
+      generalize h : n - i = w,
+      rw h at useful,
+      clear h,
+      refine (nat.sub_add_cancel _).symm,
+      linarith,
+     
+      change 0 < p^i,
+      refine nat.pow_pos _ i,
+      apply nat.prime.pos hp,
+      
+      refl},
+      
+     
+
+
+  },
+
   -- next goal: want N/H order a multiple of p
   -- then Cauchy gives you C-bar order p in N/H
   -- comap back to N
