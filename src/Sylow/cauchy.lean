@@ -3,6 +3,8 @@ import subgroup.theorems
 import data.zmod.basic
 import subgroup.cyclic
 import data.vector2
+import Sylow.prod_eq_one
+
 
 /-!
 # Cauchy's Theorem.
@@ -57,10 +59,6 @@ local attribute [instance, priority 10] subtype.fintype set_fintype classical.pr
 -- #check array -- for computing
 
 /-! # making X -/
-
-/-- The type of vectors with terms from `G`, length `n`, and product equal to `1:G`. -/
-def finmap.prod_eq_one (G : Type) [group G] (n : ℕ) : set (zmod n → G) :=
-{v : zmod n → G | Π a : zmod n, v a = 1}
 
 -- unused I think
 /-- The type of maps fin n → G with terms from `G`, length `n`, and product equal to `1:G`. -/
@@ -118,8 +116,7 @@ begin
   replace h :=congr_fun h (bij m),
   convert h; simp
 end
-lemma mem_vectors_prod_eq_one {n : ℕ} (v : zmod n → G) :
-  v ∈ finmap.prod_eq_one G n ↔ Π a : zmod n, v a = 1 := iff.rfl
+
 
 --#print vector.tail
 /-
@@ -131,7 +128,7 @@ def vector.tail : Π {α : Type u} {n : ℕ}, vector α n → vector α (n - 1) 
 
 -- we need this to count them
 lemma mem_vectors_prod_eq_one_iff {n : ℕ} (v : zmod (n + 1) →  G) :
-  v ∈ finmap.prod_eq_one G (n + 1) ↔
+  v ∈ (finmap.prod_eq_one : set (fin n.succ → G)) ↔
   v ∈ set.range (vector.to_succ_prod_eq_one : vector G n → (zmod (n + 1) →  G)) := 
 sorry
  /- 

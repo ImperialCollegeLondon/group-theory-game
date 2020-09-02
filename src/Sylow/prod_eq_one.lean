@@ -28,13 +28,6 @@ def zmod.S {m : ℕ} : zmod m ≃ zmod m := ⟨λ n, n + 1, λ n, n - 1,
   by {intro n, simp}, 
   by {intro n, simp}⟩
 
-instance (α : Type) : mygroup.group (α ≃ α) :=
-{ mul := function.swap equiv.trans,
-  one := equiv.refl _,
-  inv := equiv.symm,
-  mul_assoc := by intros; ext; refl,
-  one_mul := by intros; ext; refl,
-  mul_left_inv := by intros; ext; simp }
 
 lemma list.ext' {n : ℕ} {α : Type} {L M : list α} (hL : L.length = n)
   (hM : M.length = n) (hLM : ∀ (i : fin n),
@@ -165,8 +158,12 @@ namespace mygroup
 variables {G : Type} [group G]
 /-! ## the predicate -/
 /-- The type of vectors with terms from `G`, length `n`, and product equal to `1:G`. -/
-def finmap.prod_eq_one {n : ℕ} (f : fin n → G) : Prop :=
-(vector.of_fn f).to_list.prod' = 1
+def finmap.prod_eq_one {n : ℕ} : set (fin n → G) :=
+λ f, (vector.of_fn f).to_list.prod' = 1
+
+lemma mem_finmap_prod_eq_one {n : ℕ} (v : fin n → G) :
+  v ∈ (finmap.prod_eq_one : set (fin n → G)) ↔ (vector.of_fn v).to_list.prod' = 1 :=
+iff.rfl
 
 variables {n : ℕ}
 
@@ -184,6 +181,7 @@ def fin.S.zero : fin 0 ≃ fin 0 := equiv.refl _
 def fin.S (n : ℕ) : fin n ≃ fin n := nat.rec_on n fin.S.zero (λ d IH,
   fin.S.succ)
 
+/-- the twist by fin.S.succ preserves the property that prod eq one -/
 theorem finmap.prod_eq_one_succ (f : fin n.succ → G) :
 finmap.prod_eq_one f → finmap.prod_eq_one (f ∘ fin.S.succ) :=
 begin

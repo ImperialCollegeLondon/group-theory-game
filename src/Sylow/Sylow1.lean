@@ -234,7 +234,7 @@ begin
      -- rw ← @index_eq_card_quotient (normal_in_normalizer H),
         
 
-  sorry
+  sorry, sorry,
   -- next goal: want N/H order a multiple of p
   -- then Cauchy gives you C-bar order p in N/H
   -- comap back to N

@@ -25,6 +25,15 @@ local notation g ` • `:70  s:70  := μ.to_fun g s
 
 namespace laction
 
+@[ext] lemma ext (μ1 μ2 : laction G S)
+  (h : ∀ (g : G) (s : S), μ1.to_fun g s = μ2.to_fun g s) :
+μ1 = μ2 :=
+begin
+  cases μ1, cases μ2, simp * at *,
+  ext g s, apply h,
+end
+
+
 -- APIs for left actions 
 
 @[simp] lemma map_one (μ : laction G S) (s : S) : (1 •[μ] s) = s := μ.map_one' _
