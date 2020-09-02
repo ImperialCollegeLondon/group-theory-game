@@ -110,26 +110,58 @@ lemma index_normalizer_congr_index_modp [fintype G]
 --We want to show that hgH=gH ∀ h ∈ H ↔ g ∈ normalizer H. Hence |X^H|= |(normalizer H)/H|.
 -- Applying the lemma card_set_congr_card_fixed_points_mod_prime 
 --we show that |(normalizer H)/H| ≡ |G/H|[MOD p], i.e. index' (normalizer (H : set G)) H ≡ index H [MOD p] 
+lemma card_subgroup_eq_card_carrier (H : subgroup G) : fincard' H = fincard' H.carrier := 
+begin
+  apply fincard.of_equiv,
+  use [id, id];
+  {intros x, refl}
+end  
 
+lemma zero_lt_card_subgroup [fintype G] (H : subgroup G): 0 < fincard' H  := 
+begin
+  suffices: fincard' H ≠ 0,
+    exact nat.pos_of_ne_zero this,
+  intro h,
+  rw [card_subgroup_eq_card_carrier, fincard.card_eq_zero_iff H.carrier] at h,
+  rw [← mem_empty_eq (1 : G), ← h],
+  exact H.one_mem,
+end  
 
 lemma normalizer_neq_subgroup [fintype G] 
   (H : subgroup G) {p : ℕ} (hp: p.prime) (h: is_p_subgroup H p) : 
   p ∣ index H → normalizer (H : set G) ≠ H := 
   begin
     intro hH,
-    rw nat.dvd_iff_mod_eq_zero at hH,
+    
     have h1: index' (normalizer (H : set G)) H  ≡ H.index [MOD p],
       apply index_normalizer_congr_index_modp hp H h,
     
     have h2: p ∣ (index' (normalizer (H : set G)) H),
     { refine nat.modeq.modeq_zero_iff.mp _,
-      sorry},
+      apply nat.modeq.trans h1,
+      apply nat.modeq.symm,
+      apply nat.modeq.modeq_of_dvd,
+      rw [int.coe_nat_zero, sub_zero],
+      norm_cast,
+      assumption
+    },
     have h3: (index' (normalizer (H : set G)) H) ≠ 1,
-      {sorry},
+      { intro hfalse,
+        rw hfalse at h2,
+        exact nat.prime.not_dvd_one hp h2
+      },
+    
     have h4: fincard' (normalizer (H : set G)) ≠ fincard' H,
-      { sorry },
-    sorry
-    --rw nat.modeq.dvd_of_modeq at this,  
+      { unfold index' at h3,
+        intro hfalse,
+        rw hfalse at h3,
+        apply h3,
+        apply nat.div_self,
+        apply zero_lt_card_subgroup,
+         },
+    intro hfalse, 
+    apply h4,
+    rw hfalse, 
   end  
 --We rewrite p ∣ (index' (normalizer (H : set G)) H) using the previous lemma.
 --This implies (index' (normalizer (H : set G)) H) ≠ 1, and hence we get the conclusion.
@@ -170,10 +202,10 @@ def conjugate_iso (g : G) (H : subgroup G) : H ≅ conjugate_subgroup g H :=
 { to_fun := λ (h : H) , ⟨g * h * g⁻¹, begin use [h, h.2] end⟩,
   map_mul' := 
     begin
-      intros x y,
-      rw ← group.mul_one x,
-             sorry     
-    --  rw ← group.mul_left_inv g,     
+      rintro ⟨x, hx⟩ ⟨y, hy⟩,
+      congr' 1,
+      change g * (x * y) * g⁻¹ = _,
+      simp [group.mul_assoc],   
     end    ,
   is_bijective := 
     begin
@@ -182,7 +214,8 @@ def conjugate_iso (g : G) (H : subgroup G) : H ≅ conjugate_subgroup g H :=
             dsimp at *,
             cases y with y hy, 
             cases x with x hx, 
-            sorry           
+            rw subtype.mk_eq_mk at hxy,
+            simpa using hxy,        
           },
         {   sorry}
     end     }
