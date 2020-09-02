@@ -55,10 +55,36 @@ def dumb_action (H : subgroup  G): laction G (lcosets H) :=
   begin 
     intro S,
     unfold dumb_fun,
-    sorry,
-    --rw mem_set_of_eq,
+    dsimp,
+    unfold dumb_fun',
+    simp
   end,  
-  map_assoc' := sorry }
+  map_assoc' := 
+  begin
+    intros g h S,
+    rcases S with ⟨_, g', rfl⟩,
+    unfold dumb_fun,
+    unfold dumb_fun',
+    simp,
+    ext1,
+    norm_num,
+    split,
+    {   intro hx,
+        rcases hx with ⟨_, ⟨t, ⟨s, ⟨hs, ht⟩⟩, rfl⟩, rfl⟩,
+        use t,
+        split,
+           use [s, hs], exact ht,
+           rw group.mul_assoc
+    },
+    {   intro hx,
+        rcases hx with ⟨_, ⟨s, hs, rfl⟩, rfl⟩,
+        split,    --why all the splits?
+        split,
+        split, 
+        use [s, hs], 
+        simp [group.mul_assoc]        
+    }    
+  end }
 
 lemma index_normalizer_congr_index_modp [fintype G] 
   {p : ℕ} (hp: p.prime) (H : subgroup G) (h: is_p_subgroup H p) :
