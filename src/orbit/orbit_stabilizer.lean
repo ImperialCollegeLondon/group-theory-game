@@ -617,8 +617,7 @@ def conjugation_action [group G]: laction G (subgroup G) :=
         assumption },
     end }
 
--- Consider the group G acting on the set of all its subgroups by conjugation. Then stab H = norm H.
--- Where do I specify the conjugation? SHOULD DO NORMALIZER EQ STABILIZER
+
 lemma mem_normalizer_iff [group G] {H : subgroup G} (x : G):
   x ∈ normalizer H.carrier ↔ ∀ k : G, k ∈ H ↔ x * k * x⁻¹ ∈ H := by refl
 

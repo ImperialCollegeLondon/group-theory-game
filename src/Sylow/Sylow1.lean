@@ -1,5 +1,6 @@
 import orbit.orbit_stabilizer
 import subgroup.definitions
+import Sylow.cauchy
 namespace mygroup
 open classical function set mygroup.subgroup mygroup.group
 variables {G : Type} [group G]
@@ -86,9 +87,18 @@ def dumb_action (H : subgroup  G): laction G (lcosets H) :=
         }    
   end }
 
+--Do I use this to show H is normal in its normalizer?
+def normal_in_normalizer (H : subgroup G): normal (normalizer H.carrier) := sorry
+
 lemma index_normalizer_congr_index_modp [fintype G] 
   {p : ℕ} (hp: p.prime) (H : subgroup G) (h: is_p_subgroup H p) :
-  index' (normalizer (H : set G)) H ≡ index H [MOD p] := sorry  
+  index' (normalizer (H : set G)) H ≡ index H [MOD p] := 
+  begin
+    --have claim: ∀ g : G, (g ⋆ H) ∈ fixed_points (dumb_action H) ↔ g ∈ normalizer H,
+    --    {sorry},
+    sorry  
+  end    
+
 --I want to say that here H acts on the set of cosets X = G/H by φ : H × X → X, (h, gH) ↦ hgH. 
 --Then the set of points fixed by the action of H is X^H = {gH ∈ X | hgH = gH ∀ h ∈ H}
 --We want to show that hgH=gH ∀ h ∈ H ↔ g ∈ normalizer H. Hence |X^H|= |(normalizer H)/H|.
@@ -104,36 +114,74 @@ lemma normalizer_neq_subgroup [fintype G]
 
 
 theorem sylow_one_part1 [fintype G] 
-  {p m n: ℕ} {hp : p.prime} {hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m} : 
-  ∀ (i ≤ n), ∃ H : subgroup G, fincard' H = p ^ i := sorry
+  {p m n: ℕ} {hp : p.prime} {hn : n ≥ 1}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m} : 
+  ∀ (i ≤ n), ∃ H : subgroup G, fincard' H = p ^ i := 
+begin
+  intros i hi,
+have claim : ∃ H : subgroup G, fincard' H = p,
+  { apply cauchy,
+        exact hp,
+
+        rw hG, refine dvd_mul_of_dvd_left _ m,
+        refine (nat.dvd_prime_pow hp).mpr _,
+        use 1, simpa [nat.pow_one],
+  },
+  induction i with i hi,   
+  use ⊥ ,
+  rw nat.pow_zero,
+  exact fincard_bot,
+  rw nat.succ_eq_add_one at *,  --don't I need strict inequality at hs?
+  rw nat.pow_succ,
+
+ -- cases claim with H hH,
+
+  --Let H < G s.t. fincard' H = p ^i . Then p ∣ index H → p∣ index' normalizer H H
+  sorry    
+end    
+/-theorem cauchy (G : Type) [group G] [fintype G] (p : ℕ) (hp : p.prime)
+  (hpG : p ∣ fincard' G) : ∃ H : subgroup G, fincard' H = p := -/
+
 -- and want to write that each of these subgroups of cardinality p^i is normal 
 -- in a subgroup of cardinality p^(i+1)
 
-/-class sylow_p_subgroup (G : Type) [group G] [fintype G] (p : ℕ) extends p_subgroup G :=
-(maximal: ⊥ )-/
-
---need to define is_sylow_p_subgroup
-
-
 def conjugate_iso (g : G) (H : subgroup G) : H ≅ conjugate_subgroup g H :=
-{ to_fun := λ (h : H) , ⟨g * h * g⁻¹, begin use [h, h.2] end⟩,-- --why is it not working?
-  map_mul' := sorry,
-  is_bijective := sorry }
+{ to_fun := λ (h : H) , ⟨g * h * g⁻¹, begin use [h, h.2] end⟩,
+  map_mul' := 
+    begin
+      intros x y,
+      rw ← group.mul_one x,
+
+       sorry     
+    --  rw ← group.mul_left_inv g,     
+    end    ,
+  is_bijective := 
+    begin
+      split,
+        {   intros x y hxy ,
+            dsimp at *,
+            cases y with y hy, 
+            cases x with x hx, 
+            sorry           
+          },
+        {   sorry}
+    end     }
 
 
 -- group iso -> equiv -> same cardinality
 lemma conjugates_eq_cardinality (g : G) (H : subgroup G) :
   fincard' H = fincard' (conjugate_subgroup g H) := sorry 
 
-/-theorem sylow_two [fintype G]{p : ℕ} {hp : p.prime} (h₁ : is_sylow_p_subgroup H p)(h₂ : is_sylow_p_subgroup K p) : 
-∃ (g : G), H = conjugate_subgroup g K  := sorry -/ -- need coercion from sylow p subgroup to subgroup
+def is_sylow_p_subgroup (K : subgroup G) {p : ℕ} (hp : p.prime) : Prop := sorry
+
+theorem sylow_two [fintype G]{p : ℕ} {hp : p.prime} (H K : subgroup G) (h₁ : is_sylow_p_subgroup H hp)(h₂ : is_sylow_p_subgroup K hp) : 
+∃ (g : G), H = conjugate_subgroup g K  := sorry  -- need coercion from sylow p subgroup to subgroup
 -- Consider the action of K on the set X of cosets of H in G μ: K × X → X, (y, xH) ↦ yxH. 
 --Consider the points fixed by the action. Notice that since H is a Sylow p subgroup then p does not divide 
 --fincard' X = index H, hence fincard'(fixed points μ ) ≠ 0. We then want to show that xH ∈ fixed_points μ 
 --implies that the conjugate of K by x is a subgroup of H. Since conjugates are isomorphic they have the same cardinality.
 --Hence x K x⁻¹ = H.
 
-def is_sylow_p_subgroup (K : subgroup G) {p : ℕ} (hp : p.prime) : Prop := sorry
+
 
 --Define the number of Sylow p-subgroups of G. 
 noncomputable def number_sylow_p (G : Type) [group G] {p : ℕ} (hp : p.prime) := fincard' {K : subgroup G // is_sylow_p_subgroup K hp}
