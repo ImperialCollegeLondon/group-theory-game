@@ -1,13 +1,11 @@
 import Sylow.cauchy
 import orbit.normalizer'
+
 namespace mygroup
-open classical function set mygroup.subgroup mygroup.group
+
 variables {G : Type} [group G]
+open classical function set mygroup.subgroup mygroup.group mygroup.group_hom
 
-
-
-open mygroup.subgroup
-open mygroup.group_hom
 -- Definition of p-group for finite groups, not using definition of order of 
 -- an element explicitly
 class p_group [fintype G] (p : ℕ) extends group G :=
@@ -16,7 +14,6 @@ class p_group [fintype G] (p : ℕ) extends group G :=
 --A p-subgroup is a subgroup of a group G which is itself a p-group
 class p_subgroup (G : Type) [group G] [fintype G] (p : ℕ) extends subgroup G :=
 (card_pow_p: ∃ n : ℕ , fincard' (carrier) = p^n)
-
 
 def is_p_subgroup (H : subgroup G) (p : ℕ) : Prop := 
   ∃ n : ℕ , fincard' (H) = p ^ n 
@@ -32,137 +29,82 @@ lemma dumb_fun_lcoset_eq (g h : G) (H : subgroup G) :
   dumb_fun' H h (g ⋆ H) = h * g ⋆ H :=
 begin
   ext, split, 
-    { rintro ⟨x, ⟨h', hh', rfl⟩, rfl⟩,
-      exact ⟨h', hh', (group.mul_assoc _ _ _).symm⟩ },
-    { rintro ⟨h', hh', rfl⟩,
-      refine ⟨g * h', ⟨h', hh', rfl⟩, group.mul_assoc _ _ _⟩ }
+  { rintro ⟨x, ⟨h', hh', rfl⟩, rfl⟩,
+    exact ⟨h', hh', (group.mul_assoc _ _ _).symm⟩ },
+  { rintro ⟨h', hh', rfl⟩,
+    refine ⟨g * h', ⟨h', hh', rfl⟩, group.mul_assoc _ _ _⟩ }
 end
 
 def dumb_fun (H : subgroup G) (g : G) (X : lcosets H) : lcosets H :=
 ⟨dumb_fun' H g X.1, 
-begin
-  rcases X with ⟨g' , ⟨w, rfl⟩⟩, 
-  use (g * w),
-  unfold dumb_fun',
-  ext, 
-  split,
-  { intro hx,
+  begin
+  rcases X with ⟨g', ⟨w, rfl⟩⟩, 
+  use g * w, ext, split,
+    { intro hx,
     rcases hx with ⟨hx_w, ⟨h, hh, rfl⟩, rfl⟩,
     use h,
-    simpa [group.mul_assoc] 
-  },
-  { rintro ⟨h, hh, rfl⟩,
+    simpa [group.mul_assoc] },
+    { rintro ⟨h, hh, rfl⟩,
     use w * h,
-    simpa [group.mul_assoc]    
-  },
-end⟩
+    simpa [group.mul_assoc] }
+  end⟩
 
+def laction.comap {H : Type} [group H] (f : H →* G) (S : Type) (μ : laction G S) :
+  laction H S := 
+{ to_fun := λ h s, f h •[μ] s,
+  map_one' := λ s, (map_one f).symm ▸ μ.map_one s,
+  map_assoc' := λ g h s, (map_mul f g h).symm ▸ μ.map_assoc' _ _ _ }
 
-
-def dumb_action (H : subgroup  G): laction G (lcosets H) := 
+def dumb_action (H : subgroup  G) : laction G (lcosets H) := 
 { to_fun := dumb_fun H,
   map_one' := 
-    begin 
-        intro S,
-        unfold dumb_fun,
-        dsimp,
-        unfold dumb_fun',
-        simp
-    end,  
+  begin 
+    intro S, unfold dumb_fun, dsimp, unfold dumb_fun', simp
+  end,  
   map_assoc' := 
-    begin
-        intros g h S,
-        rcases S with ⟨_, g', rfl⟩,
-        unfold dumb_fun,
-        unfold dumb_fun',
-        norm_num,
-        ext1,
-        norm_num,
-        split,
-        {   intro hx,
-            rcases hx with ⟨_, ⟨t, ⟨s, ⟨hs, ht⟩⟩, rfl⟩, rfl⟩,
-            use t,
-            split,
-            use [s, hs], exact ht,
-            rw group.mul_assoc
-        },
-        {   intro hx,
-            rcases hx with ⟨_, ⟨s, hs, rfl⟩, rfl⟩,
-            split,    --why all the splits?
-            split,
-            split, 
-            use [s, hs], 
-            simp [group.mul_assoc]        
-        }    
+  begin
+    rintros g h ⟨_, g', rfl⟩,
+    unfold dumb_fun, unfold dumb_fun',
+    norm_num, ext1, norm_num, split,
+      { rintro ⟨_, ⟨t, ⟨s, ⟨hs, ht⟩⟩, rfl⟩, rfl⟩,
+        use t, split, use [s, hs], exact ht,
+        rw group.mul_assoc },
+      { rintro ⟨_, ⟨s, hs, rfl⟩, rfl⟩,
+        iterate 3 { split }, use [s, hs], 
+        simp [group.mul_assoc] }    
   end }
 
---Do I use this to show H is normal in its normalizer?
-/-def normal_in_normalizer (H : subgroup G): normal (normalizer H.carrier) := 
+def dumb_action' (H : subgroup G) : laction H (lcosets H) :=
+laction.comap (𝒾 H) (lcosets H) (dumb_action H)
+
+/-  def normal_in_normalizer (H : subgroup G): normal (normalizer H.carrier) := 
 { conj_mem' := 
   begin 
    sorry   
   end,
-  .. comap (𝒾 (normalizer H.carrier)) H }-/
+  .. comap (𝒾 (normalizer H.carrier)) H } -/
 
-def to_lcosets (g : G) (H : subgroup G) : lcosets H := ⟨g ⋆ H, ⟨g, rfl ⟩⟩
+def to_lcosets (g : G) (H : subgroup G) : lcosets H := ⟨g ⋆ H, ⟨g, rfl⟩⟩
 
 lemma foo (H : subgroup G) (g : G):
-to_lcosets g H  ∈ (fixed_points (dumb_action H)) ↔ g ∈ normalizer' H :=
+to_lcosets g H  ∈ (fixed_points (dumb_action' H)) ↔ g ∈ normalizer' H :=
 begin
-
-  rw mem_fixed_points_iff,
- -- rw mem_normalizer'_iff,
-  unfold dumb_action,
-  simp,
-  unfold dumb_fun,
-  unfold to_lcosets,
-  simp_rw [subtype.mk_eq_mk],
-  change (∀ (x : G), dumb_fun' H x (g ⋆ H) = g ⋆ H) ↔ _,
-  simp_rw [dumb_fun_lcoset_eq, lagrange.lcoset_eq],
-  rw mem_normalizer'_iff,
-  split,
-  intros h k,
-  split, intro, sorry,
-  
-
-  
+  sorry  
 end  
-
-
 
 lemma index_normalizer_congr_index_modp [fintype G] 
   {p : ℕ} (hp: p.prime) (H : subgroup G) (h: is_p_subgroup H p) :
   index' (normalizer (H : set G)) H ≡ index H [MOD p] := 
   begin
-    have claim: ∀ g : G, to_lcosets g H  ∈ (fixed_points (dumb_action H)) ↔ g ∈ normalizer H.carrier,
-      { intro g,
-        rw mem_normalizer_iff,
-        rw mem_fixed_points_iff,
-        unfold dumb_action,
-        simp,
-        split,
-          intros hfun k,
-          unfold dumb_fun at hfun,
-          unfold dumb_fun' at hfun,
-          unfold to_lcosets at hfun,
-          split,
-            intro hk,
-            have : g * k ∈ g ⋆ H ,
-              use [k, hk],
-          specialize hfun ( g * k * g⁻¹ ) ,
-          rw subtype.mk_eq_mk at hfun,
-          rw ← hfun at this,
-          rcases this with ⟨ x, ⟨l , hl, rfl⟩, hx ⟩,
-          rw hx,       
-                           
-        },
-    have: fincard'(fixed_points (dumb_action H)) = (index' (normalizer (H : set G)) H),
-      { sorry },
-    have: index H = fincard' (lcosets H),
-      { sorry },  
-    have: index H ≡ (index' (normalizer (H : set G)) H)[MOD p],
-      apply card_set_congr_card_fixed_points_mod_prime _ _ _ _ _,  
-    sorry  
+  have claim: ∀ g : G, to_lcosets g H ∈ (fixed_points (dumb_action H)) ↔ g ∈ normalizer H.carrier,
+    { sorry },
+  have: fincard'(fixed_points (dumb_action H)) = (index' (normalizer (H : set G)) H),
+    { sorry },
+  have: index H = fincard' (lcosets H),
+    { sorry },  
+  have: index H ≡ (index' (normalizer (H : set G)) H)[MOD p],
+    -- apply card_set_congr_card_fixed_points_mod_prime _ _ _ _ _,  
+  sorry, sorry
   end    
 
 --I want to say that here H acts on the set of cosets X = G/H by φ : H × X → X, (h, gH) ↦ hgH. 
@@ -180,7 +122,7 @@ end
 lemma zero_lt_card_subgroup [fintype G] (H : subgroup G): 0 < fincard' H  := 
 begin
   suffices: fincard' H ≠ 0,
-    exact nat.pos_of_ne_zero this,
+  exact nat.pos_of_ne_zero this,
   intro h,
   rw [card_subgroup_eq_card_carrier, fincard.card_eq_zero_iff H.carrier] at h,
   rw [← mem_empty_eq (1 : G), ← h],
@@ -191,37 +133,37 @@ lemma normalizer_neq_subgroup [fintype G]
   (H : subgroup G) {p : ℕ} (hp: p.prime) (h: is_p_subgroup H p) : 
   p ∣ index H → normalizer (H : set G) ≠ H := 
   begin
-    intro hH,
-    
-    have h1: index' (normalizer (H : set G)) H  ≡ H.index [MOD p],
-      apply index_normalizer_congr_index_modp hp H h,
-    
-    have h2: p ∣ (index' (normalizer (H : set G)) H),
-    { refine nat.modeq.modeq_zero_iff.mp _,
-      apply nat.modeq.trans h1,
-      apply nat.modeq.symm,
-      apply nat.modeq.modeq_of_dvd,
-      rw [int.coe_nat_zero, sub_zero],
-      norm_cast,
-      assumption
+  intro hH,
+  
+  have h1: index' (normalizer (H : set G)) H  ≡ H.index [MOD p],
+    apply index_normalizer_congr_index_modp hp H h,
+  
+  have h2: p ∣ (index' (normalizer (H : set G)) H),
+  { refine nat.modeq.modeq_zero_iff.mp _,
+    apply nat.modeq.trans h1,
+    apply nat.modeq.symm,
+    apply nat.modeq.modeq_of_dvd,
+    rw [int.coe_nat_zero, sub_zero],
+    norm_cast,
+    assumption
+  },
+  have h3: (index' (normalizer (H : set G)) H) ≠ 1,
+    { intro hfalse,
+    rw hfalse at h2,
+    exact nat.prime.not_dvd_one hp h2
     },
-    have h3: (index' (normalizer (H : set G)) H) ≠ 1,
-      { intro hfalse,
-        rw hfalse at h2,
-        exact nat.prime.not_dvd_one hp h2
-      },
-    
-    have h4: fincard' (normalizer (H : set G)) ≠ fincard' H,
-      { unfold index' at h3,
-        intro hfalse,
-        rw hfalse at h3,
-        apply h3,
-        apply nat.div_self,
-        apply zero_lt_card_subgroup,
-         },
-    intro hfalse, 
-    apply h4,
-    rw hfalse, 
+  
+  have h4: fincard' (normalizer (H : set G)) ≠ fincard' H,
+    { unfold index' at h3,
+    intro hfalse,
+    rw hfalse at h3,
+    apply h3,
+    apply nat.div_self,
+    apply zero_lt_card_subgroup,
+     },
+  intro hfalse, 
+  apply h4,
+  rw hfalse, 
   end  
 
 theorem sylow_one_part1 [fintype G] 
@@ -230,13 +172,14 @@ theorem sylow_one_part1 [fintype G]
 begin
   intros i hi,
 have claim : ∃ H : subgroup G, fincard' H = p,
-  { apply cauchy,
-        exact hp,
+  sorry,
+  -- { apply cauchy,
+  --   exact hp,
 
-        rw hG, refine dvd_mul_of_dvd_left _ m,
-        refine (nat.dvd_prime_pow hp).mpr _,
-        use 1, simpa [nat.pow_one],
-  },
+  --   rw hG, refine dvd_mul_of_dvd_left _ m,
+  --   refine (nat.dvd_prime_pow hp).mpr _,
+  --   use 1, simpa [nat.pow_one],
+  -- },
   induction i with i hi,   
   use ⊥ ,
   rw nat.pow_zero,
@@ -258,28 +201,28 @@ end
 def conjugate_iso (g : G) (H : subgroup G) : H ≅ conjugate_subgroup g H :=
 { to_fun := λ (h : H) , ⟨g * h * g⁻¹, begin use [h, h.2] end⟩,
   map_mul' := 
-    begin
-      rintro ⟨x, hx⟩ ⟨y, hy⟩,
-      congr' 1,
-      change g * (x * y) * g⁻¹ = _,
-      simp [group.mul_assoc],   
-    end    ,
+  begin
+    rintro ⟨x, hx⟩ ⟨y, hy⟩,
+    congr' 1,
+    change g * (x * y) * g⁻¹ = _,
+    simp [group.mul_assoc],   
+  end    ,
   is_bijective := 
-    begin
-      split,
-        {   intros x y hxy ,
-            dsimp at *,
-            cases y with y hy, 
-            cases x with x hx, 
-            rw subtype.mk_eq_mk at hxy,
-            simpa using hxy,        
-          },
-        { unfold surjective,
-          rintro ⟨b, h, hh, rfl⟩,
-          use ⟨h, hh⟩, 
-          simp,    
-        }
-    end     }
+  begin
+    split,
+    {   intros x y hxy ,
+      dsimp at *,
+      cases y with y hy, 
+      cases x with x hx, 
+      rw subtype.mk_eq_mk at hxy,
+      simpa using hxy,        
+      },
+    { unfold surjective,
+      rintro ⟨b, h, hh, rfl⟩,
+      use ⟨h, hh⟩, 
+      simp,    
+    }
+  end     }
 
 
 
