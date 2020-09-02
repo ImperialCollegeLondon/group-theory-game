@@ -2,6 +2,7 @@ import tactic
 import subgroup.theorems
 import data.zmod.basic
 import subgroup.cyclic
+import data.vector2
 
 /-!
 # Cauchy's Theorem.
@@ -53,11 +54,13 @@ local attribute [instance, priority 10] subtype.fintype set_fintype classical.pr
 
 -/
 
+-- #check array -- for computing
+
 /-! # making X -/
 
 /-- The type of vectors with terms from `G`, length `n`, and product equal to `1:G`. -/
-def vector.prod_eq_one (G : Type) [group G] (n : ℕ) : set (vector G n) :=
-{v : vector G n | v.to_list.prod = 1}
+def finmap.prod_eq_one (G : Type) [group G] (n : ℕ) : set (zmod n → G) :=
+{v : zmod n → G | Π a : zmod n, v a = 1}
 
 -- unused I think
 /-- The type of maps fin n → G with terms from `G`, length `n`, and product equal to `1:G`. -/
@@ -87,17 +90,36 @@ calc (a::l : list G).prod = foldl (*) (a * 1) l :
 
 /-- Given a vector `v` of length `n`, make a vector of length `n+1` whose product is `1`,
 by consing the the inverse of the product of `v`. -/
-@[reducible] def vector.to_succ_prod_eq_one {n : ℕ} (v : vector G n) : vector G (n+1) :=
-v.to_list.prod⁻¹ :: v
+@[reducible] def vector.to_succ_prod_eq_one_aux {n : ℕ} (v : vector G n) :
+  option (fin n) → G
+| none := (v.to_list.prod)⁻¹
+| (some g) := v.nth g
 
---Is something missing here? Should we turn mk_vector_prod_eq_one into a list or a set?
---Copied the following bit from library
+def bij {n : ℕ} : option (fin n) ≃ zmod (n + 1) := sorry -- they have the same cardinality
+
+def vector.to_succ_prod_eq_one {n : ℕ} (v : vector G n) : zmod (n + 1) → G :=
+λ f, vector.to_succ_prod_eq_one_aux v $ bij.symm f
+
+lemma vector.to_succ_prod_eq_one_aux_injective (n : ℕ) :
+  injective (@vector.to_succ_prod_eq_one_aux G _ n) :=
+λ v w h,
+begin
+  ext m,
+  replace h :=congr_fun h (some m),
+  exact h,
+end
+
 lemma vector.to_succ_prod_eq_one_injective (n : ℕ) :
   injective (@vector.to_succ_prod_eq_one G _ n) :=
-λ ⟨v, _⟩ ⟨w, _⟩ h, subtype.eq (show v = w, by injection h with h; injection h)
-
-lemma mem_vectors_prod_eq_one {n : ℕ} (v : vector G n) :
-  v ∈ vector.prod_eq_one G n ↔ v.to_list.prod = 1 := iff.rfl
+λ v w h,
+begin
+  apply vector.to_succ_prod_eq_one_aux_injective,
+  ext m,
+  replace h :=congr_fun h (bij m),
+  convert h; simp
+end
+lemma mem_vectors_prod_eq_one {n : ℕ} (v : zmod n → G) :
+  v ∈ finmap.prod_eq_one G n ↔ Π a : zmod n, v a = 1 := iff.rfl
 
 --#print vector.tail
 /-
@@ -108,9 +130,9 @@ def vector.tail : Π {α : Type u} {n : ℕ}, vector α n → vector α (n - 1) 
 --vector.tail
 
 -- we need this to count them
-lemma mem_vectors_prod_eq_one_iff {n : ℕ} (v : vector G (n + 1)) :
-  v ∈ vector.prod_eq_one G (n + 1) ↔
-  v ∈ set.range (vector.to_succ_prod_eq_one : vector G n → vector G (n + 1)) :=
+lemma mem_vectors_prod_eq_one_iff {n : ℕ} (v : zmod (n + 1) →  G) :
+  v ∈ finmap.prod_eq_one G (n + 1) ↔
+  v ∈ set.range (vector.to_succ_prod_eq_one : vector G n → (zmod (n + 1) →  G)) := sorry #exit
 ⟨λ (h : v.to_list.prod = 1), ⟨v.tail,
   begin
     rcases v with ⟨l, hl⟩,
@@ -129,6 +151,16 @@ lemma mem_vectors_prod_eq_one_iff {n : ℕ} (v : vector G (n + 1)) :
     unfold vector.prod_eq_one,
     simp [list.prod_cons],
   end⟩
+
+-- NEED TO COUNT.
+
+-- todo : vector.to_succ_prod_eq_one injective
+-- todo : card f(X) = card X if f is injective
+-- todo : card (vector G n) = |G|^n
+
+/-! # Action of cyclic n on vector G n and vector.prod_eq_one G n -/
+
+
 
 theorem cauchy (G : Type) [group G] [fintype G] (p : ℕ) (hp : p.prime)
   (hpG : p ∣ fincard' G) : ∃ H : subgroup G, fincard' H = p := 
