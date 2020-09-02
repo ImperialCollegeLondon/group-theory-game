@@ -230,18 +230,10 @@ lemma normalizer_neq_subgroup [fintype G]
   end  
 
 theorem sylow_one_part1 [fintype G] 
-  {p m n: ℕ} {hp : p.prime} {hn : n ≥ 1}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m} : 
+  {p m n: ℕ} {hp : p.prime}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m} : 
   ∀ (i ≤ n), ∃ H : subgroup G, fincard' H = p ^ i := 
 begin
   intros i hin,
-have claim : ∃ H : subgroup G, fincard' H = p,
-  { apply cauchy,
-        exact hp,
-
-        rw hG, refine dvd_mul_of_dvd_left _ m,
-        refine (nat.dvd_prime_pow hp).mpr _,
-        use 1, simpa [nat.pow_one],
-  },
   induction i with i hi,   
   { use ⊥ ,
     rw nat.pow_zero,
