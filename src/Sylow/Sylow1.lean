@@ -1,6 +1,5 @@
-import orbit.orbit_stabilizer
-import subgroup.definitions
 import Sylow.cauchy
+import orbit.normalizer'
 namespace mygroup
 open classical function set mygroup.subgroup mygroup.group
 variables {G : Type} [group G]
@@ -8,7 +7,7 @@ variables {G : Type} [group G]
 
 
 open mygroup.subgroup
-
+open mygroup.group_hom
 -- Definition of p-group for finite groups, not using definition of order of 
 -- an element explicitly
 class p_group [fintype G] (p : ℕ) extends group G :=
@@ -26,14 +25,14 @@ def is_lcoset (H : subgroup G) (B : set G) : Prop := ∃ g : G, B = lcoset g H
 
 def lcosets (H : subgroup G) := {B : set G // is_lcoset H B}
 
-def dumb_fun' (H : subgroup G) (g' : G) (X : set G) : set G :=
-  {t | ∃ x : G, x ∈ X ∧ t = g' * x}
+def dumb_fun' (H : subgroup G) (g : G) (X : set G) : set G :=
+  {t | ∃ x ∈ X , t = g * x}
 
-def dumb_fun (H : subgroup G) (g' : G) (X : lcosets H) : lcosets H :=
-⟨dumb_fun' H g' X.1, 
+def dumb_fun (H : subgroup G) (g : G) (X : lcosets H) : lcosets H :=
+⟨dumb_fun' H g X.1, 
 begin
-  rcases X with ⟨g , ⟨w, rfl⟩⟩, 
-  use (g' * w),
+  rcases X with ⟨g' , ⟨w, rfl⟩⟩, 
+  use (g * w),
   unfold dumb_fun',
   ext, 
   split,
@@ -88,20 +87,86 @@ def dumb_action (H : subgroup  G): laction G (lcosets H) :=
   end }
 
 --Do I use this to show H is normal in its normalizer?
-def normal_in_normalizer (H : subgroup G): normal (normalizer H.carrier) := sorry
+/-def normal_in_normalizer (H : subgroup G): normal (normalizer H.carrier) := 
+{ conj_mem' := 
+  begin 
+   sorry   
+  end,
+  .. comap (𝒾 (normalizer H.carrier)) H }-/
+
+def to_lcosets (g : G) (H : subgroup G) : lcosets H := ⟨g ⋆ H, ⟨g, rfl ⟩⟩
+
+lemma foo (H : subgroup G) (g : G):
+to_lcosets g H  ∈ (fixed_points (dumb_action H)) ↔ g ∈ normalizer' H :=
+begin
+
+  rw mem_fixed_points_iff,
+ -- rw mem_normalizer'_iff,
+  unfold dumb_action,
+  simp,
+  unfold dumb_fun,
+  unfold dumb_fun' ,
+  unfold to_lcosets,
+  simp_rw [subtype.mk_eq_mk],
+  
+
+  split,
+    { intros hfun k,
+      split,
+        intro hk,
+        
+        simp at hfun,
+        unfold dumb_fun at hfun,
+        unfold dumb_fun' at hfun,
+        unfold to_lcosets at hfun, 
+        have : g * k ∈ g ⋆ H ,
+              use [k, hk],
+          specialize hfun ( g * k * g⁻¹) ,
+          rw subtype.mk_eq_mk at hfun,
+          rw ← hfun at this,
+          rcases this with ⟨ x, ⟨l , hl, rfl⟩, hx ⟩,
+          rw hx, 
+        
+
+
+      },
+    {sorry}
+end  
+
+
 
 lemma index_normalizer_congr_index_modp [fintype G] 
   {p : ℕ} (hp: p.prime) (H : subgroup G) (h: is_p_subgroup H p) :
   index' (normalizer (H : set G)) H ≡ index H [MOD p] := 
   begin
-    /-have claim: ∀ g : G, (g ⋆ H) ∈ (fixed_points (dumb_action H)) ↔ g ∈ normalizer H,
-      { sorry },
+    have claim: ∀ g : G, to_lcosets g H  ∈ (fixed_points (dumb_action H)) ↔ g ∈ normalizer H.carrier,
+      { intro g,
+        rw mem_normalizer_iff,
+        rw mem_fixed_points_iff,
+        unfold dumb_action,
+        simp,
+        split,
+          intros hfun k,
+          unfold dumb_fun at hfun,
+          unfold dumb_fun' at hfun,
+          unfold to_lcosets at hfun,
+          split,
+            intro hk,
+            have : g * k ∈ g ⋆ H ,
+              use [k, hk],
+          specialize hfun ( g * k * g⁻¹ ) ,
+          rw subtype.mk_eq_mk at hfun,
+          rw ← hfun at this,
+          rcases this with ⟨ x, ⟨l , hl, rfl⟩, hx ⟩,
+          rw hx,       
+                           
+        },
     have: fincard'(fixed_points (dumb_action H)) = (index' (normalizer (H : set G)) H),
       { sorry },
     have: index H = fincard' (lcosets H),
       { sorry },  
     have: index H ≡ (index' (normalizer (H : set G)) H)[MOD p],
-      apply card_set_congr_card_fixed_points_mod_prime _ _ _ _ _,  -/
+      apply card_set_congr_card_fixed_points_mod_prime _ _ _ _ _,  
     sorry  
   end    
 
@@ -110,30 +175,59 @@ lemma index_normalizer_congr_index_modp [fintype G]
 --We want to show that hgH=gH ∀ h ∈ H ↔ g ∈ normalizer H. Hence |X^H|= |(normalizer H)/H|.
 -- Applying the lemma card_set_congr_card_fixed_points_mod_prime 
 --we show that |(normalizer H)/H| ≡ |G/H|[MOD p], i.e. index' (normalizer (H : set G)) H ≡ index H [MOD p] 
+lemma card_subgroup_eq_card_carrier (H : subgroup G) : fincard' H = fincard' H.carrier := 
+begin
+  apply fincard.of_equiv,
+  use [id, id];
+  {intros x, refl}
+end  
 
+lemma zero_lt_card_subgroup [fintype G] (H : subgroup G): 0 < fincard' H  := 
+begin
+  suffices: fincard' H ≠ 0,
+    exact nat.pos_of_ne_zero this,
+  intro h,
+  rw [card_subgroup_eq_card_carrier, fincard.card_eq_zero_iff H.carrier] at h,
+  rw [← mem_empty_eq (1 : G), ← h],
+  exact H.one_mem,
+end  
 
 lemma normalizer_neq_subgroup [fintype G] 
   (H : subgroup G) {p : ℕ} (hp: p.prime) (h: is_p_subgroup H p) : 
   p ∣ index H → normalizer (H : set G) ≠ H := 
   begin
     intro hH,
-    rw nat.dvd_iff_mod_eq_zero at hH,
+    
     have h1: index' (normalizer (H : set G)) H  ≡ H.index [MOD p],
       apply index_normalizer_congr_index_modp hp H h,
     
     have h2: p ∣ (index' (normalizer (H : set G)) H),
     { refine nat.modeq.modeq_zero_iff.mp _,
-      sorry},
+      apply nat.modeq.trans h1,
+      apply nat.modeq.symm,
+      apply nat.modeq.modeq_of_dvd,
+      rw [int.coe_nat_zero, sub_zero],
+      norm_cast,
+      assumption
+    },
     have h3: (index' (normalizer (H : set G)) H) ≠ 1,
-      {sorry},
+      { intro hfalse,
+        rw hfalse at h2,
+        exact nat.prime.not_dvd_one hp h2
+      },
+    
     have h4: fincard' (normalizer (H : set G)) ≠ fincard' H,
-      { sorry },
-    sorry
-    --rw nat.modeq.dvd_of_modeq at this,  
+      { unfold index' at h3,
+        intro hfalse,
+        rw hfalse at h3,
+        apply h3,
+        apply nat.div_self,
+        apply zero_lt_card_subgroup,
+         },
+    intro hfalse, 
+    apply h4,
+    rw hfalse, 
   end  
---We rewrite p ∣ (index' (normalizer (H : set G)) H) using the previous lemma.
---This implies (index' (normalizer (H : set G)) H) ≠ 1, and hence we get the conclusion.
-
 
 theorem sylow_one_part1 [fintype G] 
   {p m n: ℕ} {hp : p.prime} {hn : n ≥ 1}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m} : 
@@ -170,10 +264,10 @@ def conjugate_iso (g : G) (H : subgroup G) : H ≅ conjugate_subgroup g H :=
 { to_fun := λ (h : H) , ⟨g * h * g⁻¹, begin use [h, h.2] end⟩,
   map_mul' := 
     begin
-      intros x y,
-      rw ← group.mul_one x,
-             sorry     
-    --  rw ← group.mul_left_inv g,     
+      rintro ⟨x, hx⟩ ⟨y, hy⟩,
+      congr' 1,
+      change g * (x * y) * g⁻¹ = _,
+      simp [group.mul_assoc],   
     end    ,
   is_bijective := 
     begin
@@ -182,15 +276,22 @@ def conjugate_iso (g : G) (H : subgroup G) : H ≅ conjugate_subgroup g H :=
             dsimp at *,
             cases y with y hy, 
             cases x with x hx, 
-            sorry           
+            rw subtype.mk_eq_mk at hxy,
+            simpa using hxy,        
           },
-        {   sorry}
+        { unfold surjective,
+          rintro ⟨b, h, hh, rfl⟩,
+          use ⟨h, hh⟩, 
+          simp,    
+        }
     end     }
 
 
--- group iso -> equiv -> same cardinality
+
 lemma conjugates_eq_cardinality (g : G) (H : subgroup G) :
-  fincard' H = fincard' (conjugate_subgroup g H) := sorry 
+  fincard' H = fincard' (conjugate_subgroup g H) := 
+fincard.of_equiv (group_hom.mul_equiv_of_iso (conjugate_iso g H)).to_equiv
+  
 
 def is_sylow_p_subgroup (K : subgroup G) {p : ℕ} (hp : p.prime) : Prop := sorry
 
