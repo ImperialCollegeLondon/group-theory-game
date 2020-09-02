@@ -52,38 +52,38 @@ end⟩
 def dumb_action (H : subgroup  G): laction G (lcosets H) := 
 { to_fun := dumb_fun H,
   map_one' := 
-  begin 
-    intro S,
-    unfold dumb_fun,
-    dsimp,
-    unfold dumb_fun',
-    simp
-  end,  
+    begin 
+        intro S,
+        unfold dumb_fun,
+        dsimp,
+        unfold dumb_fun',
+        simp
+    end,  
   map_assoc' := 
-  begin
-    intros g h S,
-    rcases S with ⟨_, g', rfl⟩,
-    unfold dumb_fun,
-    unfold dumb_fun',
-    norm_num,
-    ext1,
-    norm_num,
-    split,
-    {   intro hx,
-        rcases hx with ⟨_, ⟨t, ⟨s, ⟨hs, ht⟩⟩, rfl⟩, rfl⟩,
-        use t,
+    begin
+        intros g h S,
+        rcases S with ⟨_, g', rfl⟩,
+        unfold dumb_fun,
+        unfold dumb_fun',
+        norm_num,
+        ext1,
+        norm_num,
         split,
-           use [s, hs], exact ht,
-           rw group.mul_assoc
-    },
-    {   intro hx,
-        rcases hx with ⟨_, ⟨s, hs, rfl⟩, rfl⟩,
-        split,    --why all the splits?
-        split,
-        split, 
-        use [s, hs], 
-        simp [group.mul_assoc]        
-    }    
+        {   intro hx,
+            rcases hx with ⟨_, ⟨t, ⟨s, ⟨hs, ht⟩⟩, rfl⟩, rfl⟩,
+            use t,
+            split,
+            use [s, hs], exact ht,
+            rw group.mul_assoc
+        },
+        {   intro hx,
+            rcases hx with ⟨_, ⟨s, hs, rfl⟩, rfl⟩,
+            split,    --why all the splits?
+            split,
+            split, 
+            use [s, hs], 
+            simp [group.mul_assoc]        
+        }    
   end }
 
 lemma index_normalizer_congr_index_modp [fintype G] 
