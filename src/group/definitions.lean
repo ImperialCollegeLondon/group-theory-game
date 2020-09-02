@@ -34,6 +34,15 @@ class group (G : Type) extends has_group_notation G :=
 class comm_group (G : Type) extends group G :=
 (mul_comm : ∀ a b : G, a * b = b * a)
 
+-- an example
+instance perm_group (α : Type) : group (α ≃ α) :=
+{ mul := function.swap equiv.trans,
+  one := equiv.refl _,
+  inv := equiv.symm,
+  mul_assoc := by intros; ext; refl,
+  one_mul := by intros; ext; refl,
+  mul_left_inv := by intros; ext; simp }
+
 end groupdefs
 
 end mygroup

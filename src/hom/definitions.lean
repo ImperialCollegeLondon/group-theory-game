@@ -38,7 +38,15 @@ begin
  cases φ with φ1 φ2,
  cases ψ with ψ1 ψ2,
  simp * at *,
-end  
+end
+
+@[ext] lemma ext {G H : Type} [group G] [group H] (φ ψ : G →* H)
+  (h : ∀ g : G, φ g = ψ g) : φ = ψ :=
+begin
+  rw ext_hom,
+  ext g,
+  exact h g,  
+end
 
 -- the identity homomorphism
 def id_hom {G : Type} [group G] : G →* G := ⟨id, λ x y, rfl⟩

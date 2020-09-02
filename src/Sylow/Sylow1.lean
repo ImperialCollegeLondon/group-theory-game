@@ -77,12 +77,16 @@ def dumb_action (H : subgroup  G) : laction G (lcosets H) :=
 def dumb_action' (H : subgroup G) : laction H (lcosets H) :=
 laction.comap (𝒾 H) (lcosets H) (dumb_action H)
 
-/-  def normal_in_normalizer (H : subgroup G): normal (normalizer H.carrier) := 
+def normal_in_normalizer (H : subgroup G): normal (normalizer H.carrier) := 
 { conj_mem' := 
   begin 
-   sorry   
+   intros n hnorm g,
+   dsimp at *,   
+   cases g with g hg,
+   cases n with n hn,
+   sorry
   end,
-  .. comap (𝒾 (normalizer H.carrier)) H } -/
+  .. comap (𝒾 (normalizer H.carrier)) H }
 
 def to_lcosets (g : G) (H : subgroup G) : lcosets H := ⟨g ⋆ H, ⟨g, rfl⟩⟩
 
@@ -176,6 +180,19 @@ lemma normalizer_neq_subgroup [fintype G]
   rw hfalse, 
   end  
 
+lemma index_eq_card_quotient [fintype G] (H : normal G): index (H : subgroup G) = fincard' (G /ₘ H) := 
+begin
+  unfold index,
+  rw lagrange.card_quotient_eq_mul H,
+  change _ /fincard' H = _,
+  rw nat.mul_comm,
+  rw nat.mul_div_assoc,
+  rw nat.div_self,
+  rw nat.mul_one,
+  apply zero_lt_card_subgroup,
+  refl,
+end  
+
 theorem sylow_one_part1 [fintype G] 
   {p m n: ℕ} {hp : p.prime}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m} : 
   ∀ (i ≤ n), ∃ H : subgroup G, fincard' H = p ^ i := 
@@ -211,11 +228,13 @@ begin
   {  refine index_normalizer_congr_index_modp hp H _ ,
     use i, exact hH }, 
   have fact2: p ∣ (index' (normalizer (H : set G)) H),
-    refine (p_div_index_div_normalizer H hp _ _),
-    use i, exact hH,
-      
+  {  refine (p_div_index_div_normalizer H hp _ _),
+    use i, exact hH, exact fact1},  
+  have: p ∣ fincard' (normalizer (H : set G) /ₘ normal_in_normalizer H),
+     -- rw ← @index_eq_card_quotient (normal_in_normalizer H),
+        
 
-  sorry
+  sorry, sorry,
   -- next goal: want N/H order a multiple of p
   -- then Cauchy gives you C-bar order p in N/H
   -- comap back to N
