@@ -65,7 +65,7 @@ def dumb_action (H : subgroup  G): laction G (lcosets H) :=
     rcases S with ⟨_, g', rfl⟩,
     unfold dumb_fun,
     unfold dumb_fun',
-    simp,
+    norm_num,
     ext1,
     norm_num,
     split,
