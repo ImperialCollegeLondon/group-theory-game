@@ -47,7 +47,12 @@ begin
   },
 end⟩
 
+def laction.comap (Z : Type) [group Z] (f : G →* Z) (S : Type)
+  (μ : laction Z S) : laction G S := sorry -- follow your nose stuff
+  -- g * s := f(g) * s and everything is easy
 
+-- this is some kind of symmetry
+-- laction.comap μ (f z) s = μ z s -- proof might be rfl if you're lucky
 
 def dumb_action (H : subgroup  G): laction G (lcosets H) := 
 { to_fun := dumb_fun H,
@@ -233,7 +238,7 @@ theorem sylow_one_part1 [fintype G]
   {p m n: ℕ} {hp : p.prime} {hn : n ≥ 1}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m} : 
   ∀ (i ≤ n), ∃ H : subgroup G, fincard' H = p ^ i := 
 begin
-  intros i hi,
+  intros i hin,
 have claim : ∃ H : subgroup G, fincard' H = p,
   { apply cauchy,
         exact hp,
@@ -243,11 +248,19 @@ have claim : ∃ H : subgroup G, fincard' H = p,
         use 1, simpa [nat.pow_one],
   },
   induction i with i hi,   
-  use ⊥ ,
-  rw nat.pow_zero,
-  exact fincard_bot,
-  rw nat.succ_eq_add_one at *,  --don't I need strict inequality at hs?
-  rw nat.pow_succ,
+  { use ⊥ ,
+    rw nat.pow_zero,
+    exact fincard_bot },
+  rw nat.succ_eq_add_one at hin,
+  have useful : 0 < n - i := nat.le_sub_left_of_add_le hin,
+  have useful2 : i ≤ n,
+    refine le_trans _ hin, simp,
+  specialize hi useful2,
+  cases hi with H hH,
+  -- next goal: want N/H order a multiple of p
+  -- then Cauchy gives you C-bar order p in N/H
+  -- comap back to N
+  -- map to G
 
  -- cases claim with H hH,
 
