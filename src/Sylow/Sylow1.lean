@@ -8,7 +8,7 @@ variables {G : Type} [group G]
 
 
 open mygroup.subgroup
-
+open mygroup.group_hom
 -- Definition of p-group for finite groups, not using definition of order of 
 -- an element explicitly
 class p_group [fintype G] (p : ℕ) extends group G :=
@@ -88,20 +88,48 @@ def dumb_action (H : subgroup  G): laction G (lcosets H) :=
   end }
 
 --Do I use this to show H is normal in its normalizer?
-def normal_in_normalizer (H : subgroup G): normal (normalizer H.carrier) := sorry
+def normal_in_normalizer (H : subgroup G): normal (normalizer H.carrier) := 
+{ conj_mem' := 
+  begin 
+   sorry   
+  end,
+  .. comap (𝒾 (normalizer H.carrier)) H }
+
+def to_lcosets (g : G) (H : subgroup G) : lcosets H := ⟨g ⋆ H, ⟨g, rfl ⟩⟩
+
 
 lemma index_normalizer_congr_index_modp [fintype G] 
   {p : ℕ} (hp: p.prime) (H : subgroup G) (h: is_p_subgroup H p) :
   index' (normalizer (H : set G)) H ≡ index H [MOD p] := 
   begin
-    /-have claim: ∀ g : G, (g ⋆ H) ∈ (fixed_points (dumb_action H)) ↔ g ∈ normalizer H,
-      { sorry },
+    have claim: ∀ g : G, to_lcosets g H  ∈ (fixed_points (dumb_action H)) ↔ g ∈ normalizer H.carrier,
+      { intro g,
+        rw mem_normalizer_iff,
+        rw mem_fixed_points_iff,
+        unfold dumb_action,
+        simp,
+        split,
+          intros hfun k,
+          unfold dumb_fun at hfun,
+          unfold dumb_fun' at hfun,
+          unfold to_lcosets at hfun,
+          split,
+            intro hk,
+            have : g * k ∈ g ⋆ H ,
+              use [k, hk],
+          specialize hfun ( g * k * g⁻¹ ) ,
+          rw subtype.mk_eq_mk at hfun,
+          rw ← hfun at this,
+          rcases this with ⟨ x, ⟨l , hl, rfl⟩, hx ⟩,
+          rw hx,       
+                           
+        },
     have: fincard'(fixed_points (dumb_action H)) = (index' (normalizer (H : set G)) H),
       { sorry },
     have: index H = fincard' (lcosets H),
       { sorry },  
     have: index H ≡ (index' (normalizer (H : set G)) H)[MOD p],
-      apply card_set_congr_card_fixed_points_mod_prime _ _ _ _ _,  -/
+      apply card_set_congr_card_fixed_points_mod_prime _ _ _ _ _,  
     sorry  
   end    
 
@@ -163,9 +191,6 @@ lemma normalizer_neq_subgroup [fintype G]
     apply h4,
     rw hfalse, 
   end  
---We rewrite p ∣ (index' (normalizer (H : set G)) H) using the previous lemma.
---This implies (index' (normalizer (H : set G)) H) ≠ 1, and hence we get the conclusion.
-
 
 theorem sylow_one_part1 [fintype G] 
   {p m n: ℕ} {hp : p.prime} {hn : n ≥ 1}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m} : 
@@ -217,13 +242,19 @@ def conjugate_iso (g : G) (H : subgroup G) : H ≅ conjugate_subgroup g H :=
             rw subtype.mk_eq_mk at hxy,
             simpa using hxy,        
           },
-        {   sorry}
+        { unfold surjective,
+          rintro ⟨b, h, hh, rfl⟩,
+          use ⟨h, hh⟩, 
+          simp,    
+        }
     end     }
 
 
--- group iso -> equiv -> same cardinality
+
 lemma conjugates_eq_cardinality (g : G) (H : subgroup G) :
-  fincard' H = fincard' (conjugate_subgroup g H) := sorry 
+  fincard' H = fincard' (conjugate_subgroup g H) := 
+fincard.of_equiv (group_hom.mul_equiv_of_iso (conjugate_iso g H)).to_equiv
+  
 
 def is_sylow_p_subgroup (K : subgroup G) {p : ℕ} (hp : p.prime) : Prop := sorry
 
