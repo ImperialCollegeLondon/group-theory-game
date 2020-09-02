@@ -55,11 +55,12 @@ local attribute [instance, priority 10] subtype.fintype set_fintype classical.pr
 
 /-! # making X -/
 
---#check subtype.prod
-def vector.prod_eq_one' (G : Type) [group G] (n : ℕ) : set (vector G n) :=
+/-- The type of vectors with terms from `G`, length `n`, and product equal to `1:G`. -/
+def vector.prod_eq_one (G : Type) [group G] (n : ℕ) : set (vector G n) :=
 {v : vector G n | v.to_list.prod = 1}
 
-/-- The type of vectors with terms from `G`, length `n`, and product equal to `1:G`. -/
+-- unused I think
+/-- The type of maps fin n → G with terms from `G`, length `n`, and product equal to `1:G`. -/
 def array_prod_eq_one (G : Type*) [group G] (n : ℕ) : set (fin n → G) :=
 {f | (list.of_fn f).prod = 1}
 
@@ -70,13 +71,8 @@ variables {G : Type} [group G]
 
 open mygroup.group
 
-lemma group.mul_left_inj (a b c : G) : b * a = c * a ↔ b = c :=
-begin
-  --  **TODO(anyone)** -- why can't we remove "group" here?
-  exact mul_right_cancel_iff a b c,
-end
-
---#check @inv_mul_self
+lemma group.mul_left_inj : ∀ (a b c : G), b * a = c * a ↔ b = c :=
+mul_right_cancel_iff
 
 lemma group.inv_mul_self (a : G) : a⁻¹ * a = 1 := group.mul_left_inv a
 
@@ -100,10 +96,6 @@ lemma vector.to_succ_prod_eq_one_injective (n : ℕ) :
   injective (@vector.to_succ_prod_eq_one G _ n) :=
 λ ⟨v, _⟩ ⟨w, _⟩ h, subtype.eq (show v = w, by injection h with h; injection h)
 
-/-- The type of vectors with terms from `G`, length `n`, and product equal to `1:G`. -/
-@[reducible] def vector.prod_eq_one (G : Type) [group G] (n : ℕ) : set (vector G n) :=
-{v | v.to_list.prod = 1}
-
 lemma mem_vectors_prod_eq_one {n : ℕ} (v : vector G n) :
   v ∈ vector.prod_eq_one G n ↔ v.to_list.prod = 1 := iff.rfl
 
@@ -115,6 +107,7 @@ def vector.tail : Π {α : Type u} {n : ℕ}, vector α n → vector α (n - 1) 
 --def vector.tail' {α : Type u} {n : ℕ} : vector α n.succ → vector α n :=
 --vector.tail
 
+-- we need this to count them
 lemma mem_vectors_prod_eq_one_iff {n : ℕ} (v : vector G (n + 1)) :
   v ∈ vector.prod_eq_one G (n + 1) ↔
   v ∈ set.range (vector.to_succ_prod_eq_one : vector G n → vector G (n + 1)) :=
@@ -133,6 +126,7 @@ lemma mem_vectors_prod_eq_one_iff {n : ℕ} (v : vector G (n + 1)) :
   end⟩, 
   begin
     rintro ⟨⟨l, hl⟩, rfl⟩,
+    unfold vector.prod_eq_one,
     simp [list.prod_cons],
   end⟩
 
