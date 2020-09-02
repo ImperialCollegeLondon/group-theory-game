@@ -129,6 +129,23 @@ begin
   exact H.one_mem,
 end  
 
+lemma p_div_index_div_normalizer [fintype G](H : subgroup G) {p : ℕ} (hp: p.prime) (h: is_p_subgroup H p):
+p ∣ index H → p ∣ (index' (normalizer (H : set G)) H):=
+begin
+  intro hH,
+  have h1: index' (normalizer (H : set G)) H  ≡ H.index [MOD p],
+    {apply index_normalizer_congr_index_modp hp H h},
+
+  refine nat.modeq.modeq_zero_iff.mp _,
+    apply nat.modeq.trans h1,
+    apply nat.modeq.symm,
+    apply nat.modeq.modeq_of_dvd,
+    rw [int.coe_nat_zero, sub_zero],
+    norm_cast,
+    exact hH,
+end  
+
+
 lemma normalizer_neq_subgroup [fintype G] 
   (H : subgroup G) {p : ℕ} (hp: p.prime) (h: is_p_subgroup H p) : 
   p ∣ index H → normalizer (H : set G) ≠ H := 
@@ -139,18 +156,11 @@ lemma normalizer_neq_subgroup [fintype G]
     apply index_normalizer_congr_index_modp hp H h,
   
   have h2: p ∣ (index' (normalizer (H : set G)) H),
-  { refine nat.modeq.modeq_zero_iff.mp _,
-    apply nat.modeq.trans h1,
-    apply nat.modeq.symm,
-    apply nat.modeq.modeq_of_dvd,
-    rw [int.coe_nat_zero, sub_zero],
-    norm_cast,
-    assumption
-  },
+  { apply p_div_index_div_normalizer H hp h, assumption },
   have h3: (index' (normalizer (H : set G)) H) ≠ 1,
     { intro hfalse,
-    rw hfalse at h2,
-    exact nat.prime.not_dvd_one hp h2
+      rw hfalse at h2,
+      exact nat.prime.not_dvd_one hp h2
     },
   
   have h4: fincard' (normalizer (H : set G)) ≠ fincard' H,
@@ -197,6 +207,13 @@ begin
     rw h at useful,
     refine (nat.sub_add_cancel _).symm,
     linarith },
+  have h1: index' (normalizer (H : set G)) H  ≡ H.index [MOD p],
+  {  refine index_normalizer_congr_index_modp hp H _ ,
+    use i, exact hH }, 
+  have fact2: p ∣ (index' (normalizer (H : set G)) H),
+    refine (p_div_index_div_normalizer H hp _ _),
+    use i, exact hH,
+      
 
   sorry
   -- next goal: want N/H order a multiple of p
