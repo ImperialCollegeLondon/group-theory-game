@@ -553,25 +553,6 @@ begin
   assumption
 end
 
--- The following definition should be stated as an iff corollary
--- Does it hold with n ≥ 0?
-
--- Definition of p-group for finite groups, not using definition of order of 
--- an element explicitly
-class p_group [fintype G] (p : ℕ) extends group G :=
-(card_pow_p: ∃ n : ℕ , fincard' G = p^n)
-
---A p-subgroup is a subgroup of a group G which is itself a p-group
-class p_subgroup (G : Type) [group G] [fintype G] (p : ℕ) extends subgroup G :=
-(card_pow_p: ∃ n : ℕ , fincard' (carrier) = p^n)
-
---Need to fix problems with imports and add definitions
-
-open mygroup.subgroup
-
-def is_p_subgroup (H : subgroup G) (p : ℕ) : Prop := 
-  ∃ n : ℕ , fincard' (H) = p ^ n 
-
 --Given a subset H of a group G, its conjugate is also a subgroup of G
 def conjugate_subgroup [group G] (g : G) (H : subgroup G) :  subgroup G :=
 { carrier := { k| ∃ h ∈ H, k = g * h * g⁻¹ },
