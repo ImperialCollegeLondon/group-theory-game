@@ -645,5 +645,17 @@ begin
   apply dvd_sum, simpa,
 end
 
+lemma card_eq_image_of_injective {α β} (f : α → β) (hf : function.injective f) 
+  (s : set α) : fincard' s = fincard' (f '' s) :=
+begin
+  apply of_equiv, unfold function.injective at hf,
+  refine equiv.of_bijective (λ s, ⟨f s.1, ⟨s.1, s.2, rfl⟩⟩) _,
+  split, 
+    { rintros ⟨x, hx⟩ ⟨y, hy⟩ hxy, rw subtype.mk_eq_mk,
+      exact hf (show f x = f y, by simpa using hxy)  },
+    { rintros ⟨y, ⟨x, hx, rfl⟩⟩,
+      refine ⟨⟨x, hx⟩, by simp⟩ }
+end
+
 end fincard
 
