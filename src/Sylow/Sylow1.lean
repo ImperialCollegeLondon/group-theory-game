@@ -94,8 +94,14 @@ lemma index_normalizer_congr_index_modp [fintype G]
   {p : ℕ} (hp: p.prime) (H : subgroup G) (h: is_p_subgroup H p) :
   index' (normalizer (H : set G)) H ≡ index H [MOD p] := 
   begin
-    --have claim: ∀ g : G, (g ⋆ H) ∈ fixed_points (dumb_action H) ↔ g ∈ normalizer H,
-    --    {sorry},
+    /-have claim: ∀ g : G, (g ⋆ H) ∈ (fixed_points (dumb_action H)) ↔ g ∈ normalizer H,
+      { sorry },
+    have: fincard'(fixed_points (dumb_action H)) = (index' (normalizer (H : set G)) H),
+      { sorry },
+    have: index H = fincard' (lcosets H),
+      { sorry },  
+    have: index H ≡ (index' (normalizer (H : set G)) H)[MOD p],
+      apply card_set_congr_card_fixed_points_mod_prime _ _ _ _ _,  -/
     sorry  
   end    
 
@@ -108,7 +114,23 @@ lemma index_normalizer_congr_index_modp [fintype G]
 
 lemma normalizer_neq_subgroup [fintype G] 
   (H : subgroup G) {p : ℕ} (hp: p.prime) (h: is_p_subgroup H p) : 
-  p ∣ index H → normalizer (H : set G) ≠ H := sorry
+  p ∣ index H → normalizer (H : set G) ≠ H := 
+  begin
+    intro hH,
+    rw nat.dvd_iff_mod_eq_zero at hH,
+    have h1: index' (normalizer (H : set G)) H  ≡ H.index [MOD p],
+      apply index_normalizer_congr_index_modp hp H h,
+    
+    have h2: p ∣ (index' (normalizer (H : set G)) H),
+    { refine nat.modeq.modeq_zero_iff.mp _,
+      sorry},
+    have h3: (index' (normalizer (H : set G)) H) ≠ 1,
+      {sorry},
+    have h4: fincard' (normalizer (H : set G)) ≠ fincard' H,
+      { sorry },
+    sorry
+    --rw nat.modeq.dvd_of_modeq at this,  
+  end  
 --We rewrite p ∣ (index' (normalizer (H : set G)) H) using the previous lemma.
 --This implies (index' (normalizer (H : set G)) H) ≠ 1, and hence we get the conclusion.
 
@@ -150,8 +172,7 @@ def conjugate_iso (g : G) (H : subgroup G) : H ≅ conjugate_subgroup g H :=
     begin
       intros x y,
       rw ← group.mul_one x,
-
-       sorry     
+             sorry     
     --  rw ← group.mul_left_inv g,     
     end    ,
   is_bijective := 
@@ -174,7 +195,9 @@ lemma conjugates_eq_cardinality (g : G) (H : subgroup G) :
 def is_sylow_p_subgroup (K : subgroup G) {p : ℕ} (hp : p.prime) : Prop := sorry
 
 theorem sylow_two [fintype G]{p : ℕ} {hp : p.prime} (H K : subgroup G) (h₁ : is_sylow_p_subgroup H hp)(h₂ : is_sylow_p_subgroup K hp) : 
-∃ (g : G), H = conjugate_subgroup g K  := sorry  -- need coercion from sylow p subgroup to subgroup
+∃ (g : G), H = conjugate_subgroup g K  := sorry  
+
+
 -- Consider the action of K on the set X of cosets of H in G μ: K × X → X, (y, xH) ↦ yxH. 
 --Consider the points fixed by the action. Notice that since H is a Sylow p subgroup then p does not divide 
 --fincard' X = index H, hence fincard'(fixed points μ ) ≠ 0. We then want to show that xH ∈ fixed_points μ 
@@ -184,7 +207,8 @@ theorem sylow_two [fintype G]{p : ℕ} {hp : p.prime} (H K : subgroup G) (h₁ :
 
 
 --Define the number of Sylow p-subgroups of G. 
-noncomputable def number_sylow_p (G : Type) [group G] {p : ℕ} (hp : p.prime) := fincard' {K : subgroup G // is_sylow_p_subgroup K hp}
+noncomputable def number_sylow_p (G : Type) [group G] {p : ℕ} (hp : p.prime) := 
+fincard' {K : subgroup G // is_sylow_p_subgroup K hp}
 
 theorem sylow_three_part1 [fintype G]{p m n: ℕ}{hp : p.prime}
   {hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m}:
