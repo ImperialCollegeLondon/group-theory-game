@@ -29,7 +29,8 @@ instance {G H : Type} [group G] [group H] :
 @[simp] lemma to_fun_eq_coe {G H : Type} [group G] [group H]
   (f : G →* H) : f.to_fun = f := rfl
 
-@[ext] lemma ext_hom {G H : Type} [group G] [group H](φ ψ : G →* H) : φ = ψ ↔ φ.to_fun = ψ.to_fun := 
+@[ext] lemma ext_hom {G H : Type} [group G] [group H] (φ ψ : G →* H) : 
+  φ = ψ ↔ φ.to_fun = ψ.to_fun := 
 begin
  split,
  cc,
