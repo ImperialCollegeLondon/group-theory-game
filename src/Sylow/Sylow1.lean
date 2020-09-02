@@ -28,6 +28,16 @@ def lcosets (H : subgroup G) := {B : set G // is_lcoset H B}
 def dumb_fun' (H : subgroup G) (g : G) (X : set G) : set G :=
   {t | ∃ x ∈ X , t = g * x}
 
+lemma dumb_fun_lcoset_eq (g h : G) (H : subgroup G) : 
+  dumb_fun' H h (g ⋆ H) = h * g ⋆ H :=
+begin
+  ext, split, 
+    { rintro ⟨x, ⟨h', hh', rfl⟩, rfl⟩,
+      exact ⟨h', hh', (group.mul_assoc _ _ _).symm⟩ },
+    { rintro ⟨h', hh', rfl⟩,
+      refine ⟨g * h', ⟨h', hh', rfl⟩, group.mul_assoc _ _ _⟩ }
+end
+
 def dumb_fun (H : subgroup G) (g : G) (X : lcosets H) : lcosets H :=
 ⟨dumb_fun' H g X.1, 
 begin
@@ -105,32 +115,17 @@ begin
   unfold dumb_action,
   simp,
   unfold dumb_fun,
-  unfold dumb_fun' ,
   unfold to_lcosets,
   simp_rw [subtype.mk_eq_mk],
+  change (∀ (x : G), dumb_fun' H x (g ⋆ H) = g ⋆ H) ↔ _,
+  simp_rw [dumb_fun_lcoset_eq, lagrange.lcoset_eq],
+  rw mem_normalizer'_iff,
+  split,
+  intros h k,
+  split, intro, sorry,
   
 
-  split,
-    { intros hfun k,
-      split,
-        intro hk,
-        
-        simp at hfun,
-        unfold dumb_fun at hfun,
-        unfold dumb_fun' at hfun,
-        unfold to_lcosets at hfun, 
-        have : g * k ∈ g ⋆ H ,
-              use [k, hk],
-          specialize hfun ( g * k * g⁻¹) ,
-          rw subtype.mk_eq_mk at hfun,
-          rw ← hfun at this,
-          rcases this with ⟨ x, ⟨l , hl, rfl⟩, hx ⟩,
-          rw hx, 
-        
-
-
-      },
-    {sorry}
+  
 end  
 
 
