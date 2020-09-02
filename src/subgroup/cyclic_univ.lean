@@ -32,6 +32,7 @@ def action_eq_hom : laction G S ≃ (G →* (S ≃ S)) :=
   end,
   right_inv := λ φ, begin
     ext g s,
+    refl,
   end }
 
 end mygroup
