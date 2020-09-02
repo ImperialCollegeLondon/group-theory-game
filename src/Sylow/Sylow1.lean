@@ -1,6 +1,5 @@
-import orbit.orbit_stabilizer
-import subgroup.definitions
 import Sylow.cauchy
+import orbit.normalizer'
 namespace mygroup
 open classical function set mygroup.subgroup mygroup.group
 variables {G : Type} [group G]
@@ -26,14 +25,14 @@ def is_lcoset (H : subgroup G) (B : set G) : Prop := ∃ g : G, B = lcoset g H
 
 def lcosets (H : subgroup G) := {B : set G // is_lcoset H B}
 
-def dumb_fun' (H : subgroup G) (g' : G) (X : set G) : set G :=
-  {t | ∃ x : G, x ∈ X ∧ t = g' * x}
+def dumb_fun' (H : subgroup G) (g : G) (X : set G) : set G :=
+  {t | ∃ x ∈ X , t = g * x}
 
-def dumb_fun (H : subgroup G) (g' : G) (X : lcosets H) : lcosets H :=
-⟨dumb_fun' H g' X.1, 
+def dumb_fun (H : subgroup G) (g : G) (X : lcosets H) : lcosets H :=
+⟨dumb_fun' H g X.1, 
 begin
-  rcases X with ⟨g , ⟨w, rfl⟩⟩, 
-  use (g' * w),
+  rcases X with ⟨g' , ⟨w, rfl⟩⟩, 
+  use (g * w),
   unfold dumb_fun',
   ext, 
   split,
@@ -88,14 +87,52 @@ def dumb_action (H : subgroup  G): laction G (lcosets H) :=
   end }
 
 --Do I use this to show H is normal in its normalizer?
-def normal_in_normalizer (H : subgroup G): normal (normalizer H.carrier) := 
+/-def normal_in_normalizer (H : subgroup G): normal (normalizer H.carrier) := 
 { conj_mem' := 
   begin 
    sorry   
   end,
-  .. comap (𝒾 (normalizer H.carrier)) H }
+  .. comap (𝒾 (normalizer H.carrier)) H }-/
 
 def to_lcosets (g : G) (H : subgroup G) : lcosets H := ⟨g ⋆ H, ⟨g, rfl ⟩⟩
+
+lemma foo (H : subgroup G) (g : G):
+to_lcosets g H  ∈ (fixed_points (dumb_action H)) ↔ g ∈ normalizer' H :=
+begin
+
+  rw mem_fixed_points_iff,
+ -- rw mem_normalizer'_iff,
+  unfold dumb_action,
+  simp,
+  unfold dumb_fun,
+  unfold dumb_fun' ,
+  unfold to_lcosets,
+  simp_rw [subtype.mk_eq_mk],
+  
+
+  split,
+    { intros hfun k,
+      split,
+        intro hk,
+        
+        simp at hfun,
+        unfold dumb_fun at hfun,
+        unfold dumb_fun' at hfun,
+        unfold to_lcosets at hfun, 
+        have : g * k ∈ g ⋆ H ,
+              use [k, hk],
+          specialize hfun ( g * k * g⁻¹) ,
+          rw subtype.mk_eq_mk at hfun,
+          rw ← hfun at this,
+          rcases this with ⟨ x, ⟨l , hl, rfl⟩, hx ⟩,
+          rw hx, 
+        
+
+
+      },
+    {sorry}
+end  
+
 
 
 lemma index_normalizer_congr_index_modp [fintype G] 
