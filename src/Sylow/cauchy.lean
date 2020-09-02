@@ -132,7 +132,7 @@ def vector.tail : Π {α : Type u} {n : ℕ}, vector α n → vector α (n - 1) 
 -- we need this to count them
 lemma mem_vectors_prod_eq_one_iff {n : ℕ} (v : zmod (n + 1) →  G) :
   v ∈ finmap.prod_eq_one G (n + 1) ↔
-  v ∈ set.range (finmap.to_succ_prod_eq_one : vector G n → vector G (n + 1)) :=
+  v ∈ set.range (vector.to_succ_prod_eq_one : vector G n → (zmod (n + 1) →  G)) := sorry #exit
 ⟨λ (h : v.to_list.prod = 1), ⟨v.tail,
   begin
     rcases v with ⟨l, hl⟩,
