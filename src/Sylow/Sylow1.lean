@@ -41,12 +41,12 @@ def dumb_fun (H : subgroup G) (g : G) (X : lcosets H) : lcosets H :=
   rcases X with ⟨g', ⟨w, rfl⟩⟩, 
   use g * w, ext, split,
     { intro hx,
-    rcases hx with ⟨hx_w, ⟨h, hh, rfl⟩, rfl⟩,
-    use h,
-    simpa [group.mul_assoc] },
+      rcases hx with ⟨hx_w, ⟨h, hh, rfl⟩, rfl⟩,
+      use h,
+      simpa [group.mul_assoc] },
     { rintro ⟨h, hh, rfl⟩,
-    use w * h,
-    simpa [group.mul_assoc] }
+      use w * h,
+      simpa [group.mul_assoc] }
   end⟩
 
 def laction.comap {H : Type} [group H] (f : H →* G) (S : Type) (μ : laction G S) :
@@ -167,25 +167,24 @@ lemma normalizer_neq_subgroup [fintype G]
   end  
 
 theorem sylow_one_part1 [fintype G] 
-  {p m n: ℕ} {hp : p.prime} {hn : n ≥ 1}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m} : 
+  {p m n: ℕ} {hp : p.prime}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m} : 
   ∀ (i ≤ n), ∃ H : subgroup G, fincard' H = p ^ i := 
 begin
-  intros i hi,
-have claim : ∃ H : subgroup G, fincard' H = p,
-  sorry,
-  -- { apply cauchy,
-  --   exact hp,
-
-  --   rw hG, refine dvd_mul_of_dvd_left _ m,
-  --   refine (nat.dvd_prime_pow hp).mpr _,
-  --   use 1, simpa [nat.pow_one],
-  -- },
+  intros i hin,
   induction i with i hi,   
-  use ⊥ ,
-  rw nat.pow_zero,
-  exact fincard_bot,
-  rw nat.succ_eq_add_one at *,  --don't I need strict inequality at hs?
-  rw nat.pow_succ,
+  { use ⊥ ,
+    rw nat.pow_zero,
+    exact fincard_bot },
+  rw nat.succ_eq_add_one at hin,
+  have useful : 0 < n - i := nat.le_sub_left_of_add_le hin,
+  have useful2 : i ≤ n,
+    refine le_trans _ hin, simp,
+  specialize hi useful2,
+  cases hi with H hH,
+  -- next goal: want N/H order a multiple of p
+  -- then Cauchy gives you C-bar order p in N/H
+  -- comap back to N
+  -- map to G
 
  -- cases claim with H hH,
 
