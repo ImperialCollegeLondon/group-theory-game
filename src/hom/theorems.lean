@@ -231,6 +231,9 @@ def comap (f : G →* H) (K : subgroup H) : subgroup G :=
     by rw f.map_mul; exact mul_mem K hx hy,
   inv_mem' := λ x hx, show f x⁻¹ ∈ K, by rw f.map_inv; exact inv_mem K hx }
 
+lemma mem_comap' (f : G →* H) (M : subgroup H) (g : G) :
+  g ∈ M.comap f ↔ f g ∈ M := iff.rfl
+
 def gc (f : G →* H) : galois_connection (map f) (comap f) :=
 begin
   rintros A B,

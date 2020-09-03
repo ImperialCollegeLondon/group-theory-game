@@ -84,6 +84,8 @@ def normal_in_normalizer (H : subgroup G): normal (normalizer H.carrier) :=
    dsimp at *,   
    cases g with g hg,
    cases n with n hn,
+   rw mem_coe,
+   rw mem_comap',
    sorry
   end,
   .. comap (𝒾 (normalizer H.carrier)) H }
