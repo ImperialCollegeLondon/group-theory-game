@@ -316,10 +316,6 @@ lemma index_normalizer_congr_index_modp [fintype G]
     exact this.symm
   end    
 
-
-
- 
-
 lemma p_div_index_div_normalizer [fintype G](H : subgroup G) {p : ℕ} (hp: p.prime) (h: is_p_subgroup H p):
 p ∣ index H → p ∣ (index' (normalizer (H : set G)) H):=
 begin
@@ -384,6 +380,14 @@ lemma index'_eq_card_quotient [fintype G] (H : subgroup G) (K : normal H):
 def normal_in_normalizer_iso (H : subgroup G):
  (map (𝒾 (normalizer H.carrier)) (normal_in_normalizer H)) ≅ H := sorry
 
+noncomputable instance boo54 [fintype G] (N : normal G) : fintype (G /ₘ N) :=
+fintype.of_surjective (quotient.mk N) begin
+  exact quotient.is_surjective_mk
+end
+
+def equiv_comap_of_sub (K : subgroup G) (H : normal G)
+  (h : H.to_subgroup ≤ K) : normal.comap (𝒾 K) H ≃ H := sorry
+
 theorem sylow_one [fintype G] 
   {p m n: ℕ} {hp : p.prime}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m} : 
   ∀ (i ≤ n), ∃ H : subgroup G, fincard' H = p ^ i := 
@@ -432,7 +436,6 @@ begin
       apply mul_equiv.to_equiv,
       apply mul_equiv_of_iso,
       exact normal_in_normalizer_iso H },
-      letI : fintype ((normalizer ↑H) /ₘ normal_in_normalizer H) := sorry,
   have fact4: ∃ (K : subgroup (normalizer (H : set G) /ₘ normal_in_normalizer H)), fincard' K = p,
     { refine @cauchy _ _ _ p hp fact3, },
   cases fact4 with K hK,
@@ -450,7 +453,19 @@ begin
    congr,
    rw ← hH,
    apply fincard.of_equiv,
-   sorry, -- preimage of H in L is iso to H
+   refine equiv.trans (equiv_comap_of_sub _ _ _) _,
+   { rintro h hh,
+     unfold quotient.quotient.comap,
+     rw mem_coe,
+     rw mem_comap',
+     convert K.one_mem,
+     rw ← mem_kernel,
+     rw quotient.kernel_mk,
+     exact hh
+   },
+   { unfold normal_in_normalizer,
+     sorry
+   },
    exact injective_𝒾,  
 end    
 /-theorem cauchy (G : Type) [group G] [fintype G] (p : ℕ) (hp : p.prime)
