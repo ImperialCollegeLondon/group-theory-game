@@ -182,7 +182,7 @@ def fin.S (n : ℕ) : fin n ≃ fin n := nat.rec_on n fin.S.zero (λ d IH,
   fin.S.succ)
 
 /-- the twist by fin.S.succ preserves the property that prod eq one -/
-theorem finmap.prod_eq_one_succ (f : fin n.succ → G) :
+theorem finmap.prod_eq_one_succ {f : fin n.succ → G} :
 finmap.prod_eq_one f → finmap.prod_eq_one (f ∘ fin.S.succ) :=
 begin
   intro h,
@@ -191,8 +191,6 @@ begin
   -- want to break the goal into a product over fin n and last,
   -- and to break h into a product over head and tail
   -- want to break the goal into prod of either head and tail or of first and rest
-  -- ⊢ (vector.of_fn (f ∘ ⇑(fin.S n))).to_list.prod = 1
-  -- ⊢ (vector.of_fn (f ∘ ⇑fin.S.succ)).to_list.prod = 1
   change (vector.of_fn (f ∘ (fin.S.succ' n))).to_list.prod' = 1,
   change (vector.of_fn (λ x, (f ∘ (fin.S.succ' n)) x)).to_list.prod' = 1,
   change (vector.of_fn (λ x, (f ((fin.S.succ' n) x)))).to_list.prod' = 1,
@@ -244,6 +242,21 @@ begin
   simp,
   apply fin.eq_of_veq,
   exact (zmod.val_cast_of_lt (nat.lt_succ_of_lt hi)).symm,
+end
+
+lemma finmap.prod_eq_one_iterate {f : fin n.succ → G} (d : ℕ) :
+finmap.prod_eq_one f → finmap.prod_eq_one (λ i, f ((⦃(d : ℤ)⦄^(fin.S.succ : fin n.succ ≃ fin n.succ) : fin n.succ ≃ fin n.succ).to_fun i)) :=
+begin
+  intro h,
+  induction d with e he,
+  { convert h },
+  convert finmap.prod_eq_one_succ he,
+  ext i,
+  simp,
+  congr' 1,
+  rw group.pow_add,
+  rw group.one_pow,
+  refl
 end
 
 --instance foo : group (zmod n ≃ zmod n) := by apply_instance
