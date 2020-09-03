@@ -229,7 +229,16 @@ begin
   refl,
 end  
 
-theorem sylow_one_part1 [fintype G] 
+lemma index_eq_index' [fintype G] (H K : subgroup G) (h: K ≤ H):
+ index (comap (𝒾 H) K) = index' H K := sorry
+
+lemma index'_eq_card_quotient [fintype G] (H : subgroup G) (K : normal H): 
+ index' H (map (𝒾 H) K) = fincard' (H /ₘ K) := sorry
+
+def normal_in_normalizer_iso (H : subgroup G):
+ (map (𝒾 (normalizer H.carrier)) (normal_in_normalizer H)) ≅ H := sorry
+
+theorem sylow_one [fintype G] 
   {p m n: ℕ} {hp : p.prime}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m} : 
   ∀ (i ≤ n), ∃ H : subgroup G, fincard' H = p ^ i := 
 begin
@@ -245,7 +254,7 @@ begin
   specialize hi useful2,
   cases hi with H hH,
   
-  have fact1: p ∣ index H,
+  have fact0: p ∣ index H,
   { unfold index,
     rw [hG, hH, show n = i + (n - i), by simp [← nat.add_sub_assoc useful2 _], 
         nat.pow_add, nat.mul_assoc, nat.mul_comm, 
@@ -260,27 +269,44 @@ begin
     rw h at useful,
     refine (nat.sub_add_cancel _).symm,
     linarith },
-  have h1: index' (normalizer (H : set G)) H  ≡ H.index [MOD p],
+  have fact1: index' (normalizer (H : set G)) H  ≡ H.index [MOD p],
   {  refine index_normalizer_congr_index_modp hp H _ ,
     use i, exact hH }, 
   have fact2: p ∣ (index' (normalizer (H : set G)) H),
   {  refine (p_div_index_div_normalizer H hp _ _),
-    use i, exact hH, exact fact1},  
-  have: p ∣ fincard' (normalizer (H : set G) /ₘ normal_in_normalizer H),
-     -- rw ← @index_eq_card_quotient (normal_in_normalizer H),
-        sorry,
-  have: ∃ (K : subgroup (normalizer (H : set G) /ₘ normal_in_normalizer H)), fincard' K = p,
-    --using Cauchy
-
-  sorry, sorry,
-  -- next goal: want N/H order a multiple of p
-  -- then Cauchy gives you C-bar order p in N/H
-  -- comap back to N
-  -- map to G
-
- -- cases claim with H hH,
-
-  --Let H < G s.t. fincard' H = p ^i . Then p ∣ index H → p∣ index' normalizer H H
+    use i, exact hH, exact fact0},  
+  have fact3: p ∣ fincard' (normalizer (H : set G) /ₘ normal_in_normalizer H),
+    { rw ← index'_eq_card_quotient,
+      cases fact2 with k hk,
+      use k,
+      rw ← hk, 
+      unfold index',
+      congr' 1,
+      apply fincard.of_equiv,
+      apply mul_equiv.to_equiv,
+      apply mul_equiv_of_iso,
+      exact normal_in_normalizer_iso H },
+  have fact4: ∃ (K : subgroup (normalizer (H : set G) /ₘ normal_in_normalizer H)), fincard' K = p,
+    --{ refine @cauchy _ _ _ p hp fact3, }
+    sorry,
+  cases fact4 with K hK,
+  have := quotient.quotient.comap_iso _ K,
+   use map (𝒾 (normalizer H.carrier)) (quotient.quotient.comap (normal_in_normalizer H) K), 
+   unfold map,
+   rw card_subgroup_eq_card_carrier,
+   simp,
+   rw ← fincard.card_eq_image_of_injective (𝒾 (normalizer H.carrier)),
+   haveI: fintype (normalizer H.carrier) := sorry,
+   change fincard' (quotient.quotient.comap (normal_in_normalizer H) K).carrier = p ^ i.succ,
+   rw ←  card_subgroup_eq_card_carrier,
+   rw @quotient.quotient.comap_card_eq _ _ _ (normal_in_normalizer H) K,
+   rw hK,
+   rw nat.pow_succ,
+   congr,
+   rw ← hH,
+   apply fincard.of_equiv,
+   sorry,
+   exact injective_𝒾,  
 end    
 /-theorem cauchy (G : Type) [group G] [fintype G] (p : ℕ) (hp : p.prime)
   (hpG : p ∣ fincard' G) : ∃ H : subgroup G, fincard' H = p := -/
