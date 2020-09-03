@@ -1,5 +1,6 @@
 import Sylow.cyclic_vector_action
 import Sylow.card_of_list
+import data.int.gcd
 
 /-!
 # Cauchy's Theorem.
@@ -112,10 +113,78 @@ end
 -- theorem prime_lemma4 (G : Type) [group G] (p : ℕ) (hp : p.prime) (g : G)
 --   (hg1 : g ≠ 1) (hg2 : ⦃p⦄^g = 1) : (order_map g).image = closure {g} := sorry
 
-theorem aux_lemma1 {p : ℕ} (hp : p.prime) {g : G} (hg : g ≠ 1) 
-  (hpg : ⦃p⦄^g = 1) {k : ℤ} (hk : ⦃k⦄^g = 1) : (p : ℤ) ∣ k :=
+theorem gcd_lemma (g : G) (a b : ℕ) (ha : ⦃a⦄^g = 1) (hb : ⦃b⦄^g = 1) :
+  ⦃(nat.gcd a b)⦄^g = 1 :=
 begin
-  sorry
+  rw nat.gcd_eq_gcd_ab a b,
+  rw [group.pow_add, _root_.mul_comm, group.pow_mul],
+  rw ha, rw group.pow_one,
+  rw [_root_.mul_comm, group.pow_mul],
+  rw hb, rw group.pow_one,
+  rw group.mul_one,
+end
+
+lemma group.inv_one : (1 : G)⁻¹ = 1 :=
+begin
+  symmetry,
+  apply group.eq_inv_of_mul_eq_one,
+  rw group.mul_one,
+end
+
+lemma easy (g : G) (a : ℤ) : ⦃a⦄^g = 1 ↔ ⦃int.nat_abs a⦄^g = 1 :=
+begin
+  cases int.nat_abs_eq a,
+  { congr' },
+  { conv_lhs begin 
+      rw h,
+      rw group.pow_neg,
+    end,
+    split,
+      rintro h2, 
+      rw ←pow_inv at h2,
+      rw group.inv_eq at h2,
+      rw ←h2,
+      rw group.inv_one,
+    intro h2,
+    rw ←pow_inv,
+    rw group.inv_eq,
+    rw h2,
+    rw group.inv_one,
+   }
+
+end
+
+
+
+theorem int_gcd_lemma (g : G) (a b : ℤ) (ha : ⦃a⦄^g = 1) (hb : ⦃b⦄^g = 1) :
+  ⦃(int.gcd a b)⦄^g = 1 :=
+begin
+  apply gcd_lemma; rw ←easy; assumption
+end
+
+theorem aux_lemma1 {p : ℕ} (hp : p.prime) {g : G} (hg : g ≠ 1) 
+  (hpg : ⦃p⦄^g = 1) {k : ℤ} (hkg : ⦃k⦄^g = 1) : (p : ℤ) ∣ k :=
+begin
+  by_contra hk,
+  set t := int.gcd p k with ht,
+  have ht2 : t = 1,
+    have := nat.gcd_dvd (int.nat_abs p) (int.nat_abs k),
+    unfold int.gcd at ht,
+    rw ←ht at this,
+    cases this with h3 h4,
+    change t ∣ p at h3,
+    rw nat.dvd_prime hp at h3,
+    cases h3, exact h3,
+    exfalso,
+    apply hk,
+    rw h3 at h4,
+    exact int.coe_nat_dvd_left.mpr h4,
+  apply hg,
+  convert int_gcd_lemma g p k hpg hkg,
+  rw ←ht,
+  rw ht2,
+  rw int.coe_nat_one,
+  rw group.one_pow,
 end
 
 theorem aux_lemma2 (p : ℕ) (hp : p.prime) (g : G)
