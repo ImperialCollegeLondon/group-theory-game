@@ -125,10 +125,23 @@ end
 --   sorry
 -- end
 
-theorem prime_lemma3 (G : Type) [group G] (p : ℕ) (hp : p.prime) (g : G)
-  (hg1 : g ≠ 1) (hg2 : ⦃p⦄^g = 1) : (order_map g).image = closure {g} :=
+theorem order_map_image (G : Type) [group G] (p : ℕ) (g : G) :
+  (order_map g).image = closure {g} :=
 begin
-  sorry
+  rw cyclic.closure_singleton_eq,
+  ext x,
+  split,
+  { intro h,
+    cases h with n hn,
+    unfold cyclic.closure_singleton,
+    use n,
+    rw ←hn,
+    refl },
+  { intro h,
+    cases h with n hn,
+    rw hn,
+    use n,
+    refl }
 end
 
 
@@ -153,7 +166,7 @@ theorem key_lemma (G : Type) [group G] (p : ℕ) (hp : p.prime) (g : G)
   fincard' (closure ({g} : set G)) = p := 
 begin
   have h := quotient.quotient_kernel_iso_image (order_map g),
-  rw fincard.of_equiv (eq_equiv G _ _ (prime_lemma3 G p hp g hg1 hg2).symm),
+  rw fincard.of_equiv (eq_equiv G _ _ (order_map_image G p g).symm),
   have h2 := group_hom.mul_equiv_of_iso h,
   replace h2 := mul_equiv.to_equiv h2,
   rw fincard.of_equiv h2.symm,
