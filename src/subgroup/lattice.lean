@@ -163,6 +163,23 @@ by rw bot_eq_trivial; refl
 lemma fincard_bot : fincard' (⊥ : subgroup G) = 1 :=
 by rw [← @fincard.card_singleton_eq_one _ (1 : G), ← bot_eq_singleton_one]; refl
 
+lemma eq_top_iff (H : subgroup G) : H = ⊤ ↔ ∀ g, g ∈ H :=
+begin
+  split,
+  { rintro rfl,
+    intro g,
+    show g ∈ ((⊤ : subgroup G) : set G),
+    rw ←singleton_subset_iff,
+    show ({g} : set G) ≤ _,
+    rw ←closure_le,
+    simp },
+  { intro h,
+    rw eq_top_iff,
+    intros g hg,
+    apply h
+  }
+end
+
 -- scary example!
 -- SL₂(ℝ) acts on the upper half plane {z : ℂ | Im(z) > 0}
 -- (a b; c d) sends z to (az+b)/(cz+d)
