@@ -2,6 +2,7 @@
 -- whose product is 1
 
 import Sylow.prod_eq_one
+import subgroup.cyclic_univ
 
 namespace mygroup
 
@@ -69,5 +70,11 @@ begin
   simp,
   apply cycle_pow_aux
 end
+
+def cool_thing : cyclic (n.succ : ℕ) →* _ :=
+  to_hom_cyclic (cycle G n) n.succ (cycle_pow_n_succ G n)
+
+def cool_action : laction (cyclic n.succ) {v // finmap.prod_eq_one v} :=
+action_eq_hom.symm (cool_thing G n)
 
 end mygroup
