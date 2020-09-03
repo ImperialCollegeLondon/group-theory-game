@@ -154,8 +154,6 @@ begin
 
 end
 
-
-
 theorem int_gcd_lemma (g : G) (a b : ℤ) (ha : ⦃a⦄^g = 1) (hb : ⦃b⦄^g = 1) :
   ⦃(int.gcd a b)⦄^g = 1 :=
 begin
