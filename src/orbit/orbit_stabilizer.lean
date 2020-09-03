@@ -263,7 +263,7 @@ lemma mem_fixed_points_iff_stabilizer_univ (s : S) :
   s ∈ fixed_points μ ↔ stabilizer μ s = ⊤ :=
 begin
   rw mem_fixed_points_iff,
-  rw subgroup.eq_top_iff,
+  rw subgroup.eq_top_iff',
   apply forall_congr,
   intro a, refl
 end
