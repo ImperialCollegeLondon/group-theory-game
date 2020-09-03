@@ -118,12 +118,56 @@ begin
   cases hp, cases hp_left, cases hp_left_a,
 end
 
+-- theorem prime_lemma (G : Type) [group G] (p : ℕ) (hp : p.prime) (g : G)
+--   (hg1 : g ≠ 1) (hg2 : ⦃p⦄^g = 1) : 
+--   (group_hom.kernel (to_hom_cyclic g p hg2)).to_subgroup = ⊥ :=
+-- begin
+--   sorry
+-- end
+
+theorem prime_lemma3 (G : Type) [group G] (p : ℕ) (hp : p.prime) (g : G)
+  (hg1 : g ≠ 1) (hg2 : ⦃p⦄^g = 1) : (order_map g).image = closure {g} :=
+begin
+  sorry
+end
+
+
+-- theorem prime_lemma4 (G : Type) [group G] (p : ℕ) (hp : p.prime) (g : G)
+--   (hg1 : g ≠ 1) (hg2 : ⦃p⦄^g = 1) : (order_map g).image = closure {g} := sorry
+
+theorem aux_lemma2 (G : Type) [group G] (p : ℕ) (hp : p.prime) (g : G)
+  (hg1 : g ≠ 1) (hg2 : ⦃p⦄^g = 1) : (order_map g).kernel = mod ↑p :=
+begin
+  sorry
+end
+
+
+def eq_equiv (G : Type) [group G] (H K : subgroup G) (i : H = K) : H ≃ K :=
+{ to_fun := λ h, ⟨h.1, i ▸ h.2⟩,
+  inv_fun := λ k, ⟨k.1, i.symm ▸ k.2⟩,
+  left_inv := λ h, by ext; refl,
+  right_inv := λ k, by ext; refl }
+
+theorem key_lemma (G : Type) [group G] (p : ℕ) (hp : p.prime) (g : G)
+  (hg1 : g ≠ 1) (hg2 : ⦃p⦄^g = 1) : 
+  fincard' (closure ({g} : set G)) = p := 
+begin
+  have h := quotient.quotient_kernel_iso_image (order_map g),
+  rw fincard.of_equiv (eq_equiv G _ _ (prime_lemma3 G p hp g hg1 hg2).symm),
+  have h2 := group_hom.mul_equiv_of_iso h,
+  replace h2 := mul_equiv.to_equiv h2,
+  rw fincard.of_equiv h2.symm,
+  convert cyclic.fincard_cyclic p (nat.prime.pos hp),
+  apply aux_lemma2 G p hp g hg1 hg2,
+end
+
+
 theorem cauchy (G : Type) [group G] [fintype G] (p : ℕ) (hp : p.prime)
   (hpG : p ∣ fincard' G) : ∃ H : subgroup G, fincard' H = p := 
 begin
   rcases cauchy_elememt G p hp hpG with ⟨g, hg1, hg2⟩,
   use closure {g},
-  sorry
+  apply key_lemma G p hp g hg1 hg2
 end
 
 end mygroup
