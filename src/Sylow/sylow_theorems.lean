@@ -377,13 +377,39 @@ fintype.of_surjective (quotient.mk N) begin
 end
 
 def equiv_comap_of_sub (K : subgroup G) (H : normal G)
-  (h : H.to_subgroup ≤ K) : normal.comap (𝒾 K) H ≃ H := sorry
+  (h : H.to_subgroup ≤ K) : normal.comap (𝒾 K) H ≃ H := 
+{ to_fun := λ g, ⟨g.1.1, 
+    begin
+      rcases g with ⟨⟨g, _⟩, hg⟩,
+      exact hg
+    end⟩,
+  inv_fun := λ g, ⟨⟨g.1, h g.2⟩, g.2⟩,
+  left_inv := by rintro ⟨⟨_, _⟩, _⟩; simp,
+  right_inv := by rintro ⟨_, _⟩; simp }
 
 def equiv_comap_of_sub' (H K : subgroup G)
-  (h : H ≤ K) : subgroup.comap (𝒾 K) H ≃ H := sorry
+  (h : H ≤ K) : subgroup.comap (𝒾 K) H ≃ H := 
+{ to_fun := λ g, ⟨g.1.1, 
+    begin
+      rcases g with ⟨⟨g, _⟩, hg⟩,
+      exact hg
+    end⟩,
+  inv_fun := λ g, ⟨⟨g.1, h g.2⟩, g.2⟩,
+  left_inv := by rintro ⟨⟨_, _⟩, _⟩; simp,
+  right_inv := by rintro ⟨_, _⟩; simp }
 
 def equiv_map_of_sub (H : subgroup G) (K : subgroup H) :
-  map (𝒾 H) K ≃ K := sorry 
+  map (𝒾 H) K ≃ K := 
+{ to_fun := λ k,
+    begin
+      refine ⟨⟨k.1, _⟩, _⟩;
+        rcases k with ⟨k, ⟨_, hk⟩, hk', rfl⟩,
+        exact hk,
+        exact hk',
+    end,
+  inv_fun := λ k, ⟨k.1, k, k.2, rfl⟩,
+  left_inv := by rintro ⟨_, _, _, _⟩; simp,
+  right_inv := by rintro ⟨_, _⟩; simp }
 
 lemma index_eq_index' [fintype G] (H K : subgroup G) (h: K ≤ H):
   index (comap (𝒾 H) K) = index' H K :=
@@ -528,10 +554,10 @@ lemma conjugates_eq_cardinality (g : G) (H : subgroup G) :
   fincard' H = fincard' (conjugate_subgroup g H) := 
 fincard.of_equiv (group_hom.mul_equiv_of_iso (conjugate_iso g H)).to_equiv
   
-def is_sylow_p_subgroup [fintype G] (K : subgroup G) {p : ℕ} (hp : p.prime) : Prop := sorry
+-- def is_sylow_p_subgroup [fintype G] (K : subgroup G) {p : ℕ} (hp : p.prime) : Prop := sorry
 
-theorem sylow_two [fintype G]{p : ℕ} {hp : p.prime} (H K : subgroup G) (h₁ : is_sylow_p_subgroup H hp)(h₂ : is_sylow_p_subgroup K hp) : 
-∃ (g : G), H = conjugate_subgroup g K  := sorry  
+-- theorem sylow_two [fintype G]{p : ℕ} {hp : p.prime} (H K : subgroup G) (h₁ : is_sylow_p_subgroup H hp)(h₂ : is_sylow_p_subgroup K hp) : 
+-- ∃ (g : G), H = conjugate_subgroup g K  := sorry  
 
 
 -- Consider the action of K on the set X of cosets of H in G μ: K × X → X, (y, xH) ↦ yxH. 
@@ -543,14 +569,14 @@ theorem sylow_two [fintype G]{p : ℕ} {hp : p.prime} (H K : subgroup G) (h₁ :
 
 
 --Define the number of Sylow p-subgroups of G. 
-noncomputable def number_sylow_p (G : Type) [group G] {p : ℕ} (hp : p.prime) := 
-fincard' {K : subgroup G // is_sylow_p_subgroup K hp}
+-- noncomputable def number_sylow_p (G : Type) [group G] {p : ℕ} (hp : p.prime) := 
+-- fincard' {K : subgroup G // is_sylow_p_subgroup K hp}
 
-theorem sylow_three_part1 [fintype G]{p m n: ℕ}{hp : p.prime}
-  {hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m}:
-number_sylow_p G hp ≡ 1 [MOD p] := sorry 
-theorem sylow_three_part2 [fintype G]{p m n: ℕ} {hp : p.prime}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m}:
-number_sylow_p G hp ∣ m := sorry 
+-- theorem sylow_three_part1 [fintype G]{p m n: ℕ}{hp : p.prime}
+--   {hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m}:
+-- number_sylow_p G hp ≡ 1 [MOD p] := sorry 
+-- theorem sylow_three_part2 [fintype G]{p m n: ℕ} {hp : p.prime}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m}:
+-- number_sylow_p G hp ∣ m := sorry 
 --By Sylow 1 ∃ a Sylow p-subgroup P, so we set X = Sylp(G) = {Sylow p-groups in G}
 --Then P acts on X by μ : P × X → X, (x, Q) ↦ xQx⁻¹ (this is what we defined conjugate_action to be)
 --By card_set_congr_card_fixed_points_mod_prime we have
