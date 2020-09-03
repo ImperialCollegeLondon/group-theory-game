@@ -137,14 +137,26 @@ to_lcosets g H  ∈ (fixed_points (dumb_action' H)) ↔ g ∈ normalizer' H := s
   { sorry }
 end  -/
 
+def lcosets_to_sets  (H : subgroup G): lcosets H → { B | ∃ g : G, B = lcoset g H } := id
+
+
+
 lemma index_normalizer_congr_index_modp [fintype G] 
   {p : ℕ} (hp: p.prime) (H : subgroup G) (h: is_p_subgroup H p) :
   index' (normalizer (H : set G)) H ≡ index H [MOD p] := 
   begin
-  have claim: ∀ g : G, to_lcosets g H ∈ (fixed_points (dumb_action H)) ↔ g ∈ normalizer H.carrier,
-    { sorry },
+  have claim: ∀ g : G, to_lcosets g H ∈ (fixed_points (dumb_action' H)) ↔ g ∈ normalizer H.carrier,
+    { intro g,
+      rw normalizer_eq_normalizer',
+      exact foo H g,
+     },
+  /-have: fixed_points (dumb_action' H) = (normalizer (H : set G) /ₘ normal_in_normalizer H),
+    { sorry  },-/
   have: fincard'(fixed_points (dumb_action H)) = (index' (normalizer (H : set G)) H),
-    { sorry },
+    { cases h with n hn,
+      unfold index',
+      sorry
+     },
   have: index H = fincard' (lcosets H),
     { sorry },  
   have: index H ≡ (index' (normalizer (H : set G)) H)[MOD p],
