@@ -150,6 +150,12 @@ begin
   { simp [*, mygroup.group.mul_assoc] },
 end
 
+lemma list.prod_singleton' (g : G) : [g].prod' = g :=
+begin
+  exact mygroup.group.mul_one g,
+end
+
+
 lemma list.prod_repeat' (d : ℕ) (g : G) : (list.repeat g d).prod' = ⦃d⦄^g :=
 begin
   induction d with e he,
