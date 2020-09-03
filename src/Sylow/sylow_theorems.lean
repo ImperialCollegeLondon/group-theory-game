@@ -371,15 +371,6 @@ begin
   refl,
 end  
 
-lemma index_eq_index' [fintype G] (H K : subgroup G) (h: K ≤ H):
- index (comap (𝒾 H) K) = index' H K := sorry
-
-lemma index'_eq_card_quotient [fintype G] (H : subgroup G) (K : normal H): 
- index' H (map (𝒾 H) K) = fincard' (H /ₘ K) := sorry
-
-def normal_in_normalizer_iso (H : subgroup G):
- (map (𝒾 (normalizer H.carrier)) (normal_in_normalizer H)) ≅ H := sorry
-
 noncomputable instance boo54 [fintype G] (N : normal G) : fintype (G /ₘ N) :=
 fintype.of_surjective (quotient.mk N) begin
   exact quotient.is_surjective_mk
@@ -387,6 +378,33 @@ end
 
 def equiv_comap_of_sub (K : subgroup G) (H : normal G)
   (h : H.to_subgroup ≤ K) : normal.comap (𝒾 K) H ≃ H := sorry
+
+def equiv_comap_of_sub' (H K : subgroup G)
+  (h : H ≤ K) : subgroup.comap (𝒾 K) H ≃ H := sorry
+
+def equiv_map_of_sub (H : subgroup G) (K : subgroup H) :
+  map (𝒾 H) K ≃ K := sorry 
+
+lemma index_eq_index' [fintype G] (H K : subgroup G) (h: K ≤ H):
+  index (comap (𝒾 H) K) = index' H K :=
+begin
+  unfold index,
+  unfold index',
+  rw fincard.of_equiv (equiv_comap_of_sub' K H h)
+end
+
+lemma index'_eq_card_quotient [fintype G] (H : subgroup G) (K : normal H): 
+  index' H (map (𝒾 H) K) = fincard' (H /ₘ K) :=
+begin
+  unfold index',
+  have h := lagrange.card_quotient_eq_mul K,
+  rw h,
+  rw fincard.of_equiv (equiv_map_of_sub H ↑K),
+  rw _root_.mul_comm,
+  convert nat.mul_div_cancel _ _,
+  exact zero_lt_card_subgroup _,
+end
+
 
 theorem sylow_one [fintype G] 
   {p m n: ℕ} {hp : p.prime}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m} : 
@@ -432,10 +450,12 @@ begin
       rw ← hk, 
       unfold index',
       congr' 1,
-      apply fincard.of_equiv,
-      apply mul_equiv.to_equiv,
-      apply mul_equiv_of_iso,
-      exact normal_in_normalizer_iso H },
+      rw fincard.of_equiv (equiv_map_of_sub _ _),
+      unfold normal_in_normalizer,
+      convert fincard.of_equiv (equiv_comap_of_sub' _ _ _),
+      rw normalizer_eq_normalizer',
+      exact le_normalizer' H
+    },
   have fact4: ∃ (K : subgroup (normalizer (H : set G) /ₘ normal_in_normalizer H)), fincard' K = p,
     { refine @cauchy _ _ _ p hp fact3, },
   cases fact4 with K hK,
