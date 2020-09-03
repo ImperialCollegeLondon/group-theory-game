@@ -100,11 +100,42 @@ def normal_in_normalizer (H : subgroup G): normal (normalizer H.carrier) :=
 
 def to_lcosets (g : G) (H : subgroup G) : lcosets H := ⟨g ⋆ H, ⟨g, rfl⟩⟩
 
-lemma foo (H : subgroup G) (g : G):
-to_lcosets g H  ∈ (fixed_points (dumb_action' H)) ↔ g ∈ normalizer' H :=
-begin
-  sorry 
-end  
+lemma foo [fintype G] (H : subgroup G) (g : G):
+to_lcosets g H  ∈ (fixed_points (dumb_action' H)) ↔ g ∈ normalizer' H := sorry
+/-begin
+  unfold fixed_points, 
+  unfold to_lcosets,
+  unfold dumb_action', 
+  unfold dumb_action,
+  unfold laction.comap,
+  simp only [mem_set_of_eq],
+  unfold dumb_fun,
+  simp only [subtype.mk_eq_mk],
+  simp_rw  dumb_fun_lcoset_eq g,
+  split, 
+  { intros hfun,
+    rw ← inv_mem_iff (normalizer' H),
+    rw mem_normalizer'_iff,
+    intro k,
+    split,
+      { intro hk,
+        specialize hfun ⟨k, hk⟩,
+        rw group.inv_inv,
+        rw group.mul_assoc,
+        rw ← lagrange.lcoset_eq,
+        exact hfun,        
+      },
+      { 
+        rw group.inv_inv,
+        intro hgk,
+        specialize hfun ⟨_, hgk⟩,
+        rw lagrange.lcoset_eq at hfun,
+        simp [group.mul_assoc] at hfun,
+        sorry
+      },
+  },
+  { sorry }
+end  -/
 
 lemma index_normalizer_congr_index_modp [fintype G] 
   {p : ℕ} (hp: p.prime) (H : subgroup G) (h: is_p_subgroup H p) :
@@ -242,7 +273,9 @@ begin
     use i, exact hH, exact fact1},  
   have: p ∣ fincard' (normalizer (H : set G) /ₘ normal_in_normalizer H),
      -- rw ← @index_eq_card_quotient (normal_in_normalizer H),
-        
+        sorry,
+  have: ∃ (K : subgroup (normalizer (H : set G) /ₘ normal_in_normalizer H)), fincard' K = p,
+    --using Cauchy
 
   sorry, sorry,
   -- next goal: want N/H order a multiple of p
