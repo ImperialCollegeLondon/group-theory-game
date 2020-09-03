@@ -82,6 +82,21 @@ def prod_eq_one_equiv : {v : fin n.succ → G // finmap.prod_eq_one v} ≃ (fin 
   end
 }
 
+/-- I need this -/
+lemma card_function (X : Type) [fintype X] (Y : Type) [fintype Y] :
+  fincard' (X → Y) = fincard' Y ^ fincard' X := sorry
+
+lemma card_cool_set [fintype G] :
+  fincard' {v : fin n.succ → G // finmap.prod_eq_one v} = fincard' G ^ n :=
+begin
+  rw fincard.of_equiv (prod_eq_one_equiv G n),
+  rw card_function,
+  congr',
+  rw ←fincard.card_eq_fincard,
+  simp,
+end
+
+
 -- NEED TO COUNT.
 
 -- todo : card (vector G n) = |G|^n
