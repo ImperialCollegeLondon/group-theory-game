@@ -259,6 +259,16 @@ def fixed_points (μ : laction G S) : set S := {s : S | ∀ g : G, g •[μ] s =
 @[simp] lemma mem_fixed_points_iff (s : S) :
   s ∈ fixed_points μ ↔ ∀ (g : G) , g • s = s := iff.rfl
 
+lemma mem_fixed_points_iff_stabilizer_univ (s : S) :
+  s ∈ fixed_points μ ↔ stabilizer μ s = ⊤ :=
+begin
+  rw mem_fixed_points_iff,
+  rw subgroup.eq_top_iff,
+  apply forall_congr,
+  intro a, refl
+end
+
+
 --Want to show that if s is in the set of fixed points of μ, then the orbit of s contains only s.#check
 lemma orbit_eq_singleton {s : S} {μ : laction G S} (h : s ∈ fixed_points μ) : 
   orbit μ s = {s} := 
