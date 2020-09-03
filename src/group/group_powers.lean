@@ -76,6 +76,13 @@ begin
   rw [←iterate.comp, iterate_mul_assoc, one_mul]
 end
 
+theorem pow_sub : ⦃m - n⦄^g = ⦃m⦄^g * ⦃-n⦄^g :=
+begin
+  rw sub_eq_add_neg,
+  rw pow_add,
+end
+
+
 theorem pow_mul : ⦃m * n⦄^g = ⦃m⦄^⦃n⦄^g :=
 begin
   simp [pow_def],
@@ -83,6 +90,20 @@ begin
   congr, ext,
   show _ = (n.iterate (lmul g)) 1 * x,
   rw [iterate_mul_assoc, one_mul],
+end
+
+
+theorem pow_inv : (⦃n⦄^g)⁻¹ = ⦃n⦄^g⁻¹ :=
+begin
+  apply int.induction_on n,
+  { simp },
+  { intros i hi,
+    rw [pow_add, one_pow, inv_mul, hi, add_comm, pow_add, one_pow],
+  },
+  { intros i hi,
+    rw [pow_sub, sub_eq_add_neg, add_comm, pow_add, pow_neg, pow_neg, one_pow,
+      inv_mul, inv_inv, ←pow_neg i, hi, pow_neg 1, inv_inv, one_pow],
+  },  
 end
 
 @[simp] lemma pow_one (n : ℤ) : ⦃n⦄^(1 : G) = 1 := 
