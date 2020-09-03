@@ -40,7 +40,7 @@ def action_eq_hom : laction G S ≃ (G →* (S ≃ S)) :=
 
 def to_hom_cyclic (g : G) (n : ℕ) (h : ⦃n⦄^g = 1) : cyclic n →* G :=
 mygroup.quotient.lift (order_map g) _ begin
-  rw mod_eq_span,
+  rw cyclic.mod_eq_closure,
   rw subgroup.closure_le,
   show _ ⊆ _,
   rw set.singleton_subset_iff,
