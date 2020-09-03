@@ -1,6 +1,5 @@
-import data.finsupp 
-import data.support
-import data.setoid.partition
+import data.finsupp data.support
+import data.setoid.partition tactic
 
 noncomputable theory
 
@@ -655,6 +654,24 @@ begin
       exact hf (show f x = f y, by simpa using hxy)  },
     { rintros ⟨y, ⟨x, hx, rfl⟩⟩,
       refine ⟨⟨x, hx⟩, by simp⟩ }
+end
+
+lemma card_sdiff_eq_sub_of_subset [fintype ι] {s t : set ι} (hst : s ⊆ t) : 
+  fincard' (t \ s : set ι) = fincard' t - fincard' s := 
+begin
+  iterate 3 { rw eq_finset_card' },
+  rw ← finset.card_sdiff, 
+  congr, ext, split; finish,
+  intros x hx, rw set.mem_to_finset at *, exact hst hx, 
+end
+
+lemma eq_of_card_eq_subset [fintype ι] {s t : set ι} (hst : s ⊆ t) 
+  (hcard : fincard' s = fincard' t) : s = t :=
+begin
+  suffices : t \ s = ∅, 
+    rw set.diff_eq_empty at this,
+    exact set.subset.antisymm hst this,
+  rw [← card_eq_zero_iff, card_sdiff_eq_sub_of_subset hst], omega,
 end
 
 end fincard
