@@ -1,6 +1,6 @@
 import Sylow.cauchy
 import orbit.normalizer'
-
+import hom.theorems
 namespace mygroup
 
 variables {G : Type} [group G]
@@ -86,7 +86,15 @@ def normal_in_normalizer (H : subgroup G): normal (normalizer H.carrier) :=
    cases n with n hn,
    rw mem_coe,
    rw mem_comap',
-   sorry
+   norm_num,
+   change g ∈ normalizer H.carrier at hg,
+   rw mem_normalizer_iff at hg,
+   specialize hg n,
+   rw ← hg,
+   unfold comap at hnorm,
+   rw mem_preimage at hnorm,
+   change n ∈ H at hnorm,
+   assumption,
   end,
   .. comap (𝒾 (normalizer H.carrier)) H }
 
@@ -95,7 +103,7 @@ def to_lcosets (g : G) (H : subgroup G) : lcosets H := ⟨g ⋆ H, ⟨g, rfl⟩�
 lemma foo (H : subgroup G) (g : G):
 to_lcosets g H  ∈ (fixed_points (dumb_action' H)) ↔ g ∈ normalizer' H :=
 begin
-  sorry  
+  sorry 
 end  
 
 lemma index_normalizer_congr_index_modp [fintype G] 
