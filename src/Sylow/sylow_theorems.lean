@@ -246,7 +246,15 @@ def ZZZ [fintype G] (H : subgroup G) := fincard.finsum_fibres (projection H)
 
 def lcosets_to_sets  (H : subgroup G): lcosets H → { B | ∃ g : G, B = lcoset g H } := id
 
-instance boo38 [fintype G] (H : subgroup G) : fintype (lcosets H) := sorry
+open_locale classical
+
+noncomputable instance boo38 [fintype G] (H : subgroup G) : fintype (lcosets H) :=
+fintype.of_surjective (λ g, to_lcosets g H) begin
+  rintro ⟨C_val, g, rfl⟩,
+  use g,
+  refl
+end
+
 
 --I want to say that here H acts on the set of cosets X = G/H by φ : H × X → X, (h, gH) ↦ hgH. 
 --Then the set of points fixed by the action of H is X^H = {gH ∈ X | hgH = gH ∀ h ∈ H}
