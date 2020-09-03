@@ -100,42 +100,134 @@ def normal_in_normalizer (H : subgroup G): normal (normalizer H.carrier) :=
 
 def to_lcosets (g : G) (H : subgroup G) : lcosets H := ⟨g ⋆ H, ⟨g, rfl⟩⟩
 
+lemma aux_lemma [fintype G] (H : subgroup G) (g : G) :
+  (H : set G) ≤ conjugate_subgroup g H ↔ g ∈ normalizer' H :=
+⟨begin
+  intro h,
+  show conjugate_subgroup g H = H,
+  apply subgroup.ext',
+  symmetry,
+  apply fincard.eq_of_card_eq_subset,
+    exact h,
+  change fincard' H = fincard' (conjugate_subgroup g H),
+  apply fincard.of_equiv,
+  apply mul_equiv.to_equiv,
+  apply mul_equiv_of_is_conjugate,
+  exact conjugate_is_conjugate g H
+end, begin
+  intro h,
+  change conjugate_subgroup g H = H at h,
+  conv_lhs {rw ←h},
+  apply subset.refl
+end⟩
+
 lemma foo [fintype G] (H : subgroup G) (g : G):
-to_lcosets g H  ∈ (fixed_points (dumb_action' H)) ↔ g ∈ normalizer' H := sorry
-/-begin
+to_lcosets g H  ∈ (fixed_points (dumb_action' H)) ↔ g ∈ normalizer' H :=
+begin
+  rw ←aux_lemma,
   unfold fixed_points, 
   unfold to_lcosets,
   unfold dumb_action', 
   unfold dumb_action,
   unfold laction.comap,
-  simp only [mem_set_of_eq],
+  simp,
   unfold dumb_fun,
-  simp only [subtype.mk_eq_mk],
-  simp_rw  dumb_fun_lcoset_eq g,
-  split, 
-  { intros hfun,
-    rw ← inv_mem_iff (normalizer' H),
-    rw mem_normalizer'_iff,
-    intro k,
+  simp,
+  unfold dumb_fun',
+  unfold conjugate_subgroup,
+  simp,
+  unfold_coes,
+  simp,
+  split,
+  { intros h1 h hh,
+    specialize h1 ⟨h, hh⟩,
+    simp * at *,
+    use g⁻¹ * h * g,
+    rw ext_iff at h1,
+    specialize h1 (h * g),
+    have h2 : h * g ∈ g ⋆ H,
+      rw ←h1,
+      use g,
+      use 1,
+      use H.one_mem,
+      rw group.mul_one,
+      rcases h2 with ⟨j, hj1, hj2⟩,
+      rw group.mul_assoc,
+      rw hj2,
+      rw [← group.mul_assoc, group.mul_left_inv, group.one_mul],
+      use hj1,
+      rw ← hj2,
+      simp [group.mul_assoc] },
+  { rintros h1 ⟨h, hh⟩,
+    ext x, split,
+    { rintro ⟨_, ⟨k, hk1, rfl⟩, rfl⟩,
+      rcases h1 hh with ⟨w, hw, rfl⟩,
+      show g * w * g⁻¹ * _ ∈ _,
+      use w * k,
+      use H.mul_mem hw hk1,
+      simp [group.mul_assoc]
+    },
+    { rintro ⟨j, hx, rfl⟩,
+      rw set.mem_set_of_eq,
+    -- want k in H such that gj=hgk
+    -- know h,j ∈ H,
+    -- want g⁻¹hg ∈ H
+    rcases h1 hh with ⟨w, hw, rfl⟩,
+    -- want k ∈ H (set x=g*k) such that gj=gwk
+    -- set j=wk
+    -- k=w⁻¹j,
+    use g*w⁻¹*j,
     split,
-      { intro hk,
-        specialize hfun ⟨k, hk⟩,
-        rw group.inv_inv,
-        rw group.mul_assoc,
-        rw ← lagrange.lcoset_eq,
-        exact hfun,        
-      },
-      { 
-        rw group.inv_inv,
-        intro hgk,
-        specialize hfun ⟨_, hgk⟩,
-        rw lagrange.lcoset_eq at hfun,
-        simp [group.mul_assoc] at hfun,
-        sorry
-      },
-  },
-  { sorry }
-end  -/
+      use w⁻¹*j,
+      split,
+        apply H.mul_mem (H.inv_mem hw) hx,
+      rw group.mul_assoc,
+    simp [group.mul_assoc] } }
+end
+
+def projection [fintype G] (H : subgroup G) :
+  normalizer' H → fixed_points (dumb_action' H) :=
+λ h, ⟨to_lcosets h.1 H, (foo H h.1).2 h.2⟩
+
+lemma proj_1 [fintype G] (H : subgroup G) (b : fixed_points (dumb_action' H)) :
+  ∃ g, (𝒾 (normalizer' H)) '' ((projection H) ⁻¹' {b}) = g ⋆ H :=
+begin
+  rcases b with ⟨⟨_, g, rfl⟩, hg⟩,
+  use g,
+  change to_lcosets g H ∈ _ at hg,
+  rw foo at hg,
+  ext x,
+  split,
+    rintro ⟨⟨k, hk⟩, hk2, rfl⟩,
+    rw mem_preimage at hk2,
+    rw mem_singleton_iff at hk2,
+    unfold projection at hk2,
+    unfold to_lcosets at hk2,
+    rw subtype.mk_eq_mk at hk2,
+    rw subtype.mk_eq_mk at hk2,
+    rw ←hk2,
+    use 1,
+    use H.one_mem,
+    rw group.mul_one,
+    refl,
+  rintro ⟨a, ha, rfl⟩,
+  use g * a,
+    apply subgroup.mul_mem _ hg,
+    apply le_normalizer' H,
+    exact ha,
+  split,
+  rw mem_preimage,
+  rw mem_singleton_iff,
+    unfold projection,
+    unfold to_lcosets,
+    rw subtype.mk_eq_mk,
+    rw subtype.mk_eq_mk,
+    rw lagrange.lcoset_eq,
+    convert ha,
+    simp [group.mul_assoc],
+  refl
+end
+
 
 def lcosets_to_sets  (H : subgroup G): lcosets H → { B | ∃ g : G, B = lcoset g H } := id
 
@@ -145,23 +237,28 @@ lemma index_normalizer_congr_index_modp [fintype G]
   {p : ℕ} (hp: p.prime) (H : subgroup G) (h: is_p_subgroup H p) :
   index' (normalizer (H : set G)) H ≡ index H [MOD p] := 
   begin
-  have claim: ∀ g : G, to_lcosets g H ∈ (fixed_points (dumb_action' H)) ↔ g ∈ normalizer H.carrier,
+    have claim: ∀ g : G, to_lcosets g H ∈ (fixed_points (dumb_action' H)) ↔ g ∈ normalizer H.carrier,
     { intro g,
       rw normalizer_eq_normalizer',
       exact foo H g,
-     },
-  /-have: fixed_points (dumb_action' H) = (normalizer (H : set G) /ₘ normal_in_normalizer H),
+    },
+    /-have: fixed_points (dumb_action' H) = (normalizer (H : set G) /ₘ normal_in_normalizer H),
     { sorry  },-/
-  have: fincard'(fixed_points (dumb_action H)) = (index' (normalizer (H : set G)) H),
+    have h2 : fincard'(fixed_points (dumb_action' H)) = (index' (normalizer (H : set G)) H),
     { cases h with n hn,
       unfold index',
       sorry
-     },
-  have: index H = fincard' (lcosets H),
+    },
+    have h3 : index H = fincard' (lcosets H),
     { sorry },  
-  have: index H ≡ (index' (normalizer (H : set G)) H)[MOD p],
-    -- apply card_set_congr_card_fixed_points_mod_prime _ _ _ _ _,  
-  sorry, sorry
+    have: index H ≡ (index' (normalizer (H : set G)) H) [MOD p],
+    rw h3,
+    rw ←h2,
+    letI : fintype (lcosets H) := sorry,
+    letI : fintype ↥H := sorry,
+    cases h with n hn,
+    apply card_set_congr_card_fixed_points_mod_prime (dumb_action' H) _ hp n hn,  
+    exact this.symm
   end    
 
 --I want to say that here H acts on the set of cosets X = G/H by φ : H × X → X, (h, gH) ↦ hgH. 
@@ -298,9 +395,9 @@ begin
       apply mul_equiv.to_equiv,
       apply mul_equiv_of_iso,
       exact normal_in_normalizer_iso H },
+      letI : fintype ((normalizer ↑H) /ₘ normal_in_normalizer H) := sorry,
   have fact4: ∃ (K : subgroup (normalizer (H : set G) /ₘ normal_in_normalizer H)), fincard' K = p,
-    --{ refine @cauchy _ _ _ p hp fact3, }
-    sorry,
+    { refine @cauchy _ _ _ p hp fact3, },
   cases fact4 with K hK,
   have := quotient.quotient.comap_iso _ K,
    use map (𝒾 (normalizer H.carrier)) (quotient.quotient.comap (normal_in_normalizer H) K), 
@@ -317,7 +414,7 @@ begin
    congr,
    rw ← hH,
    apply fincard.of_equiv,
-   sorry,
+   sorry, -- preimage of H in L is iso to H
    exact injective_𝒾,  
 end    
 /-theorem cauchy (G : Type) [group G] [fintype G] (p : ℕ) (hp : p.prime)

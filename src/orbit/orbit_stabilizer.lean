@@ -143,6 +143,10 @@ def stabilizer (μ : laction G S) (s : S) : subgroup G :=
 def is_conjugate (H K : subgroup G) := 
   ∃ g : G, { c | ∃ h ∈ H, c = g⁻¹ * h * g } = K
 
+@[simp] lemma subgroup.coe_mul (H : subgroup G) (a b : G) (ha : a ∈ H) (hb : b ∈ H) :
+  ((((⟨a, ha⟩ : H) * ⟨b, hb⟩) : H) : G) = a * b := rfl
+
+
 --  The normalizer of a subset of G is a subgroup of G 
 def normalizer (A : set G) : subgroup G := 
 { carrier := {g : G | ∀ n, n ∈ A ↔ g * n * g⁻¹ ∈ A},
@@ -602,6 +606,45 @@ def conjugate_subgroup [group G] (g : G) (H : subgroup G) :  subgroup G :=
       rw hx,
       simp [group.mul_assoc],      
     end }
+
+lemma conjugate_is_conjugate (g : G) (H : subgroup G) : is_conjugate H (conjugate_subgroup g H) :=
+begin
+  use g⁻¹,
+  rw group.inv_inv,
+  ext x,
+  apply exists_congr,
+  simp [conjugate_subgroup],
+end
+
+
+lemma mul_equiv_of_is_conjugate {H K : subgroup G} (e : is_conjugate H K) :
+ H ≃* K :=
+let ⟨g, hg⟩ := classical.indefinite_description _ e in
+begin
+  dsimp at hg,
+  rw ext_iff at hg,
+  change ∀ x : G, (∃ (h : G), _) ↔ x ∈ K at hg,
+exact { to_fun := λ h, ⟨g⁻¹ * h * g, show _ ∈ K, begin rw ←hg, use [h.1, h.2], refl end⟩,
+  inv_fun := λ k, ⟨g*k.1*g⁻¹, begin show _ ∈ H, cases k with k hk,
+    have hk2 := (hg k).2 hk,
+    rcases hk2 with ⟨t, h1, h2⟩,
+    convert h1,
+    subst h2,
+    simp [group.mul_assoc],
+  end⟩,
+  left_inv := begin
+    rintro ⟨h, hh⟩,
+    simp [group.mul_assoc]
+  end,
+  right_inv := begin
+    rintro ⟨h, hh⟩,
+    simp [group.mul_assoc]
+  end,
+  map_mul' := begin
+    rintro ⟨a, ha⟩ ⟨b, hb⟩,
+    ext,
+    simp [group.mul_assoc]
+  end} end
 
 def conjugation_action [group G]: laction G (subgroup G) :=
 { to_fun := λ (g : G) (H : subgroup G), conjugate_subgroup g H,
