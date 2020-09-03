@@ -141,8 +141,6 @@ begin
   simp
 end
 
-
-
 def fixed_points_eq_roots : fixed_points (cool_action G n) ≃ {g : G // ⦃n.succ⦄^g = 1} :=
 { to_fun := λ f, ⟨f.1.1 ⟨0, nat.zero_lt_succ n⟩, begin
     apply fixed_point_pow
