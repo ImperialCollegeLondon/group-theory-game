@@ -189,7 +189,7 @@ def projection [fintype G] (H : subgroup G) :
   normalizer' H → fixed_points (dumb_action' H) :=
 λ h, ⟨to_lcosets h.1 H, (foo H h.1).2 h.2⟩
 
-lemma proj_1 [fintype G] (H : subgroup G) (b : fixed_points (dumb_action' H)) :
+lemma proj_eq_coset [fintype G] (H : subgroup G) (b : fixed_points (dumb_action' H)) :
   ∃ g, (𝒾 (normalizer' H)) '' ((projection H) ⁻¹' {b}) = g ⋆ H :=
 begin
   rcases b with ⟨⟨_, g, rfl⟩, hg⟩,
@@ -228,38 +228,25 @@ begin
   refl
 end
 
+--lemma card_eq_card_of_injective ()
+lemma proj_fincard [fintype G] (H : subgroup G) (b : fixed_points (dumb_action' H)) :
+  fincard' ((projection H) ⁻¹' {b}) = fincard' H :=
+begin
+  cases proj_eq_coset H b with g hg,
+  rw @lagrange.eq_card_of_lcoset _ _ H g,
+  have h := fincard.card_eq_image_of_injective (𝒾 (normalizer' H)) injective_𝒾,
+  rw ← hg,
+  rw ← h
+end
+
+
+noncomputable instance boo36 [fintype G] (H : subgroup G) : fintype H := fintype.of_injective (𝒾 H) injective_𝒾
+
+def ZZZ [fintype G] (H : subgroup G) := fincard.finsum_fibres (projection H)
 
 def lcosets_to_sets  (H : subgroup G): lcosets H → { B | ∃ g : G, B = lcoset g H } := id
 
-
-
-lemma index_normalizer_congr_index_modp [fintype G] 
-  {p : ℕ} (hp: p.prime) (H : subgroup G) (h: is_p_subgroup H p) :
-  index' (normalizer (H : set G)) H ≡ index H [MOD p] := 
-  begin
-    have claim: ∀ g : G, to_lcosets g H ∈ (fixed_points (dumb_action' H)) ↔ g ∈ normalizer H.carrier,
-    { intro g,
-      rw normalizer_eq_normalizer',
-      exact foo H g,
-    },
-    /-have: fixed_points (dumb_action' H) = (normalizer (H : set G) /ₘ normal_in_normalizer H),
-    { sorry  },-/
-    have h2 : fincard'(fixed_points (dumb_action' H)) = (index' (normalizer (H : set G)) H),
-    { cases h with n hn,
-      unfold index',
-      sorry
-    },
-    have h3 : index H = fincard' (lcosets H),
-    { sorry },  
-    have: index H ≡ (index' (normalizer (H : set G)) H) [MOD p],
-    rw h3,
-    rw ←h2,
-    letI : fintype (lcosets H) := sorry,
-    letI : fintype ↥H := sorry,
-    cases h with n hn,
-    apply card_set_congr_card_fixed_points_mod_prime (dumb_action' H) _ hp n hn,  
-    exact this.symm
-  end    
+instance boo38 [fintype G] (H : subgroup G) : fintype (lcosets H) := sorry
 
 --I want to say that here H acts on the set of cosets X = G/H by φ : H × X → X, (h, gH) ↦ hgH. 
 --Then the set of points fixed by the action of H is X^H = {gH ∈ X | hgH = gH ∀ h ∈ H}
@@ -281,7 +268,44 @@ begin
   rw [card_subgroup_eq_card_carrier, fincard.card_eq_zero_iff H.carrier] at h,
   rw [← mem_empty_eq (1 : G), ← h],
   exact H.one_mem,
-end  
+end 
+
+lemma index_normalizer_congr_index_modp [fintype G] 
+  {p : ℕ} (hp: p.prime) (H : subgroup G) (h: is_p_subgroup H p) :
+  index' (normalizer (H : set G)) H ≡ index H [MOD p] := 
+  begin
+    have claim: ∀ g : G, to_lcosets g H ∈ (fixed_points (dumb_action' H)) ↔ g ∈ normalizer H.carrier,
+    { intro g,
+      rw normalizer_eq_normalizer',
+      exact foo H g,
+    },
+    /-have: fixed_points (dumb_action' H) = (normalizer (H : set G) /ₘ normal_in_normalizer H),
+    { sorry  },-/
+    have h2 : fincard'(fixed_points (dumb_action' H)) = (index' (normalizer (H : set G)) H),
+    { cases h with n hn,
+      unfold index',
+      erw normalizer_eq_normalizer',
+      rw ← fincard.finsum_fibres (projection H),
+      simp_rw proj_fincard,
+      rw ← finsum_in_eq_finsum (λ _, fincard' H),
+      rw @finsum_const_nat _ _ _ (fincard' H),
+      rw nat.mul_div_cancel,
+      exact zero_lt_card_subgroup H,
+      simp,
+      apply_instance },
+    have h3 : index H = fincard' (lcosets H),
+    { sorry },  
+    have: index H ≡ (index' (normalizer (H : set G)) H) [MOD p],
+    rw h3,
+    rw ←h2,
+    cases h with n hn,
+    apply card_set_congr_card_fixed_points_mod_prime (dumb_action' H) _ hp n hn,  
+    exact this.symm
+  end    
+
+
+
+ 
 
 lemma p_div_index_div_normalizer [fintype G](H : subgroup G) {p : ℕ} (hp: p.prime) (h: is_p_subgroup H p):
 p ∣ index H → p ∣ (index' (normalizer (H : set G)) H):=
@@ -405,7 +429,6 @@ begin
    rw card_subgroup_eq_card_carrier,
    simp,
    rw ← fincard.card_eq_image_of_injective (𝒾 (normalizer H.carrier)),
-   haveI: fintype (normalizer H.carrier) := sorry,
    change fincard' (quotient.quotient.comap (normal_in_normalizer H) K).carrier = p ^ i.succ,
    rw ←  card_subgroup_eq_card_carrier,
    rw @quotient.quotient.comap_card_eq _ _ _ (normal_in_normalizer H) K,
