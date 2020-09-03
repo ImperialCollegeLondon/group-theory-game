@@ -234,8 +234,11 @@ lemma pow_eq_mul (k m : C_infty) : ⦃(m : ℤ)⦄^k = ((k : ℤ) * m : ℤ) :=
 begin
   apply int.induction_on m,
     { simpa },
-    { sorry },
-    { sorry }
+    { intros i hi,
+      rw [group.pow_add, hi, group.one_pow, mul_add, mul_one], refl },
+    { intros i hi, 
+      rw [sub_eq_add_neg, group.pow_add, hi, group.pow_neg_one_inv, mul_add, 
+          mul_neg_one], refl }
 end
 
 lemma mod_eq_closure (k : ℤ) : (mod k).to_subgroup = closure {k} :=
