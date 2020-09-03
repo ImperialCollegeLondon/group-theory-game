@@ -56,4 +56,18 @@ begin
   rw normalizer'_eq_set_normalizer, refl,
 end
 
+lemma le_normalizer' (H : subgroup G) : H ≤ normalizer' H :=
+begin
+  intros g hg,
+  apply (mem_normalizer'_iff _).2,
+  intro k,
+  split,
+    intro hk, 
+    apply H.mul_mem (H.mul_mem hg hk) (H.inv_mem hg),
+  intro hk,
+  suffices : g⁻¹ * (g * k * g⁻¹) * g ∈ H,
+    convert this; simp [group.mul_assoc], 
+  apply H.mul_mem (H.mul_mem (H.inv_mem hg) hk) hg
+end
+
 end mygroup
