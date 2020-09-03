@@ -231,6 +231,12 @@ begin
   exact fintype.card_fin n,
 end
 
+noncomputable instance (n : ℕ) : fintype (cyclic ↑(n.succ)) :=
+begin
+  exact @fintype.of_equiv _ _ _ (mygroup.cyclic.fin.equiv n.succ (nat.zero_lt_succ n)),
+end
+
+
 def closure_singleton (g : G) : subgroup G := 
 { carrier := { c | ∃ k : ℤ, c = ⦃k⦄^g },
   one_mem' := ⟨0, group.zero_pow g⟩,

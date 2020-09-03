@@ -82,9 +82,17 @@ def prod_eq_one_equiv : {v : fin n.succ → G // finmap.prod_eq_one v} ≃ (fin 
   end
 }
 
-/-- I need this -/
+/-- I guess I need this -/
+instance (X : Type) [fintype X] (Y : Type) [fintype Y] : fintype (X → Y) := sorry
+
+/-- and I also need this -/
 lemma card_function (X : Type) [fintype X] (Y : Type) [fintype Y] :
   fincard' (X → Y) = fincard' Y ^ fincard' X := sorry
+
+instance foo [fintype G] : fintype {v : fin n.succ → G // finmap.prod_eq_one v} :=
+begin
+  exact fintype.of_equiv (fin n → G) (prod_eq_one_equiv G n).symm
+end
 
 lemma card_cool_set [fintype G] :
   fincard' {v : fin n.succ → G // finmap.prod_eq_one v} = fincard' G ^ n :=

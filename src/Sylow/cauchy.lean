@@ -4,6 +4,9 @@ import data.zmod.basic
 import subgroup.cyclic
 import data.vector2
 import Sylow.prod_eq_one
+import orbit.orbit_stabilizer
+import Sylow.cyclic_vector_action
+import Sylow.card_of_list
 
 
 /-!
@@ -24,19 +27,13 @@ $G$ has an element of order $p$.
 
 -/
 
-
-
 namespace mygroup
 
-open equiv fintype finset mul_action function
-open equiv.perm mygroup.subgroup list mygroup.group
-
-
-open_locale big_operators
+open mygroup.subgroup list mygroup.group
 
 universes u v w
 
-local attribute [instance, priority 10] subtype.fintype set_fintype classical.prop_decidable
+--local attribute [instance, priority 10] subtype.fintype set_fintype classical.prop_decidable
 
 /- want to prove the theorem that says
    that if p | |G| then G has an element of order p
@@ -56,33 +53,76 @@ local attribute [instance, priority 10] subtype.fintype set_fintype classical.pr
 
 -- #check array -- for computing
 
-/-! # making X -/
-
 variables {G : Type} [group G]
-
---#check @mul_left_inj
---#check @mul_right_cancel_iff
 
 open mygroup.group
 
-lemma group.mul_left_inj : ∀ (a b c : G), b * a = c * a ↔ b = c :=
-mul_right_cancel_iff
+--lemma group.mul_left_inj : ∀ (a b c : G), b * a = c * a ↔ b = c :=
+--mul_right_cancel_iff
 
-lemma group.inv_mul_self (a : G) : a⁻¹ * a = 1 := group.mul_left_inv a
+--lemma group.inv_mul_self (a : G) : a⁻¹ * a = 1 := group.mul_left_inv a
 
-instance : is_associative G (*) := ⟨group.mul_assoc⟩
+--instance : is_associative G (*) := ⟨group.mul_assoc⟩
 
 open list
 
-lemma list.prod_cons (a : G) (l : list G) : list.prod (a :: l) = a * l.prod :=
-calc (a::l : list G).prod = foldl (*) (a * 1) l :
-  by simp only [list.prod, foldl_cons, group.one_mul, group.mul_one]
-  ... = _ : foldl_assoc
+theorem cauchy_elements (G : Type) [group G] [fintype G] (p : ℕ) (hp : p.prime)
+  (hpG : p ∣ fincard' G) : p ∣ fincard' {g : G // ⦃p⦄^g = 1} :=
+begin
+  cases p with n, rcases hp with ⟨⟨⟩, _⟩,
+  have h := card_set_congr_card_fixed_points_mod_prime (cool_action G n) n.succ hp 1,
+  have h2 : fincard' (cyclic ↑(n.succ)) = n.succ ^ 1,
+    rw nat.pow_one,
+    rw cyclic.fincard_cyclic, simp,
+  specialize h h2,
+  rw card_cool_set at h,
+  cases n with m, cases hp, cases hp_left, cases hp_left_a,
+  clear h2,
+  have h1 : m.succ.succ ∣ fincard' G ^ m.succ,
+    rw nat.pow_succ,
+    apply dvd_mul_of_dvd_right hpG,
+  rw ←nat.modeq.modeq_zero_iff at h1 ⊢,
+  have h2 := nat.modeq.trans (nat.modeq.symm h) h1,
+  convert h2 using 1,
+  have h3 := fixed_points_eq_roots G m.succ,
+  exact fincard.of_equiv h3.symm
+end
 
+open_locale classical
+
+theorem cauchy_elememt (G : Type) [group G] [fintype G] (p : ℕ) (hp : p.prime)
+  (hpG : p ∣ fincard' G) : ∃ g : G, g ≠ 1 ∧ ⦃p⦄^g = 1 :=
+begin
+  by_contra h,
+  push_neg at h,
+  have h1 : ∀ g : G, ⦃p⦄^g = 1 ↔ g = 1,
+    intro g,
+    split,
+      rintro h3,
+      by_contra h2,
+      apply h g h2,
+      exact h3,
+    rintro rfl,
+    simp,
+  have h2 := cauchy_elements G p hp hpG,
+  let e : {g : G // ⦃p⦄^g = 1} ≃ {g : G // g = 1} :=
+  { to_fun := λ g, ⟨g.1, (h1 g).1 g.2⟩,
+    inv_fun := λ g, ⟨g.1, (h1 g).2 g.2⟩,
+    left_inv := by {intro g, cases g, simp},
+    right_inv := by {intro g, cases g, simp} },
+  rw fincard.of_equiv e at h2,
+  change p ∣ fincard' ({(1 : G)} : set G) at h2,
+  rw fincard.card_singleton_eq_one at h2,
+  rw nat.dvd_one at h2,
+  subst h2,
+  cases hp, cases hp_left, cases hp_left_a,
+end
 
 theorem cauchy (G : Type) [group G] [fintype G] (p : ℕ) (hp : p.prime)
   (hpG : p ∣ fincard' G) : ∃ H : subgroup G, fincard' H = p := 
 begin
+  rcases cauchy_elememt G p hp hpG with ⟨g, hg1, hg2⟩,
+  use closure {g},
   sorry
 end
 
