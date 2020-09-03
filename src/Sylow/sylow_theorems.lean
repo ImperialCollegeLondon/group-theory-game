@@ -484,7 +484,9 @@ begin
      exact hh
    },
    { unfold normal_in_normalizer,
-     sorry
+         convert (equiv_comap_of_sub' _ _ _),
+      rw normalizer_eq_normalizer',
+      exact le_normalizer' H,
    },
    exact injective_𝒾,  
 end    
@@ -526,8 +528,7 @@ lemma conjugates_eq_cardinality (g : G) (H : subgroup G) :
   fincard' H = fincard' (conjugate_subgroup g H) := 
 fincard.of_equiv (group_hom.mul_equiv_of_iso (conjugate_iso g H)).to_equiv
   
-
-def is_sylow_p_subgroup (K : subgroup G) {p : ℕ} (hp : p.prime) : Prop := sorry
+def is_sylow_p_subgroup [fintype G] (K : subgroup G) {p : ℕ} (hp : p.prime) : Prop := sorry
 
 theorem sylow_two [fintype G]{p : ℕ} {hp : p.prime} (H K : subgroup G) (h₁ : is_sylow_p_subgroup H hp)(h₂ : is_sylow_p_subgroup K hp) : 
 ∃ (g : G), H = conjugate_subgroup g K  := sorry  
