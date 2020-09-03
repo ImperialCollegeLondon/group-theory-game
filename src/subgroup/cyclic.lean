@@ -28,7 +28,7 @@ lemma C_infty_mul_comm (x y : C_infty) : x * y = y * x :=
 lemma C_infty_generator :
   closure ({(1 : ℤ)} : set C_infty) = ⊤ :=
 begin
-  rw eq_top_iff,
+  rw _root_.eq_top_iff,
   intros x _,
   change _ ∈ (closure ({1} : set ℤ) : subgroup C_infty),
   rw mem_closure_iff,

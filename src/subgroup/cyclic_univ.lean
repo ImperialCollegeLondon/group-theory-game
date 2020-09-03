@@ -35,8 +35,6 @@ def action_eq_hom : laction G S ≃ (G →* (S ≃ S)) :=
     refl,
   end }
 
-#check mod
-
 --/-- the universal group hom from C_infty to G sending generator to g-/
 --def to_hom (g : G) : C_infty →* G := order_map g
 

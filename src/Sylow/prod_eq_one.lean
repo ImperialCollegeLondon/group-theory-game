@@ -150,6 +150,17 @@ begin
   { simp [*, mygroup.group.mul_assoc] },
 end
 
+lemma list.prod_repeat' (d : ℕ) (g : G) : (list.repeat g d).prod' = ⦃d⦄^g :=
+begin
+  induction d with e he,
+  { refl },
+  simp [list.prod'],
+  rw he,
+  rw add_comm,
+  rw mygroup.group.pow_add,
+  rw mygroup.group.one_pow,
+end
+
 
 end list
 
@@ -271,6 +282,13 @@ begin
   simp [he],
   simp [zmod.S],
   abel
+end
+
+lemma fin.S.succ.pow_k (k : ℕ) (n : ℕ) (d : fin n.succ) :
+  (⦃k⦄^(fin.S.succ' n : fin n.succ ≃ fin n.succ)) d = k + d :=
+begin
+  -- evil proof
+  apply zmod.S.pow_k k n.succ 
 end
 
 lemma zmod.S.pow_n (n : ℕ) (d : zmod n) :
