@@ -69,6 +69,43 @@ def mod (k : ℤ) : normal C_infty :=
   conj_mem' := λ x hx n,
     by { change k ∣ x at hx, change k ∣ n + x - n, simp [hx] } }
 
+lemma mod_eq_span (k : ℤ) : (mod k).to_subgroup = closure {k} :=
+begin
+  apply le_antisymm,
+  swap,
+  { rw closure_le,
+    show _ ⊆ _,
+    rw (@singleton_subset_iff C_infty (k : C_infty) _),
+    use 1,
+    rw mul_one
+  },
+  rintro _ ⟨n, rfl⟩,
+  have hk : k ∈ closure ({k} : set C_infty),
+    change k ∈ (closure ({k} : set C_infty) : set C_infty),
+    rw ← singleton_subset_iff,
+    exact le_closure ({k} : set C_infty),
+  change _ ∈ (closure ({k} : set C_infty)),
+  convert @subgroup.pow_mem C_infty _ _ (k : C_infty) n hk,
+  clear hk,
+  apply int.induction_on n,
+  { simp, refl },
+  { intros i hi,
+    rw group.pow_add,
+    rw ← hi,
+    rw group.one_pow,
+    show k * (i + 1) = k * i + k,
+    ring,
+  },
+  { intros i hi,
+    rw sub_eq_add_neg,
+    rw group.pow_add,
+    rw ← hi,
+    rw group.pow_neg_one_inv,
+    show k * (-i - 1) = k * -i + -k,
+    ring }
+end
+
+
 def cyclic (k : ℤ) := C_infty /ₘ mod k
 
 namespace cyclic

@@ -35,6 +35,20 @@ def action_eq_hom : laction G S ≃ (G →* (S ≃ S)) :=
     refl,
   end }
 
+#check mod
+
+--/-- the universal group hom from C_infty to G sending generator to g-/
+--def to_hom (g : G) : C_infty →* G := order_map g
+
+def to_hom_cyclic (g : G) (n : ℕ) (h : ⦃n⦄^g = 1) : cyclic n →* G :=
+mygroup.quotient.lift (order_map g) _ begin
+  rw mod_eq_span,
+  rw subgroup.closure_le,
+  show _ ⊆ _,
+  rw set.singleton_subset_iff,
+  exact h,
+end
+
 end mygroup
 
 
