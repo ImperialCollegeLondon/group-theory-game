@@ -89,7 +89,7 @@ instance (X : Type) [fintype X] (Y : Type) [fintype Y] : fintype (X → Y) := so
 lemma card_function (X : Type) [fintype X] (Y : Type) [fintype Y] :
   fincard' (X → Y) = fincard' Y ^ fincard' X := sorry
 
-instance foo [fintype G] : fintype {v : fin n.succ → G // finmap.prod_eq_one v} :=
+instance foo2 [fintype G] : fintype {v : fin n.succ → G // finmap.prod_eq_one v} :=
 begin
   exact fintype.of_equiv (fin n → G) (prod_eq_one_equiv G n).symm
 end
