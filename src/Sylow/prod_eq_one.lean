@@ -313,12 +313,4 @@ then Z/pZ acts on S by shift
 fundamental lemma: # fixed points = # S (which we have)
 cor -- exists at least p-1 elements of order p.
 
-Currently I have a definition of S
-I have an endomorphism of S whose p'th power is 1
-I want to get an induced action of Z on S
-using action G S = G ->* perm S
-I prove pZ is in the kernel
-I get Z/pZ ->* perm S
-I get an action of Z/pZ on S
-
 -/
