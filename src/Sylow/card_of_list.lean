@@ -82,14 +82,22 @@ def prod_eq_one_equiv : {v : fin n.succ → G // finmap.prod_eq_one v} ≃ (fin 
   end
 }
 
-/-- I guess I need this -/
-instance (X : Type) [fintype X] (Y : Type) [fintype Y] : fintype (X → Y) := sorry
+open_locale classical
 
-/-- and I also need this -/
+noncomputable instance (X : Type) [fintype X] (Y : Type) [fintype Y] : fintype (X → Y) :=
+by apply_instance
+
 lemma card_function (X : Type) [fintype X] (Y : Type) [fintype Y] :
-  fincard' (X → Y) = fincard' Y ^ fincard' X := sorry
+  fincard' (X → Y) = fincard' Y ^ fincard' X :=
+begin
+  rw ← fincard.card_eq_fincard,
+  rw ← fincard.card_eq_fincard,
+  rw ← fincard.card_eq_fincard,
+  convert fintype.card_fun,
+end
 
-instance foo2 [fintype G] : fintype {v : fin n.succ → G // finmap.prod_eq_one v} :=
+
+noncomputable instance foo2 [fintype G] : fintype {v : fin n.succ → G // finmap.prod_eq_one v} :=
 begin
   exact fintype.of_equiv (fin n → G) (prod_eq_one_equiv G n).symm
 end
