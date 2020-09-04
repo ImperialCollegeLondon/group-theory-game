@@ -488,14 +488,4 @@ def conjugation_action [group G]: laction G (subgroup G) :=
           assumption },
     end }
 
--- The normalizer of a subset of G is a subgroup of G 
-def normalizer (A : set G) : subgroup G := 
-{ carrier := { g : G | ∀ n, n ∈ A ↔ g * n * g⁻¹ ∈ A },
-  one_mem' := by intro a; rw [group.one_mul, group.one_inv, group.mul_one],
-  mul_mem' := λ _ _ hx hy _, by rw [hy, hx]; simp [group.mul_assoc],
-  inv_mem' := λ x hx a, by rw hx (x⁻¹ * a * x⁻¹⁻¹); simp [group.mul_assoc] }
-
-lemma mem_normalizer_iff [group G] {H : subgroup G} (x : G):
-  x ∈ normalizer H.carrier ↔ ∀ k : G, k ∈ H ↔ x * k * x⁻¹ ∈ H := by refl
-
 end mygroup

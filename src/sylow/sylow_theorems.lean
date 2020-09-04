@@ -1,4 +1,4 @@
-import sylow.cauchy orbit.normalizer'
+import sylow.cauchy orbit.normalizer
 
 namespace mygroup
 
@@ -10,7 +10,7 @@ open classical function set mygroup.subgroup mygroup.group mygroup.group_hom
 class p_group [fintype G] (p : ℕ) extends group G :=
 (card_pow_p: ∃ n : ℕ , fincard' G = p^n)
 
---A p-subgroup is a subgroup of a group G which is itself a p-group
+-- A p-subgroup is a subgroup of a group G which is itself a p-group
 class p_subgroup (G : Type) [group G] [fintype G] (p : ℕ) extends subgroup G :=
 (card_pow_p: ∃ n : ℕ , fincard' (carrier) = p^n)
 
@@ -76,31 +76,31 @@ def dumb_action (H : subgroup  G) : laction G (lcosets H) :=
 def dumb_action' (H : subgroup G) : laction H (lcosets H) :=
 laction.comap (𝒾 H) (lcosets H) (dumb_action H)
 
-def normal_in_normalizer (H : subgroup G): normal (normalizer H.carrier) := 
+def normal_in_normalizer_of_set (H : subgroup G) : normal (normalizer_of_set H.carrier) := 
 { conj_mem' := 
-  begin 
-   intros n hnorm g,
-   dsimp at *,   
-   cases g with g hg,
-   cases n with n hn,
-   rw mem_coe,
-   rw mem_comap',
-   norm_num,
-   change g ∈ normalizer H.carrier at hg,
-   rw mem_normalizer_iff at hg,
-   specialize hg n,
-   rw ← hg,
-   unfold comap at hnorm,
-   rw mem_preimage at hnorm,
-   change n ∈ H at hnorm,
-   assumption,
-  end,
-  .. comap (𝒾 (normalizer H.carrier)) H }
+    begin 
+      intros n hnorm g,
+      dsimp at *,   
+      cases g with g hg,
+      cases n with n hn,
+      rw mem_coe,
+      rw mem_comap',
+      norm_num,
+      change g ∈ normalizer_of_set H.carrier at hg,
+      rw mem_normalizer_of_set_iff at hg,
+      specialize hg n,
+      rw ← hg,
+      unfold comap at hnorm,
+      rw mem_preimage at hnorm,
+      change n ∈ H at hnorm,
+      assumption,
+    end,
+  .. comap (𝒾 (normalizer_of_set H.carrier)) H }
 
 def to_lcosets (g : G) (H : subgroup G) : lcosets H := ⟨g ⋆ H, ⟨g, rfl⟩⟩
 
 lemma aux_lemma [fintype G] (H : subgroup G) (g : G) :
-  (H : set G) ≤ conjugate_subgroup g H ↔ g ∈ normalizer' H :=
+  (H : set G) ≤ conjugate_subgroup g H ↔ g ∈ normalizer H :=
 ⟨begin
   intro h,
   show conjugate_subgroup g H = H,
@@ -121,7 +121,7 @@ end, begin
 end⟩
 
 lemma foo [fintype G] (H : subgroup G) (g : G):
-to_lcosets g H  ∈ (fixed_points (dumb_action' H)) ↔ g ∈ normalizer' H :=
+to_lcosets g H  ∈ (fixed_points (dumb_action' H)) ↔ g ∈ normalizer H :=
 begin
   rw ←aux_lemma,
   unfold fixed_points, 
@@ -179,11 +179,11 @@ begin
 end
 
 def projection [fintype G] (H : subgroup G) :
-  normalizer' H → fixed_points (dumb_action' H) :=
+  normalizer H → fixed_points (dumb_action' H) :=
 λ h, ⟨to_lcosets h.1 H, (foo H h.1).2 h.2⟩
 
 lemma proj_eq_coset [fintype G] (H : subgroup G) (b : fixed_points (dumb_action' H)) :
-  ∃ g, (𝒾 (normalizer' H)) '' ((projection H) ⁻¹' {b}) = g ⋆ H :=
+  ∃ g, (𝒾 (normalizer H)) '' ((projection H) ⁻¹' {b}) = g ⋆ H :=
 begin
   rcases b with ⟨⟨_, g, rfl⟩, hg⟩,
   use g,
@@ -206,7 +206,7 @@ begin
   rintro ⟨a, ha, rfl⟩,
   use g * a,
     apply subgroup.mul_mem _ hg,
-    apply le_normalizer' H,
+    apply le_normalizer H,
     exact ha,
   split,
   rw mem_preimage,
@@ -227,7 +227,7 @@ lemma proj_fincard [fintype G] (H : subgroup G) (b : fixed_points (dumb_action' 
 begin
   cases proj_eq_coset H b with g hg,
   rw @lagrange.eq_card_of_lcoset _ _ H g,
-  have h := fincard.card_eq_image_of_injective (𝒾 (normalizer' H)) injective_𝒾,
+  have h := fincard.card_eq_image_of_injective (𝒾 (normalizer H)) injective_𝒾,
   rw ← hg,
   rw ← h
 end
@@ -268,47 +268,45 @@ end
 
 lemma index_normalizer_congr_index_modp [fintype G] 
   {p : ℕ} (hp: p.prime) (H : subgroup G) (h: is_p_subgroup H p) :
-  index' (normalizer (H : set G)) H ≡ index H [MOD p] := 
+  index' (normalizer_of_set (H : set G)) H ≡ index H [MOD p] := 
   begin
-    have claim: ∀ g : G, to_lcosets g H ∈ (fixed_points (dumb_action' H)) ↔ g ∈ normalizer H.carrier,
-    { intro g,
-      rw normalizer_eq_normalizer',
-      exact foo H g,
-    },
-    have h2 : fincard'(fixed_points (dumb_action' H)) = (index' (normalizer (H : set G)) H),
-    { cases h with n hn,
-      unfold index',
-      erw normalizer_eq_normalizer',
-      rw ← fincard.finsum_fibres (projection H),
-      simp_rw proj_fincard,
-      rw ← finsum_in_eq_finsum (λ _, fincard' H),
-      rw @finsum_const_nat _ _ _ (fincard' H),
-      rw nat.mul_div_cancel,
-      exact zero_lt_card_subgroup H,
-      simp,
-      apply_instance },
+    have claim: ∀ g : G, to_lcosets g H ∈ (fixed_points (dumb_action' H)) ↔ g ∈ normalizer_of_set H.carrier,
+      { intro g,
+        rw normalizer_of_set_eq_normalizer,
+        exact foo H g },
+    have h2 : fincard'(fixed_points (dumb_action' H)) = (index' (normalizer_of_set (H : set G)) H),
+      { cases h with n hn,
+        unfold index',
+        erw normalizer_of_set_eq_normalizer,
+        rw ← fincard.finsum_fibres (projection H),
+        simp_rw proj_fincard,
+        rw ← finsum_in_eq_finsum (λ _, fincard' H),
+        rw @finsum_const_nat _ _ _ (fincard' H),
+        rw nat.mul_div_cancel,
+        exact zero_lt_card_subgroup H,
+        simp,
+        apply_instance },
     have h3 : index H = fincard' (lcosets H),
-    { unfold index,
-      rw @lagrange.lagrange _ _ H,
-      rw _root_.mul_comm,
-      rw nat.mul_div_cancel,
-        refl,
-      exact zero_lt_card_subgroup H },
-    have: index H ≡ (index' (normalizer (H : set G)) H) [MOD p],
-    rw h3,
-    rw ←h2,
-    cases h with n hn,
-    apply card_set_congr_card_fixed_points_mod_prime (dumb_action' H) _ hp n hn,  
+      { unfold index,
+        rw @lagrange.lagrange _ _ H,
+        rw _root_.mul_comm,
+        rw nat.mul_div_cancel,
+          refl,
+        exact zero_lt_card_subgroup H },
+    have : index H ≡ (index' (normalizer_of_set (H : set G)) H) [MOD p],
+      rw h3,
+      rw ←h2,
+      cases h with n hn,
+      apply card_set_congr_card_fixed_points_mod_prime (dumb_action' H) _ hp n hn,  
     exact this.symm
   end    
 
-lemma p_div_index_div_normalizer [fintype G](H : subgroup G) {p : ℕ} (hp: p.prime) (h: is_p_subgroup H p):
-p ∣ index H → p ∣ (index' (normalizer (H : set G)) H):=
+lemma p_div_index_div_normalizer_of_set [fintype G](H : subgroup G) {p : ℕ} (hp: p.prime) (h: is_p_subgroup H p):
+p ∣ index H → p ∣ (index' (normalizer_of_set (H : set G)) H):=
 begin
   intro hH,
-  have h1: index' (normalizer (H : set G)) H  ≡ H.index [MOD p],
+  have h1: index' (normalizer_of_set (H : set G)) H  ≡ H.index [MOD p],
     {apply index_normalizer_congr_index_modp hp H h},
-
   refine nat.modeq.modeq_zero_iff.mp _,
     apply nat.modeq.trans h1,
     apply nat.modeq.symm,
@@ -321,18 +319,18 @@ end
 
 lemma normalizer_neq_subgroup [fintype G] 
   (H : subgroup G) {p : ℕ} (hp: p.prime) (h: is_p_subgroup H p) : 
-  p ∣ index H → normalizer (H : set G) ≠ H := 
+  p ∣ index H → normalizer_of_set (H : set G) ≠ H := 
 begin
   intro hH,
-  have h1: index' (normalizer (H : set G)) H  ≡ H.index [MOD p],
+  have h1: index' (normalizer_of_set (H : set G)) H  ≡ H.index [MOD p],
     { apply index_normalizer_congr_index_modp hp H h },
-  have h2: p ∣ (index' (normalizer (H : set G)) H),
-    { apply p_div_index_div_normalizer H hp h, assumption },
-  have h3: (index' (normalizer (H : set G)) H) ≠ 1,
+  have h2: p ∣ (index' (normalizer_of_set (H : set G)) H),
+    { apply p_div_index_div_normalizer_of_set H hp h, assumption },
+  have h3: (index' (normalizer_of_set (H : set G)) H) ≠ 1,
     { intro hfalse,
       rw hfalse at h2,
       exact nat.prime.not_dvd_one hp h2 },
-  have h4: fincard' (normalizer (H : set G)) ≠ fincard' H,
+  have h4: fincard' (normalizer_of_set (H : set G)) ≠ fincard' H,
     { unfold index' at h3,
       intro hfalse,
       rw hfalse at h3,
@@ -449,13 +447,13 @@ begin
     rw h at useful,
     refine (nat.sub_add_cancel _).symm,
     linarith },
-  have fact1: index' (normalizer (H : set G)) H  ≡ H.index [MOD p],
+  have fact1: index' (normalizer_of_set (H : set G)) H  ≡ H.index [MOD p],
   {  refine index_normalizer_congr_index_modp hp H _ ,
     use i, exact hH }, 
-  have fact2: p ∣ (index' (normalizer (H : set G)) H),
-  {  refine (p_div_index_div_normalizer H hp _ _),
+  have fact2: p ∣ (index' (normalizer_of_set (H : set G)) H),
+  {  refine (p_div_index_div_normalizer_of_set H hp _ _),
     use i, exact hH, exact fact0},  
-  have fact3: p ∣ fincard' (normalizer (H : set G) /ₘ normal_in_normalizer H),
+  have fact3: p ∣ fincard' (normalizer_of_set (H : set G) /ₘ normal_in_normalizer_of_set H),
     { rw ← index'_eq_card_quotient,
       cases fact2 with k hk,
       use k,
@@ -463,72 +461,71 @@ begin
       unfold index',
       congr' 1,
       rw fincard.of_equiv (equiv_map_of_sub _ _),
-      unfold normal_in_normalizer,
+      unfold normal_in_normalizer_of_set,
       convert fincard.of_equiv (equiv_comap_of_sub' _ _ _),
-      rw normalizer_eq_normalizer',
-      exact le_normalizer' H
+      rw normalizer_of_set_eq_normalizer,
+      exact le_normalizer H
     },
-  have fact4: ∃ (K : subgroup (normalizer (H : set G) /ₘ normal_in_normalizer H)), fincard' K = p,
+  have fact4: ∃ (K : subgroup (normalizer_of_set (H : set G) /ₘ normal_in_normalizer_of_set H)), fincard' K = p,
     { refine @cauchy _ _ _ p hp fact3, },
   cases fact4 with K hK,
   have := quotient.quotient.comap_iso _ K,
-   use map (𝒾 (normalizer H.carrier)) (quotient.quotient.comap (normal_in_normalizer H) K), 
-   unfold map,
-   rw card_subgroup_eq_card_carrier,
-   simp,
-   rw ← fincard.card_eq_image_of_injective (𝒾 (normalizer H.carrier)),
-   change fincard' (quotient.quotient.comap (normal_in_normalizer H) K).carrier = p ^ i.succ,
-   rw ←  card_subgroup_eq_card_carrier,
-   rw @quotient.quotient.comap_card_eq _ _ _ (normal_in_normalizer H) K,
-   rw hK,
-   rw nat.pow_succ,
-   congr,
-   rw ← hH,
-   apply fincard.of_equiv,
-   refine equiv.trans (equiv_comap_of_sub _ _ _) _,
-   { rintro h hh,
-     unfold quotient.quotient.comap,
-     rw mem_coe,
-     rw mem_comap',
-     convert K.one_mem,
-     rw ← mem_kernel,
-     rw quotient.kernel_mk,
-     exact hh
-   },
-   { unfold normal_in_normalizer,
-         convert (equiv_comap_of_sub' _ _ _),
-      rw normalizer_eq_normalizer',
-      exact le_normalizer' H,
-   },
-   exact injective_𝒾,  
+  use map (𝒾 (normalizer_of_set H.carrier)) (quotient.quotient.comap (normal_in_normalizer_of_set H) K), 
+  unfold map,
+  rw card_subgroup_eq_card_carrier,
+  simp,
+  rw ← fincard.card_eq_image_of_injective (𝒾 (normalizer_of_set H.carrier)),
+  change fincard' (quotient.quotient.comap (normal_in_normalizer_of_set H) K).carrier = p ^ i.succ,
+  rw ←  card_subgroup_eq_card_carrier,
+  rw @quotient.quotient.comap_card_eq _ _ _ (normal_in_normalizer_of_set H) K,
+  rw hK,
+  rw nat.pow_succ,
+  congr,
+  rw ← hH,
+  apply fincard.of_equiv,
+  refine equiv.trans (equiv_comap_of_sub _ _ _) _,
+  { rintro h hh,
+    unfold quotient.quotient.comap,
+    rw mem_coe,
+    rw mem_comap',
+    convert K.one_mem,
+    rw ← mem_kernel,
+    rw quotient.kernel_mk,
+    exact hh
+  },
+  { unfold normal_in_normalizer_of_set,
+      convert (equiv_comap_of_sub' _ _ _),
+    rw normalizer_of_set_eq_normalizer,
+    exact le_normalizer H,
+  },
+  exact injective_𝒾,  
 end    
 
 
 def conjugate_iso (g : G) (H : subgroup G) : H ≅ conjugate_subgroup g H :=
 { to_fun := λ (h : H) , ⟨g * h * g⁻¹, begin use [h, h.2] end⟩,
   map_mul' := 
-  begin
-    rintro ⟨x, hx⟩ ⟨y, hy⟩,
-    congr' 1,
-    change g * (x * y) * g⁻¹ = _,
-    simp [group.mul_assoc],   
-  end    ,
+    begin
+      rintro ⟨x, hx⟩ ⟨y, hy⟩,
+      congr' 1,
+      change g * (x * y) * g⁻¹ = _,
+      simp [group.mul_assoc],   
+    end,
   is_bijective := 
-  begin
-    split,
-    {   intros x y hxy ,
-      dsimp at *,
-      cases y with y hy, 
-      cases x with x hx, 
-      rw subtype.mk_eq_mk at hxy,
-      simpa using hxy,        
-      },
-    { unfold surjective,
-      rintro ⟨b, h, hh, rfl⟩,
-      use ⟨h, hh⟩, 
-      simp,    
-    }
-  end     }
+    begin
+      split,
+      {   intros x y hxy ,
+        dsimp at *,
+        cases y with y hy, 
+        cases x with x hx, 
+        rw subtype.mk_eq_mk at hxy,
+        simpa using hxy,        
+        },
+      { unfold surjective,
+        rintro ⟨b, h, hh, rfl⟩,
+        use ⟨h, hh⟩, 
+        simp }
+    end }
 
 
 
@@ -564,9 +561,9 @@ fincard.of_equiv (group_hom.mul_equiv_of_iso (conjugate_iso g H)).to_equiv
 --Then P acts on X by μ : P × X → X, (x, Q) ↦ xQx⁻¹ (this is what we defined conjugate_action to be)
 --By card_set_congr_card_fixed_points_mod_prime we have
 -- number_sylow_p = fincard' X ≡ fincard' (fixed points μ) [MOD p]. Want to show fincard' (fixed points μ) = 1.
---Let P ∈ fixed points μ and Q ∈ fixed points μ. Then P is a subgroup of normalizer Q
---Both P and Q are Sylow p-subgroups of normalizer Q, so ∃ x ∈ normalizer Q s.t. xQx⁻¹ = P (Sylow 2)
---By def of normalizer Q we have Q = P, so fixed_points μ = {P}, proving the first part of the theorem.end
+--Let P ∈ fixed points μ and Q ∈ fixed points μ. Then P is a subgroup of normalizer_of_set Q
+--Both P and Q are Sylow p-subgroups of normalizer_of_set Q, so ∃ x ∈ normalizer_of_set Q s.t. xQx⁻¹ = P (Sylow 2)
+--By def of normalizer_of_set Q we have Q = P, so fixed_points μ = {P}, proving the first part of the theorem.end
 --Now if P acts on X by conjugation ∃ ! orbit such that X = orbit G P (Sylow 2).
 --By orbit-stabilizer number_sylow_p = (fincard' X) ∣ (fincard' G)=p^n *m which implies it divides m.
 
