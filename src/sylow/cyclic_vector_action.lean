@@ -71,10 +71,10 @@ begin
 end
 
 def cool_thing : cyclic (n.succ : ℕ) →* _ :=
-  to_hom_cyclic (cycle G n) n.succ (cycle_pow_n_succ G n)
+  cyclic.to_hom (cycle G n) n.succ (cycle_pow_n_succ G n)
 
 def cool_action : laction (cyclic n.succ) {v // finmap.prod_eq_one v} :=
-laction_eq_hom.symm (cool_thing G n)
+  laction.equiv_hom.symm (cool_thing G n)
 
 -- need to know the size of {v // finmap.prod_eq_one v}
 -- and we do this by showing it's equiv to `fin n → G`
@@ -84,7 +84,7 @@ v.1.1 i = v.1.1 ⟨0, nat.zero_lt_succ n⟩ :=
 begin
   cases i with i hi,
   have h := v.2 (quotient.mk (mod n.succ) (i : ℤ)),
-  unfold cool_action cool_thing laction_eq_hom to_hom_cyclic at h,
+  unfold cool_action cool_thing laction.equiv_hom cyclic.to_hom at h,
   simp at h,
   rw mygroup.quotient.lift_mk at h,
   unfold order_map at h,

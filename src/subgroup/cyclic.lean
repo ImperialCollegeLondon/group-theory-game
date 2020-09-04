@@ -242,32 +242,7 @@ begin
     { rw pow_eq_mul, refine ⟨m, rfl⟩ }
 end
 
-end cyclic
-
-variable {S : Type}
-
-def laction.to_equiv (μ : laction G S) (g : G) : S ≃ S :=
-{ to_fun := λ s, g •[μ] s,
-  inv_fun := λ t, g⁻¹ •[μ] t,
-  left_inv := λ s, begin simp [laction.map_assoc] end,
-  right_inv := λ s, begin simp [laction.map_assoc] end }
-
-def laction_eq_hom : laction G S ≃ (G →* (S ≃ S)) :=
-{ to_fun := λ μ,
-  { to_fun := λ g, laction.to_equiv μ g,
-    map_mul' := 
-      begin
-        intros x y, ext s,
-        exact (laction.map_assoc x y s).symm,  
-      end },
-  inv_fun := λ φ, 
-    { to_fun := λ g s, φ g s,
-      map_one' := by { rw φ.map_one, intros, refl },
-      map_assoc' := by { intros g h s, simp } },
-  left_inv := λ μ, by ext _ _; simpa,
-  right_inv := λ φ, by ext _ _; refl }
-
-def to_hom_cyclic (g : G) (n : ℕ) (h : ⦃n⦄^g = 1) : cyclic n →* G :=
+def to_hom (g : G) (n : ℕ) (h : ⦃n⦄^g = 1) : cyclic n →* G :=
   quotient.lift (order_map g) _
 begin
   rw [cyclic.mod_eq_closure, subgroup.closure_le],
@@ -275,5 +250,7 @@ begin
   rw set.singleton_subset_iff,
   exact h,
 end
+
+end cyclic
 
 end mygroup

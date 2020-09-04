@@ -232,9 +232,30 @@ theorem orbit_stabilizer [h: fintype G] {a : S} (μ : laction G S) :
   fincard' G = fincard' (orbit μ a) * fincard' (stabilizer μ a) := 
 by rw [card_orbit_eq_num_lcoset, mul_comm]; exact lagrange.lagrange 
 
-/-! # fixed points -/
+def to_equiv (μ : laction G S) (g : G) : S ≃ S :=
+{ to_fun := λ s, g •[μ] s,
+  inv_fun := λ t, g⁻¹ •[μ] t,
+  left_inv := λ s, begin simp [laction.map_assoc] end,
+  right_inv := λ s, begin simp [laction.map_assoc] end }
+
+def equiv_hom : laction G S ≃ (G →* (S ≃ S)) :=
+{ to_fun := λ μ,
+  { to_fun := λ g, laction.to_equiv μ g,
+    map_mul' := 
+      begin
+        intros x y, ext s,
+        exact (laction.map_assoc x y s).symm,  
+      end },
+  inv_fun := λ φ, 
+    { to_fun := λ g s, φ g s,
+      map_one' := by { rw φ.map_one, intros, refl },
+      map_assoc' := by { intros g h s, simp } },
+  left_inv := λ μ, by ext _ _; simpa,
+  right_inv := λ φ, by ext _ _; refl }
 
 end laction
+
+/-! # fixed points -/
 
 def fixed_points (μ : laction G S) : set S := { s : S | ∀ g : G, g •[μ] s = s }
 
