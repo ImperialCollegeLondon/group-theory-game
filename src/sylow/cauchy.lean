@@ -76,7 +76,7 @@ begin
   exact fincard.of_equiv h3.symm
 end
 
-theorem cauchy_elememt (G : Type) [group G] [fintype G] (p : ℕ) (hp : p.prime)
+theorem cauchy_element (G : Type) [group G] [fintype G] (p : ℕ) (hp : p.prime)
   (hpG : p ∣ fincard' G) : ∃ g : G, g ≠ 1 ∧ ⦃p⦄^g = 1 :=
 begin
   by_contra h, push_neg at h,
@@ -216,7 +216,7 @@ end
 theorem cauchy (G : Type) [group G] [fintype G] (p : ℕ) (hp : p.prime)
   (hpG : p ∣ fincard' G) : ∃ H : subgroup G, fincard' H = p := 
 begin
-  rcases cauchy_elememt G p hp hpG with ⟨g, hg1, hg2⟩,
+  rcases cauchy_element G p hp hpG with ⟨g, hg1, hg2⟩,
   use closure {g},
   apply key_lemma G p hp g hg1 hg2
 end
