@@ -169,20 +169,14 @@ begin
     },
     { rintro ⟨j, hx, rfl⟩,
       rw set.mem_set_of_eq,
-    -- want k in H such that gj=hgk
-    -- know h,j ∈ H,
-    -- want g⁻¹hg ∈ H
-    rcases h1 hh with ⟨w, hw, rfl⟩,
-    -- want k ∈ H (set x=g*k) such that gj=gwk
-    -- set j=wk
-    -- k=w⁻¹j,
-    use g*w⁻¹*j,
-    split,
-      use w⁻¹*j,
+      rcases h1 hh with ⟨w, hw, rfl⟩,
+      use g*w⁻¹*j,
       split,
-        apply H.mul_mem (H.inv_mem hw) hx,
-      rw group.mul_assoc,
-    simp [group.mul_assoc] } }
+        use w⁻¹*j,
+        split,
+          apply H.mul_mem (H.inv_mem hw) hx,
+        rw group.mul_assoc,
+      simp [group.mul_assoc] } }
 end
 
 def projection [fintype G] (H : subgroup G) :
@@ -256,11 +250,6 @@ fintype.of_surjective (λ g, to_lcosets g H) begin
 end
 
 
---I want to say that here H acts on the set of cosets X = G/H by φ : H × X → X, (h, gH) ↦ hgH. 
---Then the set of points fixed by the action of H is X^H = {gH ∈ X | hgH = gH ∀ h ∈ H}
---We want to show that hgH=gH ∀ h ∈ H ↔ g ∈ normalizer H. Hence |X^H|= |(normalizer H)/H|.
--- Applying the lemma card_set_congr_card_fixed_points_mod_prime 
---we show that |(normalizer H)/H| ≡ |G/H|[MOD p], i.e. index' (normalizer (H : set G)) H ≡ index H [MOD p] 
 lemma card_subgroup_eq_card_carrier (H : subgroup G) : fincard' H = fincard' H.carrier := 
 begin
   apply fincard.of_equiv,
@@ -287,8 +276,6 @@ lemma index_normalizer_congr_index_modp [fintype G]
       rw normalizer_eq_normalizer',
       exact foo H g,
     },
-    /-have: fixed_points (dumb_action' H) = (normalizer (H : set G) /ₘ normal_in_normalizer H),
-    { sorry  },-/
     have h2 : fincard'(fixed_points (dumb_action' H)) = (index' (normalizer (H : set G)) H),
     { cases h with n hn,
       unfold index',
@@ -516,11 +503,7 @@ begin
    },
    exact injective_𝒾,  
 end    
-/-theorem cauchy (G : Type) [group G] [fintype G] (p : ℕ) (hp : p.prime)
-  (hpG : p ∣ fincard' G) : ∃ H : subgroup G, fincard' H = p := -/
 
--- and want to write that each of these subgroups of cardinality p^i is normal 
--- in a subgroup of cardinality p^(i+1)
 
 def conjugate_iso (g : G) (H : subgroup G) : H ≅ conjugate_subgroup g H :=
 { to_fun := λ (h : H) , ⟨g * h * g⁻¹, begin use [h, h.2] end⟩,
