@@ -1,8 +1,7 @@
 -- action of cyclic n.succ on lists of length n.succ
 -- whose product is 1
 
-import Sylow.prod_eq_one
-import subgroup.cyclic_univ
+import sylow.prod_eq_one
 
 namespace mygroup
 
@@ -75,7 +74,7 @@ def cool_thing : cyclic (n.succ : ℕ) →* _ :=
   to_hom_cyclic (cycle G n) n.succ (cycle_pow_n_succ G n)
 
 def cool_action : laction (cyclic n.succ) {v // finmap.prod_eq_one v} :=
-action_eq_hom.symm (cool_thing G n)
+laction_eq_hom.symm (cool_thing G n)
 
 -- need to know the size of {v // finmap.prod_eq_one v}
 -- and we do this by showing it's equiv to `fin n → G`
@@ -85,7 +84,7 @@ v.1.1 i = v.1.1 ⟨0, nat.zero_lt_succ n⟩ :=
 begin
   cases i with i hi,
   have h := v.2 (quotient.mk (mod n.succ) (i : ℤ)),
-  unfold cool_action cool_thing action_eq_hom to_hom_cyclic at h,
+  unfold cool_action cool_thing laction_eq_hom to_hom_cyclic at h,
   simp at h,
   rw mygroup.quotient.lift_mk at h,
   unfold order_map at h,

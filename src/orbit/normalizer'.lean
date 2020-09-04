@@ -1,5 +1,5 @@
-import orbit.orbit_stabilizer
-import subgroup.definitions
+import orbit.basic
+
 namespace mygroup
 
 open classical function set mygroup.subgroup mygroup.group
@@ -42,7 +42,6 @@ begin
             simp [group.mul_assoc] },
           { simp [group.mul_assoc] } } }
 end  
-
 
 lemma normalizer'_eq_set_normalizer (H : subgroup G) : 
   (normalizer' H  : set G) = { g : G | ∀ n, n ∈ H ↔ g * n * g⁻¹ ∈ H } := 

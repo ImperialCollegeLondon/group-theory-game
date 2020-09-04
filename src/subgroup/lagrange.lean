@@ -1,4 +1,4 @@
-import hom.quotient data.setoid.partition for_mathlib.finsum
+import hom.quotient data.setoid.partition
 
 open setoid set
 

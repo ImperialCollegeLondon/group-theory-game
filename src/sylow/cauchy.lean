@@ -1,6 +1,5 @@
-import Sylow.cyclic_vector_action
-import Sylow.card_of_list
-import data.int.gcd
+import sylow.cyclic_vector_action
+import sylow.card_of_list
 
 /-!
 # Cauchy's Theorem.

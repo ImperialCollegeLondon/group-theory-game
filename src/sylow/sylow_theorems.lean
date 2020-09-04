@@ -1,6 +1,5 @@
-import Sylow.cauchy
-import orbit.normalizer'
-import hom.theorems
+import sylow.cauchy orbit.normalizer'
+
 namespace mygroup
 
 variables {G : Type} [group G]

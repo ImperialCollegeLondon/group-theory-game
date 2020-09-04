@@ -20,260 +20,10 @@ open_locale classical
 -- the entire project takes place in the mygroup namespace
 namespace mygroup
 
--- We're proving things about group homs so this all goes in the `group_hom`
--- namespace
-
-open set mygroup.subgroup function
-
-namespace group_hom
-
-variables {G H K : Type} [group G] [group H] [group K]
-
-/-- If f is a group homomorphism then f 1 = 1. -/
-@[simp] -- it's a good simp lemma
-lemma map_one (f : G →* H) : f 1 = 1 :=
-begin
-  have h : f 1 * f 1 = f 1,
-    rw ←f.map_mul,
-    rw group.one_mul, -- annoying but stops cheating
-    -- TODO: can I kill one_mul somehow? I asked on Zulip
-  rw group.mul_left_eq_self at h, -- annoying
-  assumption
-end
-
-/-- If f is a group homomorphism then f(x⁻¹) = f(x)⁻¹ -/
-@[simp] -- it's also a good simp lemma
-lemma map_inv (f : G →* H) {x : G} : f (x⁻¹) = (f x)⁻¹ :=
-begin
-  apply group.eq_inv_of_mul_eq_one,
-  rw ←f.map_mul,
-  rw group.mul_left_inv,
-  rw f.map_one,
-  -- refl
-end
-
--- Inclusion map as a homomorphism from a subgroup to the group
-def 𝒾 (H : subgroup G) : H →* G :=
-{ to_fun := λ h, (h : G),
-  map_mul' := λ _ _, rfl }
-
-@[simp] lemma 𝒾_def {H : subgroup G} {h} (hh : h ∈ H) : 𝒾 H ⟨h, hh⟩ = h := rfl
-
--- The inclusion map is injective
-lemma injective_𝒾 {H : subgroup G} : injective $ 𝒾 H := λ _ _ hxy, subtype.eq hxy
-
--- We prove the theorems here (only);
--- definitions need to go elsewhere
-
--- Rather than defining the kernel as the preimage of {1}, I think defining it
--- as a subgroup of the domain is better
-
-/-- The kernel of a homomorphism `f : G →* H` is the normal subgroup of `G` whos
-  carrier is the preimage of `{1}`, i.e. `f ⁻¹' {1}` -/
-def kernel (f : G →* H) : normal G :=
-{ carrier := f ⁻¹' {1},
-  one_mem' := map_one _,
-  mul_mem' :=
-    begin
-      intros _ _ hx hy,
-      rw [mem_preimage, mem_singleton_iff] at *,
-      rw [map_mul f, hx, hy, group.mul_one]
-    end,
-  inv_mem' :=
-    begin
-      intros _ hx,
-      rw [mem_preimage, mem_singleton_iff] at *,
-      rw [map_inv f, hx, group.one_inv]
-    end,
-  conj_mem' :=
-    begin
-      intros _ hn _,
-      rw [mem_preimage, mem_singleton_iff] at *,
-      simp [hn],
-    end }
-
-/-- The image of a homomorphism `f : G →* H` is the subgroup of `H` whose carrier
-  is the image of `univ : set G`, i.e. `f '' univ` -/
-def image (f : G →* H) : subgroup H :=
-{ carrier := range f,
-  one_mem' := ⟨1, map_one _⟩,
-  mul_mem' :=
-    begin
-      rintros _ _ ⟨x, hx₁⟩ ⟨y, hy₁⟩,
-      refine ⟨x * y, _⟩,
-      rw [map_mul f x y, hx₁, hy₁]
-    end,
-  inv_mem' :=
-    begin
-      rintros _ ⟨x, hx₁⟩,
-      refine ⟨x⁻¹, _⟩,
-      rw [←hx₁, map_inv]
-    end }
-
-variables {f : G →* H}
-
-lemma mem_kernel {g : G} : g ∈ kernel f ↔ f g = 1 :=
-  begin
-    split, intro h,
-    apply mem_singleton_iff.1,
-    apply mem_preimage.1,
-    exact h,
-    intro h,
-    apply mem_singleton_iff.1,
-    apply mem_singleton_iff.2, exact h,
-  end
- -- ⟨λ h, mem_singleton_iff.1 $ mem_preimage.1 h, λ h, h⟩
-
-lemma mem_kernel_of_eq {a b : G} (h : f a = f b) :
-  b⁻¹ * a ∈ kernel f :=
-begin
-  rw [mem_kernel, map_mul, map_inv,
-    ←group.mul_left_cancel_iff (f b)],
-  simp [←mul_assoc, h]
-end
-
-lemma one_mem_kernel (f : G →* H) : (1 : G) ∈ kernel f := map_one f
-
-lemma mem_image {h : H} : h ∈ image f ↔ ∃ g, f g = h := iff.rfl
-
-attribute [simp] mem_kernel mem_image
-
--- We will prove the classic results about injective homomorphisms that a
--- homomorphism is injective if and only if it have the trivial kernel
-
-/-- A homomorphism `f` is injective iff. `f` has kernel `{1}` -/
-theorem injective_iff_kernel_eq_one :
-  injective f ↔ (kernel f : set G) = {1} :=
-begin
-  split; intro hf,
-    { show f ⁻¹' {1} = {1},
-      ext, split; intro hx,
-        { apply @hf x 1,
-          rw map_one,
-          exact mem_singleton_iff.1 hx },
-        { rw [mem_preimage, mem_singleton_iff, mem_singleton_iff.1 hx],
-          exact map_one _ } },
-    { change f ⁻¹' {1} = {1} at hf,
-      by_contra h, push_neg at h,
-      rcases h with ⟨x, y, heq, hneq⟩,
-      refine hneq (group.mul_right_cancel y⁻¹ _ _ _),
-      have : x * y⁻¹ ∈ f ⁻¹' {1},
-        apply group.mul_right_cancel (f y),
-        rw [map_mul f, group.mul_assoc, map_inv, group.mul_left_inv,
-            group.one_mul, group.mul_one, heq],
-      rw [hf, mem_singleton_iff] at this,
-      rw [this, group.mul_right_inv] }
-end
-
-theorem injective_iff_kernel_eq_one' :
-  injective f ↔ ∀ a, f a = 1 → a = 1 :=
-begin
-  rw injective_iff_kernel_eq_one,
-  simp_rw [←mem_kernel, set.ext_iff, mem_singleton_iff],
-  split,
-  { intros h a ha,
-    rwa ←h },
-  { intros h a,
-    split, apply h,
-    rintro rfl,
-    apply one_mem }
-end
-
-/-- A homomorphism `f : G →* H` is surjective iff. the image of `f` is `H` -/
-theorem surjective_iff_max_img :
-  surjective f ↔ (image f : set H) = univ :=
-begin
-  split; intro hf,
-    { ext y, split; intro hy,
-        exact mem_univ _,
-        cases hf y with x hx,
-        refine ⟨x, hx⟩ },
-    { intro y,
-      rcases (show y ∈ (image f : set H),
-        by rw hf; exact mem_univ _) with ⟨x, hx⟩,
-      exact ⟨x, hx⟩ }
-end
-
-end group_hom
-
--- pushforward and pullback of subgroups
-
-namespace subgroup
-
-variables {G : Type} [group G] {H : Type} [group H]
-
-/-- image of a subgroup is a subgroup -/
-def map (f : G →* H) (K : subgroup G) : subgroup H :=
-{ carrier := f '' K,
-  one_mem' := begin
-    rw mem_image,
-    use 1,
-    split,
-    { exact K.one_mem },
-    { exact f.map_one }
-  end,
-  mul_mem' := begin
-    rintros _ _ ⟨a, ha, rfl⟩ ⟨b, hb, rfl⟩,
-    refine ⟨a*b, K.mul_mem ha hb, f.map_mul _ _⟩,
-  end,
-  inv_mem' := begin
-    rintros _ ⟨a, ha, rfl⟩,
-    refine ⟨a⁻¹, K.inv_mem ha, f.map_inv⟩,
-  end }
-
-lemma mem_map (f : G →* H) (K : subgroup G) (a : H) :
-  a ∈ K.map f ↔ ∃ g : G, g ∈ K ∧ f g = a := iff.rfl
-
-def comap (f : G →* H) (K : subgroup H) : subgroup G := 
-{ carrier := f ⁻¹' K,
-  one_mem' := show f 1 ∈ K, by rw f.map_one; exact one_mem K,
-  mul_mem' := λ x y hx hy, show f (x * y) ∈ K, 
-    by rw f.map_mul; exact mul_mem K hx hy,
-  inv_mem' := λ x hx, show f x⁻¹ ∈ K, by rw f.map_inv; exact inv_mem K hx }
-
-lemma mem_comap' (f : G →* H) (M : subgroup H) (g : G) :
-  g ∈ M.comap f ↔ f g ∈ M := iff.rfl
-
-def gc (f : G →* H) : galois_connection (map f) (comap f) :=
-begin
-  rintros A B,
-  show f.to_fun '' A.carrier ⊆ B.carrier ↔ A.carrier ⊆ f.to_fun ⁻¹' B.carrier,
-  finish
-end
-
-
-theorem closure_image (f : G →* H) (S : set G) :
-  closure (f '' S) = map f (closure S) :=
-begin
-  apply lattice.le_antisymm,
-  { rw closure_le,
-    simp,
-    refine subset.trans (le_closure _) _,
-    change closure S ≤ comap f (map f (closure S)),
-    apply galois_connection.le_u_l (gc f)
-  },
-  { refine galois_connection.l_le (gc f) _,
-    rw closure_le,
-    have h : S ⊆ f ⁻¹' ( f '' S),
-      intro x, finish,
-    refine set.subset.trans h _,
-    show f ⁻¹' _ ⊆ f ⁻¹' _,
-    mono,
-    apply le_closure }
-end
-
-theorem closure_singleton (f : G →* H) (g : G) :
-  closure ({f g} : set H) = map f (closure ({g})) :=
-begin
-  convert closure_image f ({g} : set G),
-  finish,
-end
-
-end subgroup
+open group_hom lagrange mygroup.quotient normal
+  function set mygroup.subgroup
 
 namespace quotient
-
-open group_hom lagrange mygroup.quotient function
 
 variables {G H K : Type} [group G] [group H] [group K]
 variables {f : G →* H}
@@ -435,133 +185,18 @@ def quotient_kernel_iso_of_surjective' {f : G →* H} (hf : surjective f)
 {N : normal G} (hN : kernel f = N) :
   G /ₘ N ≅ H := subst_iso' hN $ quotient_kernel_iso_of_surjective hf
 
-end quotient
-
-namespace normal
-
-open group_hom function mygroup.quotient mygroup.subgroup
-
-variables {G H : Type} [group G] [group H]
-
-/-- The preimage of a normal subgroup is normal -/
-def comap (f : G →* H) (N : normal H) : normal G :=
-{carrier := f ⁻¹' N,
- one_mem' :=
-    begin
-      rw [mem_preimage, map_one],
-      exact N.one_mem',
-    end,
- mul_mem' :=
-    begin
-      intros x y h1 h2,
-      rw mem_preimage at *,
-      rw map_mul,
-      exact N.mul_mem' h1 h2,
-    end,
- inv_mem' :=
-    begin
-      intros x h,
-      rw [mem_preimage] at *,
-      rw map_inv,
-      exact N.inv_mem' h,
-    end,
- conj_mem' :=
-    begin
-      intros n h t ,
-      rw [mem_preimage, map_mul, map_mul],
-      rw mem_preimage at h,
-      show _ ∈ N,
-      convert N.conj_mem (f n) h (f t),
-      apply f.map_inv
-    end }
-
-@[simp] lemma mem_comap {f : G →* H} {N : normal H} (x) : 
-  x ∈ comap f N ↔ f x ∈ N := 
-show x ∈ f ⁻¹' N ↔ f x ∈ N, by exact mem_preimage
-
-/-- The surjective image of a normal subgroup is normal -/
-def nmap {f : G →* H} (hf : surjective f) (N : normal G) : normal H :=
-{ carrier := f '' N,
-  one_mem' := ⟨1, N.to_subgroup.one_mem, f.map_one⟩,
-  mul_mem' :=
-    begin
-      rintros _ _ ⟨a, ha, rfl⟩ ⟨b, hb, rfl⟩,
-      refine ⟨a * b, N.to_subgroup.mul_mem ha hb, f.map_mul a b⟩,
-    end,
-  inv_mem' :=
-    begin
-      rintros _ ⟨a, ha, rfl⟩,
-      refine ⟨a⁻¹, N.to_subgroup.inv_mem ha, f.map_inv⟩,
-    end,
-  conj_mem' :=
-    begin
-      rintro _ ⟨b, hb, rfl⟩,
-      intro h,
-      dsimp,
-      rcases hf h with ⟨g, rfl⟩,
-      use g * b * g⁻¹,
-      split,
-      { exact N.conj_mem b hb g },
-      { simp [f.map_mul] }
-    end }
-
-@[simp] lemma mem_nmap {f : G →* H} (hf : surjective f) {N : normal G} (y) : 
-  y ∈ nmap hf N ↔ ∃ x ∈ N, f x = y := 
-  show y ∈ f '' N ↔ _, by rw mem_image_iff_bex; refl
-
-/-- Intersection of T and N is the pushforward to G of (the pullback to T of N)
-along the natural map T → G -/
-theorem subgroup_inf (N : normal G) (T : subgroup G) :
-  (T ⊓ N) = map (𝒾 T) (comap (𝒾 T) N) :=
-begin
-  ext x,
-  split,
-  { intro h,
-    rw mem_inf at h,
-    rw subgroup.mem_map,
-    cases h with hxt hxn,
-    use ⟨x, hxt⟩,
-    split,
-    { show _ ∈ ⇑(𝒾 T) ⁻¹' ↑N,
-      exact hxn },
-    { refl } },
-  { rintro ⟨⟨g, hgt⟩, ht1, rfl⟩,
-    change g ∈ T at hgt,
-    rw mem_inf,
-    split,
-    { exact hgt },
-    { exact ht1 } }
-end
-
-end normal
-
-namespace quotient
-
-open mygroup.subgroup mygroup.group_hom normal subgroup.ge
-
-variables {G H : Type} [group G] [group H]
-
 /-- If `N ⊆ kernel f` then the kernel of induced map `lift f N h` is 
   image of `kernel f` -/
 lemma lift_kernel {f : G →* H} {N : normal G} (h : N.to_subgroup ≤ kernel f) :
   kernel (lift f N h) = nmap is_surjective_mk (kernel f) :=
 begin
-  ext x,
-  split,
-  { intro h2,
-    rw mem_kernel at h2,
-    rcases quotient.exists_mk x with ⟨g, rfl⟩,
-    rw coe_eq_mk at *,
-    rw lift_mk at h2,
-    use g,
-    split, exact mem_kernel.2 h2,
-    refl },
+  ext x, split,
+  { intro h2, rcases quotient.exists_mk x with ⟨g, rfl⟩,
+    rw coe_eq_mk at *, rw [mem_kernel, lift_mk] at h2,
+    refine ⟨g, mem_kernel.2 h2, rfl⟩ },
   { rintro ⟨g, hg1, rfl⟩,
     change g ∈ f.kernel at hg1,
-    rw mem_kernel at hg1,
-    rw mem_kernel,
-    rw lift_mk,
-    assumption }
+    rw mem_kernel at *, rw lift_mk, assumption }
 end
 
 /-
@@ -575,23 +210,6 @@ end
 
   Now let us consider `comap (𝒾 (T ⊔ N)) N` which is similar.
 
-                                        +----------------------+
-                                        |                      |
-          +------------+   `𝒾 (T ⊔ N)`    | +------------+       |
-          |          +---------------------->          |       |
-          | +--------+ |                | | +--------+ |       |
-          | |        | |                | | |        | |       |
-          | |  `N`   <-----------------------+  `N`  | |       |
-          | |        | |    `comap`     | | |        | |       |
-          | |        | |                | | |        | |       |
-          | +--------+ |                | | +--------+ |       |
-          |            |                | |            |       |
-          |  `T ⊔ N`   |                   | |  `T ⊔ N`   |       |
-          +------------+                | +------------+       |
-                                        |                      |
-                                        |         `G`          |
-                                        +----------------------+
-
   Again the the `comap (𝒾 (T ⊔ N)) N` is the preimage along the inclusion map
   `𝒾 (T ⊔ N)`. But this this time we see that `N ⊆ T ⊔ N`so their intersection
   are is just `N`.
@@ -604,52 +222,7 @@ end
   can only quotient `T ⊔ N` by one of its normal subgroups.
 -/
 
--- To define a map T/(N∩T) -> X=↥(T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N
--- we will define a map T -> X
--- and prove N ∩ T is in the kernel
--- Then we get a well-defined map T/(N∩T) → X
-
--- Proof of the second isomorphism theorem by directly constructing the 
--- homomorphism and proving its bijective
-
-def second_iso_theorem (T : subgroup G) (N : normal G) :
-  T /ₘ comap (𝒾 T) N ≅ ↥(T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N :=
-{ is_bijective := begin
-    split,
-    { dsimp,
-      rw injective_iff_kernel_eq_one',
-      intro a,
-      rcases quotient.exists_mk a with ⟨g, rfl⟩,
-      rcases g with ⟨t, ht⟩,
-      dsimp,
-      rw [←mem_kernel, ←mem_kernel],
-      rw [kernel_mk, kernel_mk],
-      exact id },
-    { intro x,
-      rcases exists_mk x with ⟨g, rfl⟩,
-      rcases g with ⟨_, t, ht, n, hn, rfl⟩,
-      use mk (comap (𝒾 T) N) ⟨t, ht⟩,
-      dsimp,
-      apply mk_eq'.2,
-      show (t*n)⁻¹*t ∈ N,
-      rw [group.inv_mul, group.mul_assoc, group.mul_left_inv,
-        group.mul_one],
-      exact N.to_subgroup.inv_mem hn }
-  end,
-  ..(lift ((mk _) ∘* (to_prod T N) : T →* ↥(T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N)
-    (comap (𝒾 T) N) begin
-      intros x hxN,
-      cases x with x hxT,
-      show _ ∈ (kernel ((mk (comap (𝒾 (T ⨯ N)) N) ∘* to_prod T N))),
-      rw mem_kernel,
-      show mk (comap (𝒾 (T ⨯ N)) N) ⟨x, _⟩ = 1,
-      rw ← mem_kernel,
-      rw kernel_mk,
-      exact hxN,
-    end) }
-
--- An alternative proof of the second isomorphism theorem using the first 
--- isomorphism theorem
+-- Proving the second isomorphism theorem using the first 
 
 -- `aux_hom` is the natural group homomorphism that maps `t : T` to 
 -- `(t : T ⨯ N) : (T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N`
@@ -680,12 +253,12 @@ begin
   simp [group.mul_assoc, show n⁻¹ ∈ N, by exact inv_mem (N : subgroup G) hn]
 end
 
-def second_iso_theorem' (T : subgroup G) (N : normal G) :
+def second_iso_theorem (T : subgroup G) (N : normal G) :
   T /ₘ comap (𝒾 T) N ≅ ↥(T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N := 
 quotient_kernel_iso_of_surjective' (aux_hom_surjective T N) aux_hom_kernel
 
--- to state this one we need to be able to push forward (`map`) a normal
--- subgroup along a surjection
+-- To state the third isomorphism theorem we need to be able to push forward 
+-- (`map`) a normal subgroup along a surjection
 
 def third_iso_theorem (T : normal G) (N : normal G) (h : T.to_subgroup ≤ N) :
   let NmodT : normal (G /ₘ T) := N.nmap is_surjective_mk in
@@ -696,47 +269,6 @@ iso_comp (subst_iso $
   quotient_kernel_iso_of_surjective 
     (by { rw [surjective_iff_max_img, lift_image, ←surjective_iff_max_img],
       exact is_surjective_mk })
-
--- `aux_hom'` is the natural group homomorphism that maps `gT : G /ₘ T` to 
--- `gN : G /ₘ N`
-def aux_hom' (T : normal G) (N : normal G)(h : T.to_subgroup ≤ N) : 
-  G /ₘ T →* G/ₘ N :=  (lift (mk N) _ 
-begin  
-  rw kernel_mk,
-  exact h,
-end)
-  
-@[simp] lemma aux_hom_def' {T : normal G} {N : normal G} (h : T.to_subgroup ≤ N) 
-  (g : G /ₘ T) : (aux_hom' T N h g) = 
-  (lift (mk N) T (begin rw kernel_mk, exact h end)) (g) := rfl
- 
--- `aux_hom'` has kernel `N /ₘ T` 
-lemma aux_hom_kernel' {T : normal G} {N : normal G} (h : T.to_subgroup ≤ N): 
-  let NmodT : normal (G /ₘ T) := N.nmap is_surjective_mk in 
-  kernel (aux_hom' T N h) = NmodT := 
-begin
-  intro hn,
-  unfold aux_hom',
-  rw lift_kernel,
-  rw kernel_mk,  
-end  
-
--- `aux_hom'` is a surjective homomorphism
-lemma aux_hom_surjective' {T : normal G} {N : normal G} (h : T.to_subgroup ≤ N) : 
-  surjective $ aux_hom' T N h:=
-begin
-  unfold surjective,
-  intro y,
-  rcases exists_mk y with ⟨g, rfl⟩,
-  use g, 
-  refl,   
-end
-
--- Proving the third isomorphism theorem using the first 
-def third_iso_theorem' (T : normal G) (N : normal G) (h : T.to_subgroup ≤ N) :
-   let NmodT : normal (G /ₘ T) := N.nmap is_surjective_mk in
-   (G /ₘ T) /ₘ NmodT ≅ G /ₘ N :=
-quotient_kernel_iso_of_surjective' (aux_hom_surjective' h) (aux_hom_kernel' h)
 
 -- We would like to define `correspondence N : H ↦ H /ₘ N` so first we need to 
 -- show if `H : subgroup G` with `(N : subgroup G) ≤ H`, then `↑N` is a normal 
@@ -861,7 +393,7 @@ def subgroups_of_quotient_order_iso' (N : normal G) :
   let B := subgroup (G /ₘ N) in
   ((≤) : A → A → Prop) ≃o ((≤) : B → B → Prop) :=
 order_iso.trans (subgroups_of_quotient_order_iso N) $
-  order_iso.symm subgroup_ge_bot_order_iso
+  order_iso.symm ge.subgroup_ge_bot_order_iso
 
 -- We would like a lemma that states : Given `G` groups, `N : normal G`, the 
 -- preimage of `H : subgroup G /ₘ N` under the natural map from `G` to `G /ₘ N`
@@ -883,7 +415,7 @@ lemma quotient.comap_iso (N : normal G) (H : subgroup (G /ₘ N)) :
   let f : quotient.comap N H →* H :=
     { to_fun := λ x, ⟨mk N x.1, x.2⟩,
       map_mul' := λ _ _, rfl } in
-quotient_kernel_iso_of_surjective' (begin
+  quotient_kernel_iso_of_surjective' (begin
     rintro ⟨y, hy⟩,
     rcases exists_mk y with ⟨g, rfl⟩,
     use [g, hy], refl

@@ -1,4 +1,4 @@
-import hom.definitions group_theory.congruence
+import hom.basic group_theory.congruence
 
 namespace mygroup
 

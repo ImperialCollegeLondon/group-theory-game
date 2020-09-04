@@ -1,4 +1,4 @@
-import group.theorems
+import group.basic
 import int.iterate
 
 namespace mygroup
@@ -15,14 +15,10 @@ def lmul (g : G) : G ≃ G :=
   left_inv := begin intro x, rw [←mul_assoc, mul_left_inv, one_mul], end,
   right_inv := begin intro x, rw [←mul_assoc, mul_right_inv, one_mul] end }
 
-
 def pow : ℤ → G → G :=
   λ n g, (iterate n (lmul g)) 1
 
--- binding power is a joke
 notation `⦃`:91 n `⦄^`:91 g :91 := pow n g
--- Why do you force me to use this awful notation instead of making a has_pow
--- instance :(
 
 variables (n m : ℤ) (g h k : G)
 
@@ -82,7 +78,6 @@ begin
   rw pow_add,
 end
 
-
 theorem pow_mul : ⦃m * n⦄^g = ⦃m⦄^⦃n⦄^g :=
 begin
   simp [pow_def],
@@ -92,18 +87,15 @@ begin
   rw [iterate_mul_assoc, one_mul],
 end
 
-
 theorem pow_inv : (⦃n⦄^g)⁻¹ = ⦃n⦄^g⁻¹ :=
 begin
   apply int.induction_on n,
   { simp },
   { intros i hi,
-    rw [pow_add, one_pow, inv_mul, hi, add_comm, pow_add, one_pow],
-  },
+    rw [pow_add, one_pow, inv_mul, hi, add_comm, pow_add, one_pow] },
   { intros i hi,
     rw [pow_sub, sub_eq_add_neg, add_comm, pow_add, pow_neg, pow_neg, one_pow,
-      inv_mul, inv_inv, ←pow_neg i, hi, pow_neg 1, inv_inv, one_pow],
-  },  
+      inv_mul, inv_inv, ←pow_neg i, hi, pow_neg 1, inv_inv, one_pow] },  
 end
 
 @[simp] lemma pow_one (n : ℤ) : ⦃n⦄^(1 : G) = 1 := 
@@ -114,7 +106,6 @@ begin
     { intros i hi, rw [sub_eq_add_neg, pow_add, hi, one_mul, pow_neg, one_pow, one_inv] }
 end
 
--- Is this useful? Only true in abelian group
 theorem mul_pow {H : Type} [hH :comm_group H] {g : H} {h : H} : 
   ⦃n⦄^g * ⦃n⦄^h = ⦃n⦄^(g * h) := 
 begin
@@ -122,15 +113,15 @@ begin
   apply int.induction_on' n 0,
     { simp },
     { intros k hk _ ,
-      repeat {rw iterate_succ},
+      repeat { rw iterate_succ },
       rw [← a, ← iterate_mul_assoc],
-      simp [←pow_mul_eq_iterate, mul_assoc, hH.mul_comm, hH.mul_comm, mul_assoc] },
+      simp [← pow_mul_eq_iterate, mul_assoc, hH.mul_comm, hH.mul_comm, mul_assoc] },
     { intros k hk _,
       cases (show ∃ m : ℤ, m + 1 = k, by exact ⟨k - 1, by norm_num⟩) with m hm,    
       rw ← hm at *,
-      repeat {rw iterate_succ at a},
+      repeat { rw iterate_succ at a },
       rw [← add_sub, sub_self, add_zero],       
-      simp [←pow_mul_eq_iterate, mul_assoc, hH.mul_comm] at *,
+      simp [← pow_mul_eq_iterate, mul_assoc, hH.mul_comm] at *,
       apply mul_left_cancel'' h,
       rw [← a, hH.mul_comm],
       simp [hH.mul_comm, mul_assoc] }
