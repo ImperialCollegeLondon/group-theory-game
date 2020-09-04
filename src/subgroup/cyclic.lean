@@ -181,7 +181,7 @@ noncomputable def fin.equiv (hn : 0 < n) : fin n ≃ cyclic n :=
     ring
   end } 
 
-lemma fincard_cyclic (hn : 0 < n) : fincard' (cyclic n) = n :=
+lemma fincard_cyclic (hn : 0 < n) : fincard (cyclic n) = n :=
 begin
   rw [←fincard.of_equiv (fin.equiv n hn), ← fincard.card_eq_fincard],
   exact fintype.card_fin n,

@@ -20,7 +20,7 @@ end
 
 open is_finite
 
-@[simp] theorem is_finite.card_eq_fincard' (X : Type*) [h : is_finite X] :
+@[simp] theorem is_finite.card_eq_fincard (X : Type*) [h : is_finite X] :
   @fintype.card X (is_finite.to_fintype X) = fincard X :=
 begin
   haveI : fintype X := to_fintype X,
@@ -28,7 +28,7 @@ begin
 end
 
 @[simp] theorem is_finite.card_eq_fincard (X : Type*) [h : is_finite X] :
-  is_finite.card X = fincard X := is_finite.card_eq_fincard' X
+  is_finite.card X = fincard X := is_finite.card_eq_fincard X
 
 example (X : Type) (a b : is_finite X) : a = b := rfl
 

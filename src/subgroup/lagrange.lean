@@ -36,7 +36,7 @@ end
 /-- Let `H` be a subgroup of the finite group `G`, then the cardinality of `G` 
 equals the cardinality of `H` multiplied with the number of left cosets of `H` -/
 theorem lagrange [fintype G] : 
-  fincard' G = fincard' H * fincard' { B | ∃ g : G, B = lcoset g H } := 
+  fincard G = fincard H * fincard { B | ∃ g : G, B = lcoset g H } := 
 begin
   rw [card_eq_finsum_partition (lcoset_partition H), 
     mul_comm, finsum_const_nat],
@@ -66,7 +66,7 @@ noncomputable def to_lcosets_equiv (N : normal G) :
 equiv.of_bijective (to_lcosets N) bijective_to_lcosets
 
 theorem card_quotient_eq_mul [fintype G] (N : normal G) : 
-  fincard' G = fincard' N * fincard' (G /ₘ N) :=
+  fincard G = fincard N * fincard (G /ₘ N) :=
 begin
   rw @lagrange _ _ (N : subgroup G),
   congr' 1, exact of_equiv (to_lcosets_equiv N).symm

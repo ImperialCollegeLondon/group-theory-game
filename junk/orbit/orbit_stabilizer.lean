@@ -244,14 +244,14 @@ end
 -- the number of left cosets of stabilizer s
 
 lemma card_orbit_eq_num_lcoset {a : S} : 
-  fincard' (orbit μ a) = fincard' { s | ∃ h : G, s = h ⋆ stabilizer μ a } :=
+  fincard (orbit μ a) = fincard { s | ∃ h : G, s = h ⋆ stabilizer μ a } :=
 fincard.of_equiv (equiv.of_bijective _ aux_map_biject)
 
 /-- Orbit-Stabilizer : The cardinality of a finite group `G` given a laction `μ` 
 on some `S` equals the cardinality of the orbit of `s` multiplied by the 
 cardinality of the stabilizer of `s` for any `s : S` -/
 theorem orbit_stabilizer [h: fintype G] {a : S} (μ : laction G S) : 
-  fincard' G = fincard' (orbit μ a) * fincard' (stabilizer μ a) := 
+  fincard G = fincard (orbit μ a) * fincard (stabilizer μ a) := 
 by rw [card_orbit_eq_num_lcoset, mul_comm]; exact lagrange.lagrange 
 
 /-! # fixed points -/
@@ -296,7 +296,7 @@ lemma orbit_eq_singleton_iff {s : S} {μ : laction G S} :
 --The following lemma is based on the one by the same name in the library,
 -- I believe it is needed to prove card_set_eq_card_fixed_points_sum_card_orbits
 lemma mem_fixed_points_iff_card_orbit_eq_one {s : S} {μ : laction G S}:
-  s ∈ fixed_points μ ↔ fincard' (orbit μ s) = 1 :=
+  s ∈ fixed_points μ ↔ fincard (orbit μ s) = 1 :=
 begin
   rw ←orbit_eq_singleton_iff,
   split; intro h,
@@ -408,16 +408,16 @@ begin
       rw ←hx, exact laction.mem_orbit_refl _ }
 end
 
-lemma sum_card_orbits [fintype S] : ∑' o in (orbits μ), fincard' o = fincard' S :=
+lemma sum_card_orbits [fintype S] : ∑' o in (orbits μ), fincard o = fincard S :=
 (fincard.card_eq_finsum_partition (setoid.is_partition_classes _)).symm
 
 /-
-def orbits_not_singleton (μ : laction G S): set (orbits μ) := {o : orbits μ | fincard' o > 1}
+def orbits_not_singleton (μ : laction G S): set (orbits μ) := {o : orbits μ | fincard o > 1}
 
 --Should I rewrite the fixed points as a collection of singletons?
-def singleton_orbits  (μ : laction G S) : set (orbits μ) := {o : orbits μ | fincard' o = 1}
+def singleton_orbits  (μ : laction G S) : set (orbits μ) := {o : orbits μ | fincard o = 1}
 --It probably makes more sense to write it as the following lemma, though fixed_points is a subset of S 
--- and {o : orbits μ | fincard' o = 1} is a subset of orbits  ↥
+-- and {o : orbits μ | fincard o = 1} is a subset of orbits  ↥
 
 lemma fixed_points_singletons [fintype S] (μ : laction G S) : 
   ↥(fixed_points μ) = (singleton_orbits μ ) := 
@@ -443,7 +443,7 @@ begin
 end
 
 lemma card_orbits_eq_one [fintype S] {s : set S} 
-  (hs₀ : s ∈ orbits μ) (hs₁ : fincard' s ≤ 1) : fincard' s = 1 :=
+  (hs₀ : s ∈ orbits μ) (hs₁ : fincard s ≤ 1) : fincard s = 1 :=
 begin
   cases dumb hs₁,
     { change s ∈ {s | ∃ y, s = {x | x ∈ orbit μ y}} at hs₀,
@@ -458,7 +458,7 @@ begin
 end
 
 def map_singleton (μ : laction G S) : (fixed_points μ) → 
-  ({o ∈ orbits μ | fincard' o ≤ 1} : set (set S)) :=
+  ({o ∈ orbits μ | fincard o ≤ 1} : set (set S)) :=
 λ s, ⟨orbit μ s, orbit_mem_orbits _,
   let ⟨_, hs⟩ := s in le_of_eq (mem_fixed_points_iff_card_orbit_eq_one.1 hs)⟩
 
@@ -491,9 +491,9 @@ begin
           exact (orbit_unique hy₀).1 (mem_singleton _) } }
 end
 
-lemma card_fixed_points [fintype S] : fincard' (fixed_points μ) = 
-  let p := λ s : set S, fincard' s ≤ 1 in
-  ∑' o in { o ∈ orbits μ | p o }, fincard' o := 
+lemma card_fixed_points [fintype S] : fincard (fixed_points μ) = 
+  let p := λ s : set S, fincard s ≤ 1 in
+  ∑' o in { o ∈ orbits μ | p o }, fincard o := 
 begin
   dsimp only,
   rw @finsum_const_nat (set S) (by apply_instance) _ 1 _,
@@ -503,9 +503,9 @@ begin
 end
 
 lemma card_set_eq_card_fixed_points_sum_card_orbits [fintype S] (μ : laction G S): 
-  fincard' S = fincard' (fixed_points μ) 
-             + let p := λ s : set S, fincard' s ≤ 1 in
-             ∑' o in { o ∈ (orbits μ) | ¬ p o }, fincard' o := 
+  fincard S = fincard (fixed_points μ) 
+             + let p := λ s : set S, fincard s ≤ 1 in
+             ∑' o in { o ∈ (orbits μ) | ¬ p o }, fincard o := 
 begin
   rw [card_fixed_points, fincard.finsum_in_filter],
   exact sum_card_orbits.symm
@@ -522,21 +522,21 @@ end
 
 -- Are these names okay? Should I leave these lemmas here?
 lemma card_orbit_div_pow_p [fintype S] [fintype G] (μ : laction G S)
-  (p : ℕ) (hp : p.prime) (n : ℕ) (hG : fincard' G = p ^ n):
+  (p : ℕ) (hp : p.prime) (n : ℕ) (hG : fincard G = p ^ n):
   ∀ s : S, fincard'( orbit μ s ) ∣ p^n :=
 begin
   intro s, rw ← hG,
-    use (fincard' (stabilizer μ s)),
+    use (fincard (stabilizer μ s)),
     rw laction.orbit_stabilizer,
 end  
 
 lemma card_orbit_eq_one_or_dvd_p [fintype S] [fintype G] (μ : laction G S) 
-  (p : ℕ) (hp : p.prime) (n : ℕ) (hG : fincard' G = p ^ n) : 
-  ∀ (s : S), fincard' (orbit μ s) = 1 ∨ p ∣ fincard' (orbit μ s) :=
+  (p : ℕ) (hp : p.prime) (n : ℕ) (hG : fincard G = p ^ n) : 
+  ∀ (s : S), fincard (orbit μ s) = 1 ∨ p ∣ fincard (orbit μ s) :=
 begin
   intro s,
   cases (card_orbit_div_pow_p μ p hp n hG) s with _ _,
-  have h1: fincard' ↥(orbit μ s) ∣ p^n,
+  have h1: fincard ↥(orbit μ s) ∣ p^n,
     { use w, exact h },
   rw nat.dvd_prime_pow hp at h1,
   rcases h1 with ⟨a, _, ha⟩, 
@@ -550,8 +550,8 @@ begin
 end  
 
 lemma card_set_congr_card_fixed_points_mod_prime [fintype S] [fintype G]
-  (μ : laction G S) (p : ℕ) (hp : p.prime) (n : ℕ) (hG : fincard' G = p ^ n) :
-  fincard' S ≡ fincard' (fixed_points μ) [MOD p] := 
+  (μ : laction G S) (p : ℕ) (hp : p.prime) (n : ℕ) (hG : fincard G = p ^ n) :
+  fincard S ≡ fincard (fixed_points μ) [MOD p] := 
 begin
   have claim : ∀ s : S, fincard'( orbit μ s ) ∣ p^n , 
     { exact card_orbit_div_pow_p μ p hp n hG },
@@ -559,11 +559,11 @@ begin
   dsimp,
   refine nat.modeq.modeq_of_dvd _,
   suffices: ↑p ∣ ↑∑' (o : set S) in 
-    ({o ∈ orbits μ | 1 < fincard' o} : set (set S)), fincard' ↥o,
+    ({o ∈ orbits μ | 1 < fincard o} : set (set S)), fincard ↥o,
     { simpa [sub_eq_add_neg] },
   norm_cast,
   apply fincard.finsum_divisible_by,
-  have: ∀ (s : S), fincard' (orbit μ s) = 1 ∨ p ∣ fincard' (orbit μ s),
+  have: ∀ (s : S), fincard (orbit μ s) = 1 ∨ p ∣ fincard (orbit μ s),
     { exact card_orbit_eq_one_or_dvd_p μ p hp n hG },
   rintro x h,
   cases h with hl hr,

@@ -58,15 +58,15 @@ variables {G : Type} [group G]
 open list
 
 theorem cauchy_elements (G : Type) [group G] [fintype G] (p : ℕ) (hp : p.prime)
-  (hpG : p ∣ fincard' G) : p ∣ fincard' {g : G // ⦃p⦄^g = 1} :=
+  (hpG : p ∣ fincard G) : p ∣ fincard {g : G // ⦃p⦄^g = 1} :=
 begin
   cases p with n, rcases hp with ⟨⟨⟩, _⟩,
   have h := card_set_congr_card_fixed_points_mod_prime (cool_action G n) n.succ hp 1,
-  have h2 : fincard' (cyclic ↑(n.succ)) = n.succ ^ 1,
+  have h2 : fincard (cyclic ↑(n.succ)) = n.succ ^ 1,
     rw [nat.pow_one, cyclic.fincard_cyclic], simp,
   specialize h h2, rw card_cool_set at h,
   cases n with m, cases hp, cases hp_left, cases hp_left_a,
-  have h1 : m.succ.succ ∣ fincard' G ^ m.succ,
+  have h1 : m.succ.succ ∣ fincard G ^ m.succ,
     rw nat.pow_succ,
     apply dvd_mul_of_dvd_right hpG,
   rw ←nat.modeq.modeq_zero_iff at h1 ⊢,
@@ -77,7 +77,7 @@ begin
 end
 
 theorem cauchy_element (G : Type) [group G] [fintype G] (p : ℕ) (hp : p.prime)
-  (hpG : p ∣ fincard' G) : ∃ g : G, g ≠ 1 ∧ ⦃p⦄^g = 1 :=
+  (hpG : p ∣ fincard G) : ∃ g : G, g ≠ 1 ∧ ⦃p⦄^g = 1 :=
 begin
   by_contra h, push_neg at h,
   have h1 : ∀ g : G, ⦃p⦄^g = 1 ↔ g = 1,
@@ -91,7 +91,7 @@ begin
       left_inv := by {intro g, cases g, simp},
       right_inv := by {intro g, cases g, simp} },
   rw fincard.of_equiv e at h2,
-  change p ∣ fincard' ({(1 : G)} : set G) at h2,
+  change p ∣ fincard ({(1 : G)} : set G) at h2,
   rw [fincard.card_singleton_eq_one, nat.dvd_one] at h2,
   subst h2, cases hp, cases hp_left, cases hp_left_a,
 end
@@ -202,7 +202,7 @@ def eq_equiv (G : Type) [group G] (H K : subgroup G) (i : H = K) : H ≃ K :=
 
 theorem key_lemma (G : Type) [group G] (p : ℕ) (hp : p.prime) (g : G)
   (hg1 : g ≠ 1) (hg2 : ⦃p⦄^g = 1) : 
-  fincard' (closure ({g} : set G)) = p := 
+  fincard (closure ({g} : set G)) = p := 
 begin
   have h := quotient.quotient_kernel_iso_image (order_map g),
   rw fincard.of_equiv (eq_equiv G _ _ (order_map_image_eq g).symm),
@@ -214,7 +214,7 @@ begin
 end
 
 theorem cauchy (G : Type) [group G] [fintype G] (p : ℕ) (hp : p.prime)
-  (hpG : p ∣ fincard' G) : ∃ H : subgroup G, fincard' H = p := 
+  (hpG : p ∣ fincard G) : ∃ H : subgroup G, fincard H = p := 
 begin
   rcases cauchy_element G p hp hpG with ⟨g, hg1, hg2⟩,
   use closure {g},

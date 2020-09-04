@@ -7,19 +7,18 @@ open classical function set mygroup.subgroup mygroup.group mygroup.group_hom
 
 -- Definition of p-group for finite groups, not using definition of order of 
 -- an element explicitly
-class p_group [fintype G] (p : ℕ) extends group G :=
-(card_pow_p: ∃ n : ℕ , fincard' G = p^n)
+-- class p_group [fintype G] (p : ℕ) extends group G :=
+-- (card_pow_p: ∃ n : ℕ , fincard G = p^n)
 
--- A p-subgroup is a subgroup of a group G which is itself a p-group
-class p_subgroup (G : Type) [group G] [fintype G] (p : ℕ) extends subgroup G :=
-(card_pow_p: ∃ n : ℕ , fincard' (carrier) = p^n)
+-- -- A p-subgroup is a subgroup of a group G which is itself a p-group
+-- class p_subgroup (G : Type) [group G] [fintype G] (p : ℕ) extends subgroup G :=
+-- (card_pow_p: ∃ n : ℕ , fincard (carrier) = p^n)
 
-def is_p_subgroup (H : subgroup G) (p : ℕ) : Prop := 
-  ∃ n : ℕ , fincard' (H) = p ^ n 
+def is_p_subgroup (H : subgroup G) (p : ℕ) := ∃ n : ℕ , fincard H = p ^ n 
 
-def is_lcoset (H : subgroup G) (B : set G) : Prop := ∃ g : G, B = lcoset g H
+def is_lcoset (H : subgroup G) (B : set G) := ∃ g : G, B = lcoset g H
 
-def lcosets (H : subgroup G) := {B : set G // is_lcoset H B}
+def lcosets (H : subgroup G) := { B : set G // is_lcoset H B }
 
 def dumb_fun' (H : subgroup G) (g : G) (X : set G) : set G :=
   {t | ∃ x ∈ X , t = g * x}
@@ -108,7 +107,7 @@ lemma aux_lemma [fintype G] (H : subgroup G) (g : G) :
   symmetry,
   apply fincard.eq_of_card_eq_subset,
     exact h,
-  change fincard' H = fincard' (conjugate_subgroup g H),
+  change fincard H = fincard (conjugate_subgroup g H),
   apply fincard.of_equiv,
   apply mul_equiv.to_equiv,
   apply mul_equiv_of_is_conjugate,
@@ -223,7 +222,7 @@ end
 
 --lemma card_eq_card_of_injective ()
 lemma proj_fincard [fintype G] (H : subgroup G) (b : fixed_points (dumb_action' H)) :
-  fincard' ((projection H) ⁻¹' {b}) = fincard' H :=
+  fincard ((projection H) ⁻¹' {b}) = fincard H :=
 begin
   cases proj_eq_coset H b with g hg,
   rw @lagrange.eq_card_of_lcoset _ _ H g,
@@ -248,17 +247,16 @@ fintype.of_surjective (λ g, to_lcosets g H) begin
   refl
 end
 
-
-lemma card_subgroup_eq_card_carrier (H : subgroup G) : fincard' H = fincard' H.carrier := 
+lemma card_subgroup_eq_card_carrier (H : subgroup G) : fincard H = fincard H.carrier := 
 begin
   apply fincard.of_equiv,
   use [id, id];
   {intros x, refl}
 end  
 
-lemma zero_lt_card_subgroup [fintype G] (H : subgroup G): 0 < fincard' H  := 
+lemma zero_lt_card_subgroup [fintype G] (H : subgroup G): 0 < fincard H  := 
 begin
-  suffices: fincard' H ≠ 0,
+  suffices: fincard H ≠ 0,
   exact nat.pos_of_ne_zero this,
   intro h,
   rw [card_subgroup_eq_card_carrier, fincard.card_eq_zero_iff H.carrier] at h,
@@ -270,23 +268,25 @@ lemma index_normalizer_congr_index_modp [fintype G]
   {p : ℕ} (hp: p.prime) (H : subgroup G) (h: is_p_subgroup H p) :
   index' (normalizer_of_set (H : set G)) H ≡ index H [MOD p] := 
   begin
-    have claim: ∀ g : G, to_lcosets g H ∈ (fixed_points (dumb_action' H)) ↔ g ∈ normalizer_of_set H.carrier,
+    have claim: ∀ g : G, to_lcosets g H ∈ (fixed_points (dumb_action' H)) ↔ 
+      g ∈ normalizer_of_set H.carrier,
       { intro g,
         rw normalizer_of_set_eq_normalizer,
         exact foo H g },
-    have h2 : fincard'(fixed_points (dumb_action' H)) = (index' (normalizer_of_set (H : set G)) H),
+    have h2 : fincard (fixed_points (dumb_action' H)) = 
+      (index' (normalizer_of_set (H : set G)) H),
       { cases h with n hn,
         unfold index',
         erw normalizer_of_set_eq_normalizer,
         rw ← fincard.finsum_fibres (projection H),
         simp_rw proj_fincard,
-        rw ← finsum_in_eq_finsum (λ _, fincard' H),
-        rw @finsum_const_nat _ _ _ (fincard' H),
+        rw ← finsum_in_eq_finsum (λ _, fincard H),
+        rw @finsum_const_nat _ _ _ (fincard H),
         rw nat.mul_div_cancel,
         exact zero_lt_card_subgroup H,
         simp,
         apply_instance },
-    have h3 : index H = fincard' (lcosets H),
+    have h3 : index H = fincard (lcosets H),
       { unfold index,
         rw @lagrange.lagrange _ _ H,
         rw _root_.mul_comm,
@@ -316,7 +316,6 @@ begin
     exact hH,
 end  
 
-
 lemma normalizer_neq_subgroup [fintype G] 
   (H : subgroup G) {p : ℕ} (hp: p.prime) (h: is_p_subgroup H p) : 
   p ∣ index H → normalizer_of_set (H : set G) ≠ H := 
@@ -330,7 +329,7 @@ begin
     { intro hfalse,
       rw hfalse at h2,
       exact nat.prime.not_dvd_one hp h2 },
-  have h4: fincard' (normalizer_of_set (H : set G)) ≠ fincard' H,
+  have h4: fincard (normalizer_of_set (H : set G)) ≠ fincard H,
     { unfold index' at h3,
       intro hfalse,
       rw hfalse at h3,
@@ -342,11 +341,11 @@ begin
   rw hfalse, 
 end  
 
-lemma index_eq_card_quotient [fintype G] (H : normal G): index (H : subgroup G) = fincard' (G /ₘ H) := 
+lemma index_eq_card_quotient [fintype G] (H : normal G): index (H : subgroup G) = fincard (G /ₘ H) := 
 begin
   unfold index,
   rw lagrange.card_quotient_eq_mul H,
-  change _ /fincard' H = _,
+  change _ /fincard H = _,
   rw nat.mul_comm,
   rw nat.mul_div_assoc,
   rw nat.div_self,
@@ -404,7 +403,7 @@ begin
 end
 
 lemma index'_eq_card_quotient [fintype G] (H : subgroup G) (K : normal H): 
-  index' H (map (𝒾 H) K) = fincard' (H /ₘ K) :=
+  index' H (map (𝒾 H) K) = fincard (H /ₘ K) :=
 begin
   unfold index',
   have h := lagrange.card_quotient_eq_mul K,
@@ -415,10 +414,9 @@ begin
   exact zero_lt_card_subgroup _,
 end
 
-
 theorem sylow_one [fintype G] 
-  {p m n: ℕ} {hp : p.prime}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m} : 
-  ∀ (i ≤ n), ∃ H : subgroup G, fincard' H = p ^ i := 
+  {p m n: ℕ} {hp : p.prime}{hG : fincard G = p ^ n * m} {hdiv : ¬ p ∣ m} : 
+  ∀ (i ≤ n), ∃ H : subgroup G, fincard H = p ^ i := 
 begin
   intros i hin,
   induction i with i hi,   
@@ -453,7 +451,7 @@ begin
   have fact2: p ∣ (index' (normalizer_of_set (H : set G)) H),
   {  refine (p_div_index_div_normalizer_of_set H hp _ _),
     use i, exact hH, exact fact0},  
-  have fact3: p ∣ fincard' (normalizer_of_set (H : set G) /ₘ normal_in_normalizer_of_set H),
+  have fact3: p ∣ fincard (normalizer_of_set (H : set G) /ₘ normal_in_normalizer_of_set H),
     { rw ← index'_eq_card_quotient,
       cases fact2 with k hk,
       use k,
@@ -466,7 +464,7 @@ begin
       rw normalizer_of_set_eq_normalizer,
       exact le_normalizer H
     },
-  have fact4: ∃ (K : subgroup (normalizer_of_set (H : set G) /ₘ normal_in_normalizer_of_set H)), fincard' K = p,
+  have fact4: ∃ (K : subgroup (normalizer_of_set (H : set G) /ₘ normal_in_normalizer_of_set H)), fincard K = p,
     { refine @cauchy _ _ _ p hp fact3, },
   cases fact4 with K hK,
   have := quotient.quotient.comap_iso _ K,
@@ -475,7 +473,7 @@ begin
   rw card_subgroup_eq_card_carrier,
   simp,
   rw ← fincard.card_eq_image_of_injective (𝒾 (normalizer_of_set H.carrier)),
-  change fincard' (quotient.quotient.comap (normal_in_normalizer_of_set H) K).carrier = p ^ i.succ,
+  change fincard (quotient.quotient.comap (normal_in_normalizer_of_set H) K).carrier = p ^ i.succ,
   rw ←  card_subgroup_eq_card_carrier,
   rw @quotient.quotient.comap_card_eq _ _ _ (normal_in_normalizer_of_set H) K,
   rw hK,
@@ -501,7 +499,6 @@ begin
   exact injective_𝒾,  
 end    
 
-
 def conjugate_iso (g : G) (H : subgroup G) : H ≅ conjugate_subgroup g H :=
 { to_fun := λ (h : H) , ⟨g * h * g⁻¹, begin use [h, h.2] end⟩,
   map_mul' := 
@@ -514,7 +511,7 @@ def conjugate_iso (g : G) (H : subgroup G) : H ≅ conjugate_subgroup g H :=
   is_bijective := 
     begin
       split,
-      {   intros x y hxy ,
+      { intros x y hxy ,
         dsimp at *,
         cases y with y hy, 
         cases x with x hx, 
@@ -527,14 +524,12 @@ def conjugate_iso (g : G) (H : subgroup G) : H ≅ conjugate_subgroup g H :=
         simp }
     end }
 
-
-
 lemma conjugates_eq_cardinality (g : G) (H : subgroup G) :
-  fincard' H = fincard' (conjugate_subgroup g H) := 
+  fincard H = fincard (conjugate_subgroup g H) := 
 fincard.of_equiv (group_hom.mul_equiv_of_iso (conjugate_iso g H)).to_equiv
   
-/-def is_sylow_p_subgroup [fintype G] {p m n: ℕ} {hp : p.prime}{hG : fincard' G = p ^ n * m}
- {hdiv : ¬ p ∣ m} (K : subgroup G): Prop := fincard' K = p ^ n-/
+/-def is_sylow_p_subgroup [fintype G] {p m n: ℕ} {hp : p.prime}{hG : fincard G = p ^ n * m}
+ {hdiv : ¬ p ∣ m} (K : subgroup G): Prop := fincard K = p ^ n-/
 
 -- theorem sylow_two [fintype G]{p : ℕ} {hp : p.prime} (H K : subgroup G) (h₁ : is_sylow_p_subgroup H hp)(h₂ : is_sylow_p_subgroup K hp) : 
 -- ∃ (g : G), H = conjugate_subgroup g K  := sorry  
@@ -542,7 +537,7 @@ fincard.of_equiv (group_hom.mul_equiv_of_iso (conjugate_iso g H)).to_equiv
 
 -- Consider the action of K on the set X of cosets of H in G μ: K × X → X, (y, xH) ↦ yxH. 
 --Consider the points fixed by the action. Notice that since H is a Sylow p subgroup then p does not divide 
---fincard' X = index H, hence fincard'(fixed points μ ) ≠ 0. We then want to show that xH ∈ fixed_points μ 
+--fincard X = index H, hence fincard (fixed points μ) ≠ 0. We then want to show that xH ∈ fixed_points μ 
 --implies that the conjugate of K by x is a subgroup of H. Since conjugates are isomorphic they have the same cardinality.
 --Hence x K x⁻¹ = H.
 
@@ -550,21 +545,21 @@ fincard.of_equiv (group_hom.mul_equiv_of_iso (conjugate_iso g H)).to_equiv
 
 --Define the number of Sylow p-subgroups of G. 
 -- noncomputable def number_sylow_p (G : Type) [group G] {p : ℕ} (hp : p.prime) := 
--- fincard' {K : subgroup G // is_sylow_p_subgroup K hp}
+-- fincard {K : subgroup G // is_sylow_p_subgroup K hp}
 
 -- theorem sylow_three_part1 [fintype G]{p m n: ℕ}{hp : p.prime}
---   {hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m}:
+--   {hG : fincard G = p ^ n * m} {hdiv : ¬ p ∣ m}:
 -- number_sylow_p G hp ≡ 1 [MOD p] := sorry 
--- theorem sylow_three_part2 [fintype G]{p m n: ℕ} {hp : p.prime}{hG : fincard' G = p ^ n * m} {hdiv : ¬ p ∣ m}:
+-- theorem sylow_three_part2 [fintype G]{p m n: ℕ} {hp : p.prime}{hG : fincard G = p ^ n * m} {hdiv : ¬ p ∣ m}:
 -- number_sylow_p G hp ∣ m := sorry 
 --By Sylow 1 ∃ a Sylow p-subgroup P, so we set X = Sylp(G) = {Sylow p-groups in G}
 --Then P acts on X by μ : P × X → X, (x, Q) ↦ xQx⁻¹ (this is what we defined conjugate_action to be)
 --By card_set_congr_card_fixed_points_mod_prime we have
--- number_sylow_p = fincard' X ≡ fincard' (fixed points μ) [MOD p]. Want to show fincard' (fixed points μ) = 1.
+-- number_sylow_p = fincard X ≡ fincard (fixed points μ) [MOD p]. Want to show fincard (fixed points μ) = 1.
 --Let P ∈ fixed points μ and Q ∈ fixed points μ. Then P is a subgroup of normalizer_of_set Q
 --Both P and Q are Sylow p-subgroups of normalizer_of_set Q, so ∃ x ∈ normalizer_of_set Q s.t. xQx⁻¹ = P (Sylow 2)
 --By def of normalizer_of_set Q we have Q = P, so fixed_points μ = {P}, proving the first part of the theorem.end
 --Now if P acts on X by conjugation ∃ ! orbit such that X = orbit G P (Sylow 2).
---By orbit-stabilizer number_sylow_p = (fincard' X) ∣ (fincard' G)=p^n *m which implies it divides m.
+--By orbit-stabilizer number_sylow_p = (fincard X) ∣ (fincard G)=p^n *m which implies it divides m.
 
 end mygroup

@@ -87,7 +87,7 @@ noncomputable instance (X : Type) [fintype X] (Y : Type) [fintype Y] : fintype (
 by apply_instance
 
 lemma card_function (X : Type) [fintype X] (Y : Type) [fintype Y] :
-  fincard' (X → Y) = fincard' Y ^ fincard' X :=
+  fincard (X → Y) = fincard Y ^ fincard X :=
 begin
   rw ← fincard.card_eq_fincard,
   rw ← fincard.card_eq_fincard,
@@ -102,7 +102,7 @@ begin
 end
 
 lemma card_cool_set [fintype G] :
-  fincard' {v : fin n.succ → G // finmap.prod_eq_one v} = fincard' G ^ n :=
+  fincard {v : fin n.succ → G // finmap.prod_eq_one v} = fincard G ^ n :=
 begin
   rw fincard.of_equiv (prod_eq_one_equiv G n),
   rw card_function,

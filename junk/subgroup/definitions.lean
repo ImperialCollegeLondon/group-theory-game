@@ -121,10 +121,10 @@ instance normal_has_mem : has_mem G (normal G) := ⟨λ m K, m ∈ K.carrier⟩
 instance normal_to_set : has_coe (normal G) (set G) := ⟨λ K, K.carrier⟩
 
 /-- Returns index of a subgroup in a group -/ 
-noncomputable def index (H : subgroup G) : ℕ := fincard' G / fincard' H
+noncomputable def index (H : subgroup G) : ℕ := fincard G / fincard H
 
 /-- `index' H J` returns the index of J in H -/ 
-noncomputable def index'(H : subgroup G) (J : subgroup G): ℕ := fincard' H / fincard' J
+noncomputable def index'(H : subgroup G) (J : subgroup G): ℕ := fincard H / fincard J
 
 -- Defining cosets thats used in some lemmas
 def lcoset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = g * k}

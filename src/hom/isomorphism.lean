@@ -433,8 +433,8 @@ lemma quotient.comap_iso (N : normal G) (H : subgroup (G /ₘ N)) :
   end
 
 lemma quotient.comap_card_eq [fintype G] (N : normal G) (H : subgroup (G /ₘ N)) : 
-  fincard' (quotient.comap N H) = 
-  fincard' (normal.comap (𝒾 $ quotient.comap N H) N) * fincard' H :=
+  fincard (quotient.comap N H) = 
+  fincard (normal.comap (𝒾 $ quotient.comap N H) N) * fincard H :=
 begin
   rw [fincard.of_equiv (mul_equiv_of_iso (iso_symm (quotient.comap_iso N H))).to_equiv,
      ← lagrange.card_quotient_eq_mul]

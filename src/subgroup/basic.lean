@@ -116,10 +116,10 @@ instance normal_has_mem : has_mem G (normal G) := ⟨λ m K, m ∈ K.carrier⟩
 instance normal_to_set : has_coe (normal G) (set G) := ⟨λ K, K.carrier⟩
 
 /-- Returns index of a subgroup in a group -/ 
-noncomputable def index (H : subgroup G) : ℕ := fincard' G / fincard' H
+noncomputable def index (H : subgroup G) : ℕ := fincard G / fincard H
 
 /-- `index' H J` returns the index of J in H -/ 
-noncomputable def index'(H : subgroup G) (J : subgroup G): ℕ := fincard' H / fincard' J
+noncomputable def index'(H : subgroup G) (J : subgroup G): ℕ := fincard H / fincard J
 
 -- Defining cosets thats used in some lemmas
 def lcoset (g : G) (K : subgroup G) := {s : G | ∃ k ∈ K, s = g * k}
@@ -251,12 +251,12 @@ equiv.of_bijective (aux_map a H) aux_map_biject
 -- and maps to 0 otherwise
 
 /-- The cardinality of `H` equals its left cosets-/
-lemma eq_card_of_lcoset {a : G} : fincard' H = fincard' (a ⋆ H) := 
+lemma eq_card_of_lcoset {a : G} : fincard H = fincard (a ⋆ H) := 
   fincard.of_equiv lcoset_equiv
 
 /-- The cardinality of all left cosets are equal -/
 theorem card_of_lcoset_eq {a b : G} : 
-  fincard' (a ⋆ H) = fincard' (b ⋆ H) := by iterate 2 { rw ←eq_card_of_lcoset }
+  fincard (a ⋆ H) = fincard (b ⋆ H) := by iterate 2 { rw ←eq_card_of_lcoset }
 
 -- The rest of the proof will requires quotient
 

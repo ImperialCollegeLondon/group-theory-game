@@ -287,14 +287,14 @@ end
 -- def fincard (X : Type*) : ℕ :=
 -- if h : nonempty (fintype X) then @fintype.card X (classical.choice h) else 0 
 
-def fincard' (X : Type u) : ℕ := finset.card $ finset.univ' X
+def fincard (X : Type u) : ℕ := finset.card $ finset.univ' X
 
 namespace fincard
 
 lemma eq_finset_card (X : Type u) [fintype X] : 
-  fincard' X = finset.card (univ : finset X) :=
+  fincard X = finset.card (univ : finset X) :=
 begin
-  unfold fincard',
+  unfold fincard,
   congr',
   unfold univ',
   rw dif_pos,
@@ -304,25 +304,25 @@ begin
 end
 
 lemma eq_finset_card' {X : Type u} [fintype X] (s : set X) : 
-  fincard' s = s.to_finset.card :=
+  fincard s = s.to_finset.card :=
 by rw [eq_finset_card, set.to_finset_card]; refl
 
-theorem card_eq_fincard (X : Type*) [h : fintype X] : fintype.card X = fincard' X :=
+theorem card_eq_fincard (X : Type*) [h : fintype X] : fintype.card X = fincard X :=
 begin
-  simp only [fincard', univ', nonempty.intro h, dif_pos],
+  simp only [fincard, univ', nonempty.intro h, dif_pos],
   congr,
 end
 
-theorem fincard_eq_zero {X : Type*} (h : ¬nonempty (fintype X)) : fincard' X = 0 :=
+theorem fincard_eq_zero {X : Type*} (h : ¬nonempty (fintype X)) : fincard X = 0 :=
 congr_arg finset.card (dif_neg h)
 
-@[simp] lemma empty : fincard' empty = 0 :=
+@[simp] lemma empty : fincard empty = 0 :=
 begin
   rw ←card_eq_fincard,
   simp,
 end
 
-lemma of_equiv {X Y : Type*} (h : X ≃ Y) : fincard' X = fincard' Y :=
+lemma of_equiv {X Y : Type*} (h : X ≃ Y) : fincard X = fincard Y :=
 begin
   by_cases h2 : nonempty (fintype X),
   { cases h2,
@@ -335,18 +335,18 @@ begin
     simp [fincard_eq_zero, *] }
 end
 
-theorem of_empty {X : Type*} (hX : X → false) : fincard' X = 0 :=
+theorem of_empty {X : Type*} (hX : X → false) : fincard X = 0 :=
 by simp [fincard.of_equiv (equiv.equiv_empty hX)]
 
 theorem card_eq_zero_iff {X : Type*} [fintype X] (s : set X) : 
-  fincard' s = 0 ↔ s = ∅ := 
+  fincard s = 0 ↔ s = ∅ := 
 begin
   rw [eq_finset_card', finset.card_eq_zero, ←set.to_finset_empty],
   apply set.to_finset_inj
 end
 
 lemma card_eq_sum_one_of_fintype {X : Type u} [h : fintype X] : 
-  fincard' X = ∑' x : X, 1 :=
+  fincard X = ∑' x : X, 1 :=
 begin
   rw [eq_finset_card, finset.card_univ, finsum_def_of_finite],
   unfold univ',
@@ -356,7 +356,7 @@ begin
 end
 
 lemma card_eq_sum_one_of_nfintype {X : Type u} (h : ¬ nonempty (fintype X)) : 
-  fincard' X = ∑' x : X, 1 :=
+  fincard X = ∑' x : X, 1 :=
 begin
   unfold finsum,
   rw dif_neg, exact fincard_eq_zero h,
@@ -368,7 +368,7 @@ begin
   intro x, rw function.mem_support, norm_num,
 end
 
-lemma card_eq_sum_one {X : Type u} : fincard' X = ∑' x : X, 1 :=
+lemma card_eq_sum_one {X : Type u} : fincard X = ∑' x : X, 1 :=
 begin
   by_cases (nonempty (fintype X)),
     { haveI := classical.choice h,
@@ -377,7 +377,7 @@ begin
 end
 
 lemma eq_finset_card'' {X : Type u} {s : set X} (h : s.finite) : 
-  fincard' s = h.to_finset.card := 
+  fincard s = h.to_finset.card := 
 begin
   rw [card_eq_sum_one, ←finsum_in_eq_finsum (λ _, 1), 
       finsum_in_def_of_finite''', finset.card_eq_sum_ones],
@@ -398,21 +398,21 @@ end
 namespace fincard
 
 lemma card_eq_zero_of_infinite {X : Type u} {s : set X} (h : ¬ s.finite) : 
-  fincard' s = 0 := 
+  fincard s = 0 := 
 begin
   rw card_eq_sum_one,
   exact finsum_def_of_infinite (λ h', h $ fintype.of_finite_support h')
 end
 
 @[simp] theorem card_singleton_eq_one {X : Type*} {x : X} : 
-  fincard' ({x} : set X) = 1 :=
+  fincard ({x} : set X) = 1 :=
 begin
   rw [eq_finset_card'' (set.finite_singleton x), set.finite.to_finset, finset.card_eq_one],
   refine ⟨x, _⟩, ext; simp
 end
 
 theorem card_eq_one_iff_singleton {X : Type*} {s : set X} : 
-  fincard' s = 1 ↔ ∃ x : X, s = {x} :=
+  fincard s = 1 ↔ ∃ x : X, s = {x} :=
 begin
   split,
     { by_cases h : s.finite,
@@ -440,7 +440,7 @@ end
 namespace fincard
 
 theorem card_eq_one_iff_unique_mem {X : Type*} {s : set X} : 
-  fincard' s = 1 ↔ ∃! x : X, x ∈ s :=
+  fincard s = 1 ↔ ∃! x : X, x ∈ s :=
 begin
   rw card_eq_one_iff_singleton, 
   unfold exists_unique,
@@ -451,16 +451,16 @@ begin
 end
 
 private theorem prod_of_empty_left {X : Type*} (h : X → false) (Y : Type*) :
-  fincard' (X × Y) = fincard' X * fincard' Y :=
+  fincard (X × Y) = fincard X * fincard Y :=
 by rw [fincard.of_empty h, fincard.of_empty (h ∘ prod.fst), zero_mul]
 
 private theorem prod_of_empty_right (X : Type*) {Y : Type*} (h : Y → false) :
-  fincard' (X × Y) = fincard' X * fincard' Y :=
+  fincard (X × Y) = fincard X * fincard Y :=
 by rw [fincard.of_empty h, fincard.of_empty (h ∘ prod.snd), mul_zero]
 
 private theorem prod_of_finite {X Y : Type*}
   (hX : nonempty (fintype X)) (hY : nonempty (fintype Y)) :
-fincard' (X × Y) = fincard' X * fincard' Y :=
+fincard (X × Y) = fincard X * fincard Y :=
 begin
   unfreezingI {cases hX with hX, cases hY with hY},
   -- change this to squeeze_simp and watch Lean time out
@@ -469,7 +469,7 @@ end
 
 private theorem prod_of_infinite_left {X Y : Type*}
   (hX : ¬nonempty (fintype X)) (hY : nonempty Y) :
-fincard' (X × Y) = fincard' X * fincard' Y :=
+fincard (X × Y) = fincard X * fincard Y :=
 begin
   have h : ¬nonempty (fintype (X × Y)),
   { rw not_nonempty_fintype at ⊢ hX,
@@ -482,7 +482,7 @@ end
 
 private theorem prod_of_infinite_right {X Y : Type*}
   (hX : nonempty X) (hY : ¬nonempty (fintype Y)) : 
-fincard' (X × Y) = fincard' X * fincard' Y :=
+fincard (X × Y) = fincard X * fincard Y :=
 begin
   have h : ¬nonempty (fintype (X × Y)),
   { rw not_nonempty_fintype at ⊢ hY,
@@ -493,7 +493,7 @@ begin
   simp [fincard_eq_zero, *],
 end
 
-theorem prod (X Y : Sort*) : fincard' (X × Y) = fincard' X * fincard' Y :=
+theorem prod (X Y : Sort*) : fincard (X × Y) = fincard X * fincard Y :=
 begin
   by_cases hX : X → false,
   { exact prod_of_empty_left hX _},
@@ -512,11 +512,11 @@ end
 end fincard 
 
 lemma finsum_const {X Y : Type} [fintype X] [add_comm_monoid Y] 
-  (s : set X) (m : Y) : ∑' x in s, m = fincard' s •ℕ m := 
+  (s : set X) (m : Y) : ∑' x in s, m = fincard s •ℕ m := 
 by rw [finsum_in_def_of_finite, finset.sum_const m, ←fincard.eq_finset_card' s]
 
 lemma finsum_const_nat {X : Type} [fintype X] {s : set X} {m : ℕ} {f : X → ℕ} 
-  (h : ∀ x ∈ s, f x = m) : ∑' x in s, f x = fincard' s * m :=
+  (h : ∀ x ∈ s, f x = m) : ∑' x in s, f x = fincard s * m :=
 begin
   rw [←nat.nsmul_eq_mul, ←(finsum_const s m)],
   exact finsum_ext rfl h
@@ -525,7 +525,7 @@ end
 namespace fincard
 
 theorem card_eq_finsum_partition {X : Type} [h : fintype X] {s : set (set X)} 
-  (hS : setoid.is_partition s) : fincard' X = ∑' x in s, fincard' x := 
+  (hS : setoid.is_partition s) : fincard X = ∑' x in s, fincard x := 
 begin
   conv_rhs { congr, skip, funext, rw card_eq_sum_one },
   simp_rw ←finsum_in_eq_finsum (λ _, 1),
@@ -568,10 +568,10 @@ begin
 end
 
 lemma finsum_fibres {X Y : Type} [fintype X] (f : X → Y) :
-  ∑' y : Y, fincard' (f⁻¹' {y}) = fincard' X :=
+  ∑' y : Y, fincard (f⁻¹' {y}) = fincard X :=
 begin
   simp_rw eq_finset_card',
-  unfold fincard',
+  unfold fincard,
   rw univ'_eq_univ_of_fintype,
   rw finset.card_eq_sum_ones,
   rw sum_comp (λ y, 1) f,
@@ -618,7 +618,7 @@ begin
 end
 
 lemma card_classes (S : Type) [fintype S] {h : setoid S} :
-  fincard' S = ∑' i : quotient h, fincard' ((quotient.mk : S → quotient h) ⁻¹' {i}) :=
+  fincard S = ∑' i : quotient h, fincard ((quotient.mk : S → quotient h) ⁻¹' {i}) :=
 (finsum_fibres (quotient.mk : S → quotient h)).symm
 
 lemma finsum_in_filter [fintype ι] (s : set ι) (p : ι → Prop) (f : ι → M) :
@@ -645,7 +645,7 @@ begin
 end
 
 lemma card_eq_image_of_injective {α β} (f : α → β) (hf : function.injective f) 
-  (s : set α) : fincard' s = fincard' (f '' s) :=
+  (s : set α) : fincard s = fincard (f '' s) :=
 begin
   apply of_equiv, unfold function.injective at hf,
   refine equiv.of_bijective (λ s, ⟨f s.1, ⟨s.1, s.2, rfl⟩⟩) _,
@@ -657,7 +657,7 @@ begin
 end
 
 lemma card_sdiff_eq_sub_of_subset [fintype ι] {s t : set ι} (hst : s ⊆ t) : 
-  fincard' (t \ s : set ι) = fincard' t - fincard' s := 
+  fincard (t \ s : set ι) = fincard t - fincard s := 
 begin
   iterate 3 { rw eq_finset_card' },
   rw ← finset.card_sdiff, 
@@ -666,7 +666,7 @@ begin
 end
 
 lemma eq_of_card_eq_subset [fintype ι] {s t : set ι} (hst : s ⊆ t) 
-  (hcard : fincard' s = fincard' t) : s = t :=
+  (hcard : fincard s = fincard t) : s = t :=
 begin
   suffices : t \ s = ∅, 
     rw set.diff_eq_empty at this,

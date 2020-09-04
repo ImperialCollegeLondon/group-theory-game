@@ -151,7 +151,7 @@ end
 lemma bot_eq_singleton_one : ((⊥ : subgroup G) : set G) = {1} :=
 by rw bot_eq_trivial; refl
 
-lemma fincard_bot : fincard' (⊥ : subgroup G) = 1 :=
+lemma fincard_bot : fincard (⊥ : subgroup G) = 1 :=
 by rw [← @fincard.card_singleton_eq_one _ (1 : G), ← bot_eq_singleton_one]; refl
 
 lemma eq_top_iff' (H : subgroup G) : H = ⊤ ↔ ∀ g, g ∈ H :=

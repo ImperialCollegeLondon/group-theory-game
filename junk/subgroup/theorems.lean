@@ -108,12 +108,12 @@ equiv.of_bijective (aux_map a H) aux_map_biject
 open fincard
 
 /-- The cardinality of `H` equals its left cosets-/
-lemma eq_card_of_lcoset {a : G} : fincard' H = fincard' (a ⋆ H) := 
+lemma eq_card_of_lcoset {a : G} : fincard H = fincard (a ⋆ H) := 
   fincard.of_equiv lcoset_equiv
 
 /-- The cardinality of all left cosets are equal -/
 theorem card_of_lcoset_eq {a b : G} : 
-  fincard' (a ⋆ H) = fincard' (b ⋆ H) := by iterate 2 { rw ←eq_card_of_lcoset }
+  fincard (a ⋆ H) = fincard (b ⋆ H) := by iterate 2 { rw ←eq_card_of_lcoset }
 
 -- The rest of the proof will requires quotient
 
