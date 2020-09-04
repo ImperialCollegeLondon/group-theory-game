@@ -41,15 +41,14 @@ variables {X : Type} (m n : ℤ) (f : X ≃ X) (x : X)
 
 lemma comp : int.iterate m f (int.iterate n f x) = int.iterate (m + n) f x :=
 begin
-  suffices : (f^m * f^n) x = (f^(m+n)) x,
+  suffices : (f ^ m * f ^ n) x = (f ^ (m + n)) x,
     convert this,
   rw gpow_add,
 end
 
 @[simp] lemma zero : iterate 0 f = equiv.refl X := rfl
-@[simp] lemma one : iterate 1 f = f := by {ext x, refl}
-@[simp] lemma neg_one : iterate (-1) f = f.symm := by {ext x, refl}
---funext $ λ x, --funext $ λ x, rfl -- :-)
+@[simp] lemma one : iterate 1 f = f := by { ext x, refl }
+@[simp] lemma neg_one : iterate (-1) f = f.symm := by { ext x, refl }
 
 lemma neg (a : ℤ) : iterate (-a) f = iterate a f.symm :=
 by show f^(-a) = f⁻¹^a; group
@@ -60,7 +59,7 @@ lemma succ' : f (iterate n f x) = iterate (n + 1) f x :=
 by rw add_comm; exact comp 1 n f x
 
 theorem mul (f : X ≃ X) (a b : ℤ) (x : X) : iterate a (iterate b f) = 
-int.iterate (a * b) f := by show (f^b)^a = f^(a*b); group
+int.iterate (a * b) f := by show (f ^ b) ^ a = f ^ (a * b); group
 
 end iterate
 

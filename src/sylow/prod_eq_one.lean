@@ -1,8 +1,4 @@
-import tactic
-import subgroup.theorems
-import data.zmod.basic
-import subgroup.cyclic
-import data.vector2
+import data.zmod.basic subgroup.cyclic data.vector2
 
 -- Lists of n elements of a group whose product is 1
 
@@ -155,7 +151,6 @@ begin
   exact mygroup.group.mul_one g,
 end
 
-
 lemma list.prod_repeat' (d : ℕ) (g : G) : (list.repeat g d).prod' = ⦃d⦄^g :=
 begin
   induction d with e he,
@@ -166,7 +161,6 @@ begin
   rw mygroup.group.pow_add,
   rw mygroup.group.one_pow,
 end
-
 
 end list
 
@@ -312,11 +306,3 @@ begin
 end
 
 end mygroup
-
-/-
-Let S be lists of elements of G of size p such that product is 1
-then Z/pZ acts on S by shift
-fundamental lemma: # fixed points = # S (which we have)
-cor -- exists at least p-1 elements of order p.
-
--/

@@ -1,8 +1,7 @@
 -- we compute the cardinality of the vectors of length n.succ
 -- whose product is 1
 
-import Sylow.prod_eq_one
-import subgroup.cyclic_univ
+import sylow.prod_eq_one
 
 namespace mygroup
 

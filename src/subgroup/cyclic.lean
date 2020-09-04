@@ -1,4 +1,5 @@
-import hom.theorems
+import hom.isomorphism
+import orbit.basic
 
 namespace mygroup
 
@@ -53,14 +54,6 @@ def order_map (g : G) : C_infty →* G :=
 
 @[simp] lemma order_map_def (g : G) (k : ℤ) : order_map g k = ⦃k⦄^g := rfl
 
--- noncomputable def order (g : G) : ℤ := let ker := kernel (order_map g) in 
---   if h : ∃ (o ∈ ker) (H : 0 < o), ∀ k ∈ ker, 0 < k → o ≤ k then classical.some h 
---   else (0 : ℤ)
-
--- @[simp] lemma order_def (g : G) : order g =  
---   if h : ∃ o ∈ kernel (order_map g), ∀ k ∈ kernel (order_map g), o ≤ k 
---   then classical.some h else (0 : ℤ) := rfl
-
 def mod (k : ℤ) : normal C_infty := 
 { carrier := { m : ℤ | k ∣ m },
   one_mem' := dvd_zero k,
@@ -82,7 +75,7 @@ instance cyclic.comm_group (k : ℤ) : comm_group (cyclic k) :=
       intros x y,
       rcases exists_mk x with ⟨x, rfl⟩,
       rcases exists_mk y with ⟨y, rfl⟩,
-      rw [coe_mul, C_infty_mul_comm, ← coe_mul]
+      rw [quotient.coe_mul, C_infty_mul_comm, ← quotient.coe_mul]
     end,
   .. show group (cyclic k), by apply_instance }
 
@@ -251,49 +244,36 @@ end
 
 end cyclic
 
--- lemma group.pow_order (g : G) : ⦃(order g)⦄^g = 1 := 
--- begin
---   unfold order,
---   dsimp,
---   split_ifs,
---     { rw [← order_map_def, ← mem_kernel],
---       cases classical.some_spec h, assumption },
---     { exact group.zero_pow _ }
--- end
+variable {S : Type}
 
-namespace cyclic
+def laction.to_equiv (μ : laction G S) (g : G) : S ≃ S :=
+{ to_fun := λ s, g •[μ] s,
+  inv_fun := λ t, g⁻¹ •[μ] t,
+  left_inv := λ s, begin simp [laction.map_assoc] end,
+  right_inv := λ s, begin simp [laction.map_assoc] end }
 
--- noncomputable def closure_singleton_to_cyclic (g : G) : 
---   closure_singleton g → cyclic (order g) :=
--- λ g', mk (mod (order g)) $ classical.some (mem_closure_singleton_iff.1 g'.2)
+def laction_eq_hom : laction G S ≃ (G →* (S ≃ S)) :=
+{ to_fun := λ μ,
+  { to_fun := λ g, laction.to_equiv μ g,
+    map_mul' := 
+      begin
+        intros x y, ext s,
+        exact (laction.map_assoc x y s).symm,  
+      end },
+  inv_fun := λ φ, 
+    { to_fun := λ g s, φ g s,
+      map_one' := by { rw φ.map_one, intros, refl },
+      map_assoc' := by { intros g h s, simp } },
+  left_inv := λ μ, by ext _ _; simpa,
+  right_inv := λ φ, by ext _ _; refl }
 
--- noncomputable def fin_to_closure_singleton (g : G) : 
---   fin (int.nat_abs (order g)) → closure_singleton g :=
--- λ n, ⟨⦃n⦄^g, ⟨n, rfl⟩⟩
-
--- lemma bijective_cyclic_to_closure_singleton {g : G} : 
---   function.bijective (fin_to_closure_singleton g) :=
--- begin
---   split,
---     { rintros ⟨x, hx⟩ ⟨y, hy⟩ hxy,
---       simp [fin_to_closure_singleton] at hxy,
---       rw fin.mk.inj_iff,
---       by_contra h,
---       cases lt_or_le x y,
---       suffices : ⦃y - x⦄^g = 1,
---         sorry,
---       sorry,
---       sorry
---     },
---     { sorry },
--- end
-
--- noncomputable def cyclic_iso_closure_singleton (g : G) : 
---   cyclic (order g) ≅ closure_singleton g :=
--- { to_fun := _,
---   map_mul' := _,
---   is_bijective := _ }
-
-end cyclic
+def to_hom_cyclic (g : G) (n : ℕ) (h : ⦃n⦄^g = 1) : cyclic n →* G :=
+  quotient.lift (order_map g) _
+begin
+  rw [cyclic.mod_eq_closure, subgroup.closure_le],
+  show _ ⊆ _,
+  rw set.singleton_subset_iff,
+  exact h,
+end
 
 end mygroup
