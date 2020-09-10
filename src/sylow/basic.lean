@@ -528,11 +528,34 @@ lemma conjugates_eq_cardinality (g : G) (H : subgroup G) :
   fincard H = fincard (conjugate_subgroup g H) := 
 fincard.of_equiv (group_hom.mul_equiv_of_iso (conjugate_iso g H)).to_equiv
   
-/-def is_sylow_p_subgroup [fintype G] {p m n: ℕ} {hp : p.prime}{hG : fincard G = p ^ n * m}
- {hdiv : ¬ p ∣ m} (K : subgroup G): Prop := fincard K = p ^ n-/
+def is_sylow_p_subgroup [fintype G] {p m n: ℕ} (hp : p.prime)(hG : fincard G = p ^ n * m)
+ (hdiv : ¬ p ∣ m) (K : subgroup G): Prop := fincard K = p ^ n
 
--- theorem sylow_two [fintype G]{p : ℕ} {hp : p.prime} (H K : subgroup G) (h₁ : is_sylow_p_subgroup H hp)(h₂ : is_sylow_p_subgroup K hp) : 
--- ∃ (g : G), H = conjugate_subgroup g K  := sorry  
+def dumb_action2 (H K: subgroup G) : laction K (lcosets H) :=
+laction.comap (𝒾 K) (lcosets H) (dumb_action H)
+
+theorem sylow_two [fintype G]{p m n: ℕ} (hp : p.prime)(hG : fincard G = p ^ n * m)
+ (hdiv : ¬ p ∣ m) (H K : subgroup G) (h₁ : is_sylow_p_subgroup hp hG hdiv H)(h₂ : is_sylow_p_subgroup hp hG hdiv K) : 
+∃ (g : G), H = conjugate_subgroup g K  :=
+begin
+  have claim: ¬ p ∣ index H,
+  { unfold index,
+    unfold is_sylow_p_subgroup at h₁,
+    rw [hG, h₁, nat.mul_comm, nat.mul_div_assoc, nat.div_self, nat.mul_one],
+    exact hdiv,
+    apply nat.pow_pos (nat.prime.pos hp), 
+    simp},
+  have fact: ¬ H.index ≡ 0 [MOD p],
+  { intro h, apply claim,
+    apply nat.modeq.modeq_zero_iff.1, exact h },
+
+  have claim3: H.index ≡ fincard (fixed_points (dumb_action2 H K)) [MOD p],
+  { unfold is_sylow_p_subgroup at * ,
+    --apply card_set_congr_card_fixed_points_mod_prime dumb_action2 p hp h₂
+    sorry}, 
+  sorry
+end    
+
 
 
 -- Consider the action of K on the set X of cosets of H in G μ: K × X → X, (y, xH) ↦ yxH. 
