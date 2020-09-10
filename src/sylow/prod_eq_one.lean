@@ -10,9 +10,6 @@ import data.zmod.basic subgroup.cyclic data.vector2
 -- of `fin n → M` (in fact an `equiv`) and I'm going to show
 -- that its n'th power is 1.
 
---#check zmod
---example (n : ℕ) [fact (0 < n)] : fintype.card (zmod n) = n := zmod.card n
-
 /-! ## equiv stuff : stuff which is "the same". -/
 def fin.to_zmod {n : ℕ} (a : fin n.succ) : zmod n.succ := a
 def zmod.to_fin {n : ℕ} (a : zmod n.succ) : fin n.succ := a
@@ -20,22 +17,16 @@ def zmod.to_fin {n : ℕ} (a : zmod n.succ) : fin n.succ := a
 -- if we are only thinking of ℕ as an ordered set then these ideas are "the same"
 def fin.equiv_zmod {n : ℕ} : fin n.succ ≃ zmod n.succ := equiv.refl _
 
-def zmod.S {m : ℕ} : zmod m ≃ zmod m := ⟨λ n, n + 1, λ n, n - 1,
-  by {intro n, simp}, 
-  by {intro n, simp}⟩
-
+def zmod.S {m : ℕ} : zmod m ≃ zmod m := 
+  ⟨λ n, n + 1, λ n, n - 1, by { intro _, simp }, by { intro _, simp }⟩
 
 lemma list.ext' {n : ℕ} {α : Type} {L M : list α} (hL : L.length = n)
   (hM : M.length = n) (hLM : ∀ (i : fin n),
-    L.nth_le i.1 (hL.symm ▸ i.2) = M.nth_le i.1 (hM.symm ▸ i.2)) :
-L = M :=
+    L.nth_le i.1 (hL.symm ▸ i.2) = M.nth_le i.1 (hM.symm ▸ i.2)) : L = M :=
 begin
   suffices : (⟨L, hL⟩ : vector α n) = ⟨M, hM⟩,
     exact subtype.mk.inj this,
-  have hLM' : ∀ i : fin n, vector.nth ⟨L, hL⟩ i = vector.nth ⟨M, hM⟩ i,
-    intro i,
-    convert hLM i,
-  exact vector.ext hLM',
+  exact vector.ext (λ i, hLM i),
 end
 
 lemma vector.to_list.succ (n : ℕ) (M : Type) (v : vector M n.succ) :
@@ -54,12 +45,8 @@ begin
     rcases v with ⟨_ | ⟨v_val_hd, _⟩⟩,
     { suffices : 0 = n.succ,
         cases this,
-      rw ←h1,
-      simp },
-    { simp,
-      refl
-    }
-  },
+      rw ←h1, simp },
+    { simp, refl } },
   { -- i ≠ 0
     have hj : ∃ j : fin n, i = j.succ,
     { have hi3 : i.val - 1 < n,
@@ -85,19 +72,10 @@ begin
     suffices : v.to_list.nth_le j.succ (h1.symm ▸ _) = v.nth (⟨j, hj⟩ : fin n).succ,
       simpa,
     rcases v with ⟨_ | ⟨hd,tl⟩⟩,
-    { cases h1},
-    clear h2, --clear h1,
+    { cases h1 },
     simp [vector.nth] },
 end
 
--- lemma list.thing {α : Type} {n : ℕ} {l : list α} (hl : l.length = n) (s : α) : 
--- (l ++ [s]).nth_le n (begin convert (nat.lt_succ_self n), simp [hl] end) = s :=
--- begin
---   rw list.nth_le_append_right;
---   subst hl, simp,
--- end
-
---example (M : Type) (n : ℕ) (v : vector M n) (i : fin n) : v.to_list.nth_le i.1 
 lemma vector.to_list.succ' (n : ℕ) (M : Type) (v : vector M n.succ) :
 v.to_list = list.of_fn
   (λ (i : fin n), v.nth i.cast_succ : fin n → M) ++ [v.nth ⟨n, nat.lt_succ_self _⟩] :=
@@ -124,7 +102,6 @@ begin
     cases v, refl, simp },
   { simp }
 end
-
 
 section list
 
@@ -167,7 +144,8 @@ end list
 namespace mygroup
 
 variables {G : Type} [group G]
-/-! ## the predicate -/
+
+/-! ## The Predicate -/
 /-- The type of vectors with terms from `G`, length `n`, and product equal to `1:G`. -/
 def finmap.prod_eq_one {n : ℕ} : set (fin n → G) :=
 λ f, (vector.of_fn f).to_list.prod' = 1
@@ -299,10 +277,6 @@ begin
 end
 
 lemma fin.S.succ.pow_n (n : ℕ) (d : fin n.succ) :
-  (⦃((n.succ : ℕ) : ℤ)⦄^(fin.S.succ' n)) d = d :=
-begin
-  -- evil proof
-  exact zmod.S.pow_n n.succ d,
-end
+  (⦃((n.succ : ℕ) : ℤ)⦄^(fin.S.succ' n)) d = d := zmod.S.pow_n n.succ d
 
 end mygroup

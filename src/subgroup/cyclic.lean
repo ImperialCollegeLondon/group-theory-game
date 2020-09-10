@@ -54,6 +54,16 @@ def order_map (g : G) : C_infty →* G :=
 
 @[simp] lemma order_map_def (g : G) (k : ℤ) : order_map g k = ⦃k⦄^g := rfl
 
+noncomputable def order (g : G) := 
+  let s := (coe : ℕ → ℤ) ⁻¹' (kernel $ order_map g).carrier in 
+  if h : ∃ o ∈ s, 0 < o then nat.find h else 0
+
+lemma order_def (g : G) : order g =
+  if h : ∃ o ∈ (coe : ℕ → ℤ) ⁻¹' (kernel $ order_map g).carrier, 0 < o 
+  then nat.find h else 0 := rfl
+
+-- lemma pow_order_eq_one 
+
 def mod (k : ℤ) : normal C_infty := 
 { carrier := { m : ℤ | k ∣ m },
   one_mem' := dvd_zero k,
@@ -98,7 +108,7 @@ end
 
 def nat.coe : ℕ → C_infty := λ i, (i : ℤ)
 
-def nat.coe' : (ℕ ↪ C_infty) :=
+def nat.coe' : ℕ ↪ C_infty :=
 { to_fun := λ i, (i : ℤ),
   inj' := λ a b, int.of_nat.inj }
 
