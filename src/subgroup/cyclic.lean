@@ -11,6 +11,9 @@ variables {G H : Type} [group G] [group H] {f : G →* H}
 
 def C_infty := ℤ
 
+instance cyclic.to_int : has_coe C_infty ℤ := ⟨id⟩
+instance int.to_C_infty : has_coe ℤ C_infty := ⟨id⟩
+
 instance : has_le C_infty := { le := ((≤) : ℤ → ℤ → Prop) }
 
 instance : group C_infty := 
@@ -54,14 +57,97 @@ def order_map (g : G) : C_infty →* G :=
 @[simp] lemma order_map_def (g : G) (k : ℤ) : order_map g k = g ^ k := rfl
 
 noncomputable def order (g : G) := 
-  let s := (coe : ℕ → ℤ) ⁻¹' (kernel $ order_map g).carrier in 
+  let s := (coe : ℕ → ℤ) ⁻¹' ((kernel $ order_map g) : set C_infty) in 
   if h : ∃ o ∈ s, 0 < o then nat.find h else 0
 
 lemma order_def (g : G) : order g =
-  if h : ∃ o ∈ (coe : ℕ → ℤ) ⁻¹' (kernel $ order_map g).carrier, 0 < o 
+  if h : ∃ o ∈ (coe : ℕ → ℤ) ⁻¹' ((kernel $ order_map g) : set C_infty), 0 < o 
   then nat.find h else 0 := rfl
 
--- lemma pow_order_eq_one 
+@[simp] lemma pow_order_eq_one (g : G) : g ^ (order g : ℤ) = 1 :=
+begin
+  by_cases ∃ o ∈ (coe : ℕ → ℤ) ⁻¹' ((kernel $ order_map g) : set C_infty), 0 < o,
+    { rcases nat.find_spec h with ⟨_, _⟩,
+      rwa [order_def, dif_pos h, ← order_map_def, ← mem_kernel] },
+    { rw [order_def, dif_neg h], simp }
+end 
+
+lemma mem_order_map_kernel_coe {n : ℕ} {a : G} : 
+  n ∈ (coe : ℕ → ℤ) ⁻¹' (((order_map a).kernel) : set C_infty) ↔ a ^ (n : ℤ) = 1 := 
+iff.rfl
+
+lemma of_order_eq_zero {g : G} (h : order g = 0) : 
+  ¬ ∃ o ∈ (coe : ℕ → ℤ) ⁻¹' ((kernel $ order_map g) : set C_infty), 0 < o :=
+begin
+  intro ho,
+  rw [order_def, dif_pos ho] at h, 
+  rcases nat.find_spec ho with ⟨_, _⟩,
+  linarith
+end
+
+lemma order_eq_zero_iff (g : G) : order g = 0 ↔ ∀ n, 0 < n → g ^ (n : ℤ) ≠ 1 := 
+begin
+  split; intro h,
+    { intros n hn hgn,
+      refine of_order_eq_zero h ⟨int.nat_abs n, _, _⟩,
+      change _ ∈ kernel (order_map g),
+      rwa [← int.abs_eq_nat_abs, abs_of_pos hn],
+      rw (show 0 = int.nat_abs 0, by simp),
+      exact int.nat_abs_lt_nat_abs_of_nonneg_of_lt (le_refl _) hn },
+    { rw [order_def, dif_neg], push_neg,
+      intro o, by_contra ho, push_neg at ho,
+      exact h o (by simp [ho.2]) (mem_order_map_kernel_coe.1 ho.1) }
+end
+
+lemma order_le_of_pow_order_eq_one {g : G} {k : ℕ} 
+  (hk : 0 < k) (hg : g ^ (k : ℤ) = 1) : order g ≤ k :=
+begin
+  by_cases ∃ o ∈ (coe : ℕ → ℤ) ⁻¹' ((kernel $ order_map g) : set C_infty), 0 < o,
+    { rw [order_def, dif_pos h], by_contra hn,
+      refine nat.find_min _ (not_le.1 hn) ⟨_, hk⟩,
+      exact mem_order_map_kernel_coe.2 hg },
+    { rw [order_def, dif_neg h], exact zero_le _ }
+end
+
+lemma pow_injective_of_lt_order_of {n m : ℕ} (a : G) (hn : n < order a) 
+  (hm : m < order a) (eq : a ^ (n : ℤ) = a ^ (m : ℤ)) : n = m := 
+begin
+  wlog h : n ≤ m, by_contra hneq,
+  replace hneq := lt_of_le_of_ne h hneq,
+  rw [← group.mul_right_cancel_iff (a ^ (-n : ℤ)), ← group.pow_add,
+      ← group.pow_add, add_neg_self, group.pow_zero, ← int.sub_eq_add_neg,
+      ← int.coe_nat_sub (le_of_lt hneq)] at eq,
+  exact not_lt.2 (order_le_of_pow_order_eq_one (by omega) eq.symm) (by omega),
+end
+
+lemma pow_eq_mod_order_of {n : ℕ} {a : G} : a ^ (n : ℤ) = a ^ ((n % order a) : ℤ) := 
+calc a ^ (n : ℤ) = a ^ ((n % order a + order a * (n / order a)) : ℤ) : 
+by conv_lhs { rw [← nat.mod_add_div n (order a)] }; congr
+  ... = a ^ (n % order a : ℤ) :
+by rw [group.pow_add, mul_comm, group.pow_mul, pow_order_eq_one, group.one_pow, group.mul_one]
+
+lemma order_of_dvd_of_pow_eq_one {n : ℕ} {a : G} (h : a ^ (n : ℤ) = 1) : order a ∣ n :=
+begin
+   by_cases hzero : n = 0, 
+    { rw hzero, exact dvd_zero _ }, 
+    { replace hzero : 0 < n := nat.pos_of_ne_zero hzero,
+      rw order_def, split_ifs with ho,
+        { by_contra hndvd,
+          have : n % order a < order a,
+            { refine nat.mod_lt _ _,
+              by_contra hnzero, push_neg at hnzero,
+              rw le_zero_iff_eq at hnzero,
+              exact of_order_eq_zero hnzero ⟨n, mem_order_map_kernel_coe.1 h, hzero⟩ }, 
+          rw [order_def, dif_pos ho] at this,
+          refine nat.find_min ho this ⟨_, _⟩,
+          rw [mem_order_map_kernel_coe, ← h],
+          convert pow_eq_mod_order_of.symm,
+          rw [order_def, dif_pos ho], exact int.nat_abs_of_nat _,
+          exact nat.pos_of_ne_zero (mt nat.dvd_of_mod_eq_zero hndvd) },
+        { have : order a = 0, rw [order_def, dif_neg ho],
+          rw order_eq_zero_iff at this,
+          exfalso, refine this n _ h, linarith } }
+end
 
 def mod (k : ℤ) : normal C_infty := 
 { carrier := { m : ℤ | k ∣ m },
@@ -232,8 +318,8 @@ begin
       exact pow_mem _ hg }
 end
 
-lemma pow_eq_mul (k m : C_infty) : 
-  @has_pow.pow C_infty ℤ _ k (m : ℤ) = ((k : ℤ) * m : ℤ) := 
+lemma pow_eq_mul (k : C_infty) (m : ℤ): 
+  k ^ m = (k * m : ℤ) := 
 begin
   apply int.induction_on m,
     { simpa },
