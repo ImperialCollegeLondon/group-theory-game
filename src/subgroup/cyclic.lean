@@ -36,7 +36,7 @@ begin
   intros H hH,
   rw singleton_subset_iff at hH,
   convert @pow_mem _ _ H 1 x hH,
-  unfold group.pow,
+  rw group.pow_def,
   apply int.induction_on x,
     { refl },
     { intros i hi,
@@ -44,15 +44,14 @@ begin
       exact add_comm (i : ℤ) 1 },
     { intros i hi,
       rw [sub_eq_add_neg, add_comm, ← int.iterate.comp, 
-          ← hi, int.iterate.neg_one],
-      refl }
+          ← hi, int.iterate.neg_one], refl }
 end
 
 def order_map (g : G) : C_infty →* G := 
-{ to_fun := λ n, ⦃n⦄^g,
+{ to_fun := λ n : ℤ, g ^ n,
   map_mul' := λ x y, by rw ← group.pow_add; refl }
 
-@[simp] lemma order_map_def (g : G) (k : ℤ) : order_map g k = ⦃k⦄^g := rfl
+@[simp] lemma order_map_def (g : G) (k : ℤ) : order_map g k = g ^ k := rfl
 
 noncomputable def order (g : G) := 
   let s := (coe : ℕ → ℤ) ⁻¹' (kernel $ order_map g).carrier in 
@@ -203,8 +202,8 @@ begin
 end
 
 def closure_singleton (g : G) : subgroup G := 
-{ carrier := { c | ∃ k : ℤ, c = ⦃k⦄^g },
-  one_mem' := ⟨0, group.zero_pow g⟩,
+{ carrier := { c | ∃ k : ℤ, c = g ^ k },
+  one_mem' := ⟨0, group.pow_zero g⟩,
   mul_mem' := 
     begin
       rintro _ _ ⟨k, rfl⟩ ⟨l, rfl⟩,
@@ -217,7 +216,7 @@ def closure_singleton (g : G) : subgroup G :=
     end }
 
 lemma mem_closure_singleton_iff {g x : G} : 
-  x ∈ closure_singleton g ↔ ∃ k : ℤ, x = ⦃k⦄^g := iff.rfl
+  x ∈ closure_singleton g ↔ ∃ k : ℤ, x = g ^ k := iff.rfl
 
 lemma closure_singleton_eq (g : G) : 
   closure ({g} : set G) = closure_singleton g :=
@@ -225,7 +224,7 @@ begin
   apply le_antisymm,
     { rw closure_le, intros x hx,
       rw mem_singleton_iff.1 hx,
-      exact ⟨1, (group.one_pow _).symm⟩ },
+      exact ⟨1, (group.pow_one _).symm⟩ },
     { rintros _ ⟨k, rfl⟩, 
       change _ ∈ closure ({g} : set G),
       rw mem_closure_iff, intros H hg,
@@ -233,12 +232,13 @@ begin
       exact pow_mem _ hg }
 end
 
-lemma pow_eq_mul (k m : C_infty) : ⦃(m : ℤ)⦄^k = ((k : ℤ) * m : ℤ) := 
+lemma pow_eq_mul (k m : C_infty) : 
+  @has_pow.pow C_infty ℤ _ k (m : ℤ) = ((k : ℤ) * m : ℤ) := 
 begin
   apply int.induction_on m,
     { simpa },
     { intros i hi,
-      rw [group.pow_add, hi, group.one_pow, mul_add, mul_one], refl },
+      rw [group.pow_add, hi, group.pow_one, mul_add, mul_one], refl },
     { intros i hi, 
       rw [sub_eq_add_neg, group.pow_add, hi, group.pow_neg_one_inv, mul_add, 
           mul_neg_one], refl }
@@ -252,13 +252,11 @@ begin
     { rw pow_eq_mul, refine ⟨m, rfl⟩ }
 end
 
-def to_hom (g : G) (n : ℕ) (h : ⦃n⦄^g = 1) : cyclic n →* G :=
+def to_hom (g : G) (n : ℕ) (h : g ^ (n : ℤ) = 1) : cyclic n →* G :=
   quotient.lift (order_map g) _
 begin
   rw [cyclic.mod_eq_closure, subgroup.closure_le],
-  show _ ⊆ _,
-  rw set.singleton_subset_iff,
-  exact h,
+  show _ ⊆ _, rw set.singleton_subset_iff, exact h,
 end
 
 end cyclic

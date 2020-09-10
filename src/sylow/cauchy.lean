@@ -58,7 +58,7 @@ variables {G : Type} [group G]
 open list
 
 theorem cauchy_elements (G : Type) [group G] [fintype G] (p : ℕ) (hp : p.prime)
-  (hpG : p ∣ fincard G) : p ∣ fincard {g : G // ⦃p⦄^g = 1} :=
+  (hpG : p ∣ fincard G) : p ∣ fincard {g : G // g ^ (p : ℤ) = 1} :=
 begin
   cases p with n, rcases hp with ⟨⟨⟩, _⟩,
   have h := card_set_congr_card_fixed_points_mod_prime (cool_action G n) n.succ hp 1,
@@ -77,15 +77,15 @@ begin
 end
 
 theorem cauchy_element (G : Type) [group G] [fintype G] (p : ℕ) (hp : p.prime)
-  (hpG : p ∣ fincard G) : ∃ g : G, g ≠ 1 ∧ ⦃p⦄^g = 1 :=
+  (hpG : p ∣ fincard G) : ∃ g : G, g ≠ 1 ∧ g  ^ (p : ℤ) = 1 :=
 begin
   by_contra h, push_neg at h,
-  have h1 : ∀ g : G, ⦃p⦄^g = 1 ↔ g = 1,
+  have h1 : ∀ g : G, g ^ (p : ℤ) = 1 ↔ g = 1,
     intro g, split,
       { rintro h3, by_contra h2, exact h g h2 h3 },
       { rintro rfl, simp },
   have h2 := cauchy_elements G p hp hpG,
-  let e : {g : G // ⦃p⦄^g = 1} ≃ {g : G // g = 1} :=
+  let e : {g : G // g ^ (p : ℤ) = 1} ≃ {g : G // g = 1} :=
     { to_fun := λ g, ⟨g.1, (h1 g).1 g.2⟩,
       inv_fun := λ g, ⟨g.1, (h1 g).2 g.2⟩,
       left_inv := by {intro g, cases g, simp},
@@ -112,15 +112,11 @@ end
 -- theorem prime_lemma4 (G : Type) [group G] (p : ℕ) (hp : p.prime) (g : G)
 --   (hg1 : g ≠ 1) (hg2 : ⦃p⦄^g = 1) : (order_map g).image = closure {g} := sorry
 
-theorem gcd_lemma (g : G) (a b : ℕ) (ha : ⦃a⦄^g = 1) (hb : ⦃b⦄^g = 1) :
-  ⦃(nat.gcd a b)⦄^g = 1 :=
+theorem gcd_lemma (g : G) (a b : ℕ) (ha : g ^ (a : ℤ) = 1) (hb : g ^ (b : ℤ) = 1) :
+  g ^ (nat.gcd a b : ℤ) = 1 :=
 begin
-  rw nat.gcd_eq_gcd_ab a b,
-  rw [group.pow_add, _root_.mul_comm, group.pow_mul],
-  rw ha, rw group.pow_one,
-  rw [_root_.mul_comm, group.pow_mul],
-  rw hb, rw group.pow_one,
-  rw group.mul_one,
+  rw [nat.gcd_eq_gcd_ab a b, group.pow_add, _root_.mul_comm, group.pow_mul, ha, 
+      group.one_pow, _root_.mul_comm, group.pow_mul, hb, group.one_pow, group.mul_one]
 end
 
 lemma group.inv_one : (1 : G)⁻¹ = 1 :=
@@ -130,37 +126,25 @@ begin
   rw group.mul_one,
 end
 
-lemma easy (g : G) (a : ℤ) : ⦃a⦄^g = 1 ↔ ⦃int.nat_abs a⦄^g = 1 :=
+lemma easy (g : G) (a : ℤ) : g ^ (a : ℤ) = 1 ↔ g ^ (int.nat_abs a : ℤ) = 1 :=
 begin
   cases int.nat_abs_eq a,
   { congr' },
-  { conv_lhs begin 
-      rw h,
-      rw group.pow_neg,
-    end,
+  { conv_lhs { rw [h, group.pow_neg] },
     split,
-      rintro h2, 
-      rw ←pow_inv at h2,
-      rw group.inv_eq at h2,
-      rw ←h2,
-      rw group.inv_one,
-    intro h2,
-    rw ←pow_inv,
-    rw group.inv_eq,
-    rw h2,
-    rw group.inv_one,
-   }
-
+      { intro h2, 
+        rw [← pow_inv, group.inv_eq] at h2,
+        rw [← h2, group.inv_one] },
+      { intro h2,
+        rw [← pow_inv, group.inv_eq, h2, group.inv_one] } }
 end
 
-theorem int_gcd_lemma (g : G) (a b : ℤ) (ha : ⦃a⦄^g = 1) (hb : ⦃b⦄^g = 1) :
-  ⦃(int.gcd a b)⦄^g = 1 :=
-begin
-  apply gcd_lemma; rw ←easy; assumption
-end
+theorem int_gcd_lemma (g : G) (a b : ℤ) 
+  (ha : g ^ (a : ℤ) = 1) (hb : g ^ (b : ℤ) = 1) : g ^ (int.gcd a b : ℤ) = 1 :=
+by apply gcd_lemma; rw ←easy; assumption
 
 theorem aux_lemma1 {p : ℕ} (hp : p.prime) {g : G} (hg : g ≠ 1) 
-  (hpg : ⦃p⦄^g = 1) {k : ℤ} (hkg : ⦃k⦄^g = 1) : (p : ℤ) ∣ k :=
+  (hpg : g ^ (p : ℤ) = 1) {k : ℤ} (hkg : g ^ (k : ℤ) = 1) : (p : ℤ) ∣ k :=
 begin
   by_contra hk,
   set t := int.gcd p k with ht,
@@ -178,20 +162,17 @@ begin
     exact int.coe_nat_dvd_left.mpr h4,
   apply hg,
   convert int_gcd_lemma g p k hpg hkg,
-  rw ←ht,
-  rw ht2,
-  rw int.coe_nat_one,
-  rw group.one_pow,
+  rw [← ht, ht2, int.coe_nat_one, group.pow_one],
 end
 
 theorem aux_lemma2 (p : ℕ) (hp : p.prime) (g : G)
-  (hg1 : g ≠ 1) (hg2 : ⦃p⦄^g = 1) : (order_map g).kernel = mod ↑p :=
+  (hg1 : g ≠ 1) (hg2 : g ^ (p : ℤ) = 1) : (order_map g).kernel = mod ↑p :=
 begin
   ext x, rw group_hom.mem_kernel, split; intro hx,
     { exact aux_lemma1 hp hg1 hg2 hx },
     { rcases hx with ⟨k, rfl⟩,
-      change ⦃p * k⦄^g = _,
-      rw [int.mul_comm, group.pow_mul, hg2, group.pow_one] }
+      change g ^ (p * k : ℤ) = _,
+      rw [int.mul_comm, group.pow_mul, hg2, group.one_pow] }
 end
 
 def eq_equiv (G : Type) [group G] (H K : subgroup G) (i : H = K) : H ≃ K :=
@@ -201,7 +182,7 @@ def eq_equiv (G : Type) [group G] (H K : subgroup G) (i : H = K) : H ≃ K :=
   right_inv := λ k, by ext; refl }
 
 theorem key_lemma (G : Type) [group G] (p : ℕ) (hp : p.prime) (g : G)
-  (hg1 : g ≠ 1) (hg2 : ⦃p⦄^g = 1) : 
+  (hg1 : g ≠ 1) (hg2 : g ^ (p : ℤ) = 1) : 
   fincard (closure ({g} : set G)) = p := 
 begin
   have h := quotient.quotient_kernel_iso_image (order_map g),

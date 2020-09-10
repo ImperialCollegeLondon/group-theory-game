@@ -128,15 +128,13 @@ begin
   exact mygroup.group.mul_one g,
 end
 
-lemma list.prod_repeat' (d : ℕ) (g : G) : (list.repeat g d).prod' = ⦃d⦄^g :=
+lemma list.prod_repeat' (d : ℕ) (g : G) : (list.repeat g d).prod' = g ^ (d : ℤ) :=
 begin
   induction d with e he,
-  { refl },
-  simp [list.prod'],
-  rw he,
-  rw add_comm,
-  rw mygroup.group.pow_add,
-  rw mygroup.group.one_pow,
+    { refl },
+    { suffices : g * (list.repeat g e).prod' = g ^ ((e  : ℤ) + 1),
+        simpa [list.prod'],
+      rw [he, add_comm, mygroup.group.pow_add, mygroup.group.pow_one] }
 end
 
 end list
@@ -234,49 +232,43 @@ begin
 end
 
 lemma finmap.prod_eq_one_iterate {f : fin n.succ → G} (d : ℕ) :
-finmap.prod_eq_one f → finmap.prod_eq_one (λ i, f ((⦃(d : ℤ)⦄^(fin.S.succ : fin n.succ ≃ fin n.succ) : fin n.succ ≃ fin n.succ).to_fun i)) :=
+finmap.prod_eq_one f → finmap.prod_eq_one 
+  (λ i, f (((fin.S.succ : fin n.succ ≃ fin n.succ) ^ (d : ℤ) : 
+  fin n.succ ≃ fin n.succ).to_fun i)) :=
 begin
   intro h,
   induction d with e he,
-  { convert h },
-  convert finmap.prod_eq_one_succ he,
-  ext i,
-  simp,
-  congr' 1,
-  rw group.pow_add,
-  rw group.one_pow,
-  refl
+    { convert h },
+    { convert finmap.prod_eq_one_succ he,
+      ext i, simp, congr' 1,
+      rw [group.pow_add, group.pow_one], refl }
 end
 
 --instance foo : group (zmod n ≃ zmod n) := by apply_instance
 
 lemma zmod.S.pow_k (k : ℕ) (n : ℕ) (d : zmod n) :
-  (⦃k⦄^(zmod.S : zmod n ≃ zmod n)) d = k + d :=
+  ((zmod.S : zmod n ≃ zmod n) ^ (k : ℤ)) d = k + d :=
 begin
   induction k with e he,
-  { simp },
-  rw [nat.succ_eq_add_one, add_comm, int.coe_nat_add],
-  rw group.pow_add,
-  simp [he],
-  simp [zmod.S],
-  abel
+    { simp },
+    { rw [nat.succ_eq_add_one, add_comm, int.coe_nat_add],
+      rw group.pow_add,
+      simp [he],
+      simp [zmod.S],
+      abel }
 end
 
 lemma fin.S.succ.pow_k (k : ℕ) (n : ℕ) (d : fin n.succ) :
-  (⦃k⦄^(fin.S.succ' n : fin n.succ ≃ fin n.succ)) d = k + d :=
+  ((fin.S.succ' n : fin n.succ ≃ fin n.succ) ^ (k : ℤ)) d = k + d :=
 begin
   -- evil proof
   apply zmod.S.pow_k k n.succ 
 end
 
 lemma zmod.S.pow_n (n : ℕ) (d : zmod n) :
-  (⦃n⦄^(zmod.S : zmod n ≃ zmod n)) d = d :=
-begin
-  rw zmod.S.pow_k,
-  simp,
-end
+  ((zmod.S : zmod n ≃ zmod n) ^ (n : ℤ)) d = d := by simp [zmod.S.pow_k]
 
 lemma fin.S.succ.pow_n (n : ℕ) (d : fin n.succ) :
-  (⦃((n.succ : ℕ) : ℤ)⦄^(fin.S.succ' n)) d = d := zmod.S.pow_n n.succ d
+  ((fin.S.succ' n) ^ (((n.succ : ℕ) : ℤ))) d = d := zmod.S.pow_n n.succ d
 
 end mygroup

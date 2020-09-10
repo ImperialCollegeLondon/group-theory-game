@@ -70,20 +70,17 @@ theorem mul_mem {x y : G} : x ∈ H → y ∈ H → x * y ∈ H := subgroup.mul_
 theorem inv_mem {x : G} : x ∈ H → x⁻¹ ∈ H := subgroup.inv_mem' _ 
 
 /-- A subgroup is closed under integer powers -/
-theorem pow_mem {x : G} {n : ℤ} : x ∈ H → ⦃n⦄^x ∈ H :=
+theorem pow_mem {x : G} {n : ℤ} : x ∈ H → x ^ n ∈ H :=
 begin
   intro hx,
   apply int.induction_on n,
-  { rw group.zero_pow, exact H.one_mem },
-  { intros i hi,
-    convert H.mul_mem hi hx,
-    rw group.pow_add,
-    rw group.one_pow },
-  { intros i hi,
-    convert H.mul_mem hi (H.inv_mem hx),
-    rw ←group.pow_neg_one_inv,
-    rw ←group.pow_add,
-    congr' }
+    { rw group.pow_zero, exact H.one_mem },
+    { intros i hi,
+      convert H.mul_mem hi hx,
+      rw [group.pow_add, group.pow_one] },
+    { intros i hi,
+      convert H.mul_mem hi (H.inv_mem hx),
+      rw [← group.pow_neg_one_inv, ← group.pow_add ], congr' }
 end
 
 @[simp] theorem inv_mem_iff {x :G} : x⁻¹ ∈ H ↔ x ∈ H := 

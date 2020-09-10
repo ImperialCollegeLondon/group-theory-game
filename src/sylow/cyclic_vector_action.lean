@@ -7,56 +7,42 @@ namespace mygroup
 
 variables (G : Type) [group G] (n : ℕ)
 
-def cycle : {v : fin n.succ → G // finmap.prod_eq_one v} ≃ {v : fin n.succ → G // finmap.prod_eq_one v} :=
+def cycle : {v : fin n.succ → G // finmap.prod_eq_one v} ≃ 
+  {v : fin n.succ → G // finmap.prod_eq_one v} :=
 { to_fun := λ f, ⟨f.1 ∘ fin.S.succ, finmap.prod_eq_one_succ f.2⟩,
-  inv_fun := λ f, ⟨f.1 ∘ (⦃(n : ℤ)⦄^(fin.S.succ) : fin n.succ ≃ fin n.succ), finmap.prod_eq_one_iterate n f.2⟩,
+  inv_fun := λ f, ⟨f.1 ∘ ((fin.S.succ) ^ (n : ℤ) : fin n.succ ≃ fin n.succ), 
+    finmap.prod_eq_one_iterate n f.2⟩,
   left_inv := λ f, begin
     cases f with v hv,
-    ext x,
-    simp,
-    congr',
+    ext x, simp, congr',
     convert fin.S.succ.pow_n n x
   end,
   right_inv := λ f, begin
     cases f with v hv,
-    ext x,
-    simp,
-    congr',
+    ext x, simp, congr',
     change (_ * (fin.S.succ)) x = _,
     convert fin.S.succ.pow_n n x using 1,
-    apply congr_fun,
-    simp,
-    rw group.pow_add,
-    rw group.one_pow,
-    refl
+    apply congr_fun, simp,
+    rw [group.pow_add, group.pow_one], refl
   end }
 
-lemma cycle_pow_aux (d : ℕ) (v : fin n.succ → G) (hv : v ∈ @finmap.prod_eq_one G _ n.succ)
-  (x : fin n.succ):
-  ((⦃(d : ℤ)⦄^cycle G n : _ ≃ _).to_fun ⟨v, hv⟩).1 x =
-  v ((⦃(d : ℤ)⦄^(fin.S.succ' n : _ ≃ _)) x) :=
+lemma cycle_pow_aux (d : ℕ) (v : fin n.succ → G) 
+  (hv : v ∈ @finmap.prod_eq_one G _ n.succ) (x : fin n.succ) : 
+  (((cycle G n : _ ≃ _) ^ (d : ℤ)).to_fun ⟨v, hv⟩).1 x =
+  v (((fin.S.succ' n : _ ≃ _) ^ (d : ℤ)) x) :=
 begin
-  revert x,
-  induction d with e he,
+  revert x, induction d with e he,
   { simp },
   { intro x,
     simp_rw nat.succ_eq_add_one,
     rw int.coe_nat_add,
     conv_lhs {rw add_comm},
-    --rw add_comm,
-    rw group.pow_add,
-    rw int.coe_nat_one,
-    rw group.one_pow,
-    rw group.pow_add,
-    rw group.one_pow,
-    simp,
-    rw ←he,
-    simp,
-    refl }
+    rw [group.pow_add, int.coe_nat_one, group.pow_one, 
+        group.pow_add, group.pow_one],
+    simpa [← he] }
 end
 
-
-lemma cycle_pow_n_succ : ⦃n.succ⦄^(cycle G n) = equiv.refl _ :=
+lemma cycle_pow_n_succ : (cycle G n) ^ (n.succ : ℤ) = equiv.refl _ :=
 begin
   ext i,
   cases i with v hv,
@@ -128,7 +114,7 @@ end
 
 
 lemma fixed_point_pow (v : fixed_points (cool_action G n)) :
-⦃n.succ⦄^(v.1.1 ⟨0, nat.zero_lt_succ n⟩) = 1 :=
+  (v.1.1 ⟨0, nat.zero_lt_succ n⟩) ^ (n.succ : ℤ) = 1 :=
 begin
   have h := v.2,
   have h2 := v.1.2,
@@ -140,13 +126,13 @@ begin
   simp
 end
 
-def fixed_points_eq_roots : fixed_points (cool_action G n) ≃ {g : G // ⦃n.succ⦄^g = 1} :=
+def fixed_points_eq_roots : 
+  fixed_points (cool_action G n) ≃ {g : G // g ^ (n.succ : ℤ) = 1} :=
 { to_fun := λ f, ⟨f.1.1 ⟨0, nat.zero_lt_succ n⟩, begin
     apply fixed_point_pow
   end⟩,
   inv_fun := λ g, ⟨⟨λ _, g.1, begin
     unfold finmap.prod_eq_one,
---    rw ←g.2,
     convert list.prod_repeat' n.succ g.1,
     swap, exact g.2.symm,
     apply @list.ext' n.succ;
@@ -178,4 +164,5 @@ def fixed_points_eq_roots : fixed_points (cool_action G n) ≃ {g : G // ⦃n.su
     intro g,
     simp
   end }
+
 end mygroup
