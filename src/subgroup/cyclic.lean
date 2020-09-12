@@ -159,8 +159,6 @@ def mod (k : ℤ) : normal C_infty :=
 
 def cyclic (k : ℤ) := C_infty /ₘ mod k
 
-namespace cyclic
-
 instance cyclic.group (k : ℤ) : group (cyclic k) := 
   by unfold cyclic; apply_instance
 
@@ -174,21 +172,35 @@ instance cyclic.comm_group (k : ℤ) : comm_group (cyclic k) :=
     end,
   .. show group (cyclic k), by apply_instance }
 
+namespace cyclic
+
+def C_infty_iso_cyclic_zero : C_infty ≅ cyclic 0 := 
+{ is_bijective := 
+  begin
+    split,
+      { intros x y hxy,
+        change (x : C_infty /ₘ mod 0) = y at hxy,
+        rw mk_eq' at hxy,
+        change (0 : ℤ) ∣ (-y : ℤ) + x at hxy,
+        rwa [zero_dvd_iff, add_comm, add_neg_eq_zero] at hxy },
+      { intro y,
+        rcases exists_mk y with ⟨x, rfl⟩,
+        exact ⟨x, rfl⟩ }
+  end, .. quotient.mk _ }
+
 def generator {n : ℕ} : cyclic n := quotient.mk _ (1 : ℤ)
 
 variable (n : ℕ)
 local notation `q` := quotient.mk (mod n)
 
 lemma generator_generates (n : ℕ) :
-  closure ({cyclic.generator} : set (cyclic n)) = ⊤ :=
+  closure ({ generator } : set (cyclic n)) = ⊤ :=
 begin
-  rw eq_top_iff,
-  rintro x h37, clear h37,
+  rw eq_top_iff, rintro x _,
   suffices : x ∈ map q (closure {(1 : ℤ)}),
     rw ←closure_singleton at this,
     exact this,
-  rw C_infty_generator,
-  tidy,
+  rw C_infty_generator, tidy
 end
 
 def nat.coe : ℕ → C_infty := λ i, (i : ℤ)
