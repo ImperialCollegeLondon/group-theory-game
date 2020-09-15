@@ -45,7 +45,7 @@ begin
   apply int.induction_on x,
     { refl },
     { intros i hi,
-      rw [group.iterate_succ, ←hi],
+      rw [group.iterate_succ, ← hi],
       exact add_comm (i : ℤ) 1 },
     { intros i hi,
       rw [sub_eq_add_neg, add_comm, ← int.iterate.comp, 
@@ -200,7 +200,7 @@ lemma generator_generates (n : ℕ) :
 begin
   rw eq_top_iff, rintro x _,
   suffices : x ∈ map q (closure {(1 : ℤ)}),
-    rw ←closure_singleton at this,
+    rw ← closure_singleton at this,
     exact this,
   rw C_infty_generator, tidy
 end
@@ -283,7 +283,7 @@ noncomputable def fin.equiv (hn : 0 < n) : fin n ≃ cyclic n :=
     let z : ℤ := (inv_fun_aux n x).val,
     change -z + int.nat_abs (z % n) ∈ _,
     have h := int.mod_add_div z n,
-    conv_lhs begin congr, rw ←h, end,
+    conv_lhs begin congr, rw ← h, end,
     use -(z / ↑n), 
     rw ←int.eq_nat_abs_of_zero_le 
       (int.mod_nonneg _ (by linarith : (n : ℤ) ≠ (0 : ℤ) )), 
@@ -293,7 +293,7 @@ noncomputable def fin.equiv (hn : 0 < n) : fin n ≃ cyclic n :=
 lemma fincard_cyclic : fincard (cyclic n) = n :=
 begin
   by_cases hn : 0 < n,
-    { rw [←fincard.of_equiv (fin.equiv n hn), ← fincard.card_eq_fincard],
+    { rw [← fincard.of_equiv (fin.equiv n hn), ← fincard.card_eq_fincard],
       exact fintype.card_fin n },
     { push_neg at hn, rw nat.le_zero_iff at hn, rw hn,
       unfold fincard, unfold finset.univ',
@@ -306,9 +306,7 @@ begin
 end
 
 noncomputable instance (n : ℕ) : fintype (cyclic ↑(n.succ)) :=
-begin
-  exact @fintype.of_equiv _ _ _ (mygroup.cyclic.fin.equiv n.succ (nat.zero_lt_succ n)),
-end
+  @fintype.of_equiv _ _ _ (mygroup.cyclic.fin.equiv n.succ (nat.zero_lt_succ n))
 
 def closure_singleton (g : G) : subgroup G := 
 { carrier := { c | ∃ k : ℤ, c = g ^ k },

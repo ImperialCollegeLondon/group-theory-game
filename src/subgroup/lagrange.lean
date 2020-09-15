@@ -26,14 +26,14 @@ begin
               ext, split; intro hx,
                 { exact lcoset_digj (self_mem_coset x H) hx },
                 { rw [mem_set_of_eq, lcoset_rel_def] at hx,
-                  rw ←hx, exact self_mem_coset _ _ } }
+                  rw ← hx, exact self_mem_coset _ _ } }
 end
 
 /-- The left cosets of a subgroup `H` form a partition -/
 def lcoset_partition (H : subgroup G) : 
   is_partition { B | ∃ g : G, B = lcoset g H } := 
 begin
-  rw ←lcoset_setoid_classes,
+  rw ← lcoset_setoid_classes,
   exact is_partition_classes (lcoset_setoid H)
 end
 

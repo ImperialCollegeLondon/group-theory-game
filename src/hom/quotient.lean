@@ -94,7 +94,7 @@ end
 lemma one_mul' {a : quotient R} : 1 * a = a := 
 begin
   apply quotient.induction_on' a,
-  intro x, rw [coe, ←coe_one, coe_mul, group.one_mul]  
+  intro x, rw [coe, ← coe_one, coe_mul, group.one_mul]  
 end
 
 lemma mul_left_inv' {a : quotient R} : a⁻¹ * a = 1 := 
@@ -142,18 +142,18 @@ begin
   have := N.conj_mem _ hx y₁⁻¹, 
   rw group.inv_inv at this,
   replace this := N.mul_mem' this hy,
-  rw [←group.mul_assoc, group.mul_assoc (y₁⁻¹ * (x₁⁻¹ * x₀)), 
-      group.mul_right_inv, group.mul_one, ←group.mul_assoc] at this,
-  rwa [group.inv_mul, ←group.mul_assoc],
+  rw [← group.mul_assoc, group.mul_assoc (y₁⁻¹ * (x₁⁻¹ * x₀)), 
+      group.mul_right_inv, group.mul_one, ← group.mul_assoc] at this,
+  rwa [group.inv_mul, ← group.mul_assoc],
 end
 
 lemma lcoset_inv {x y : G} (hxy : x ~[↑N] y) : (x⁻¹ ~[↑N] y⁻¹) := 
 begin
   rw [lcoset_rel_def, lcoset_eq] at *,
-  rw ←group.inv_mul,
+  rw ← group.inv_mul,
   apply N.inv_mem',
   convert N.conj_mem' _ hxy y,
-  simp [←group.mul_assoc]
+  simp [← group.mul_assoc]
 end
 
 /-- If `H` is normal, then `lcoset_rel H` is a group congruence -/
@@ -180,7 +180,7 @@ def normal_of_con (H : subgroup G) {R : group_con G}
   (hR : R.r = lcoset_rel H) : normal G := 
 { conj_mem' := λ n hn g, mem_of_con_one $
     begin
-      rw [←hR, (show (1 : G) = g * 1 * g⁻¹, by simp)],
+      rw [← hR, (show (1 : G) = g * 1 * g⁻¹, by simp)],
       refine R.mul' (R.mul' (R.iseqv.1 _) _) (R.iseqv.1 _),
        { rw hR, exact con_one_of_mem _ hn }
     end .. H }
