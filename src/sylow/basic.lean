@@ -288,7 +288,6 @@ lemma index_normalizer_congr_index_modp [fintype G]
         rw @lagrange.lagrange _ _ H,
         rw _root_.mul_comm,
         rw nat.mul_div_cancel,
-          refl,
         exact zero_lt_card_subgroup H },
     have : index H ≡ (index' (normalizer_of_set (H : set G)) H) [MOD p],
       rw h3,
