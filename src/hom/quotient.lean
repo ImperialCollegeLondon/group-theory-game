@@ -127,11 +127,6 @@ def lcoset_rel (H : subgroup G) := λ x y, x ⋆ H = y ⋆ H
 local notation x ` ~ `:70 y := lcoset_rel H x y 
 local notation x ` ~[ `:70 H:70 ` ] `:0 y:0 := lcoset_rel H x y
 
-/-
-infixr ` →ₗ `:25 := linear_map _
-notation M ` →ₗ[`:25 R:25 `] `:0 M₂:0 := linear_map R M M₂
--/
-
 lemma lcoset_rel_def (x y : G) : x ~ y ↔ x ⋆ H = y ⋆ H := iff.rfl
 
 lemma lcoset_iseqv (H : subgroup G) : equivalence (lcoset_rel H) := 

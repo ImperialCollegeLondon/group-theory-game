@@ -10,6 +10,10 @@ open mygroup.quotient mygroup.subgroup fincard function
 
 variables {G : Type} [group G] {H : subgroup G}
 
+def is_lcoset (H : subgroup G) (B : set G) := ∃ g : G, B = lcoset g H
+
+def lcosets (H : subgroup G) := { B : set G // is_lcoset H B }
+
 def lcoset_setoid (H : subgroup G) : setoid G := 
 { r := lcoset_rel H,
   iseqv := lcoset_iseqv H }
@@ -36,16 +40,18 @@ end
 /-- Let `H` be a subgroup of the finite group `G`, then the cardinality of `G` 
 equals the cardinality of `H` multiplied with the number of left cosets of `H` -/
 theorem lagrange [fintype G] : 
-  fincard G = fincard H * fincard { B | ∃ g : G, B = lcoset g H } := 
+  fincard G = fincard H * fincard (lcosets H) := 
 begin
+  change fincard G = 
+    fincard H * fincard { B | ∃ g : G, B = lcoset g H },
   rw [card_eq_finsum_partition (lcoset_partition H), 
     mul_comm, finsum_const_nat],
   rintros x ⟨g, rfl⟩,
   exact eq_card_of_lcoset.symm
 end
 
-def to_lcosets (N : normal G) : G /ₘ N → { B | ∃ g : G, B = lcoset g N } :=
-λ x, let f : G → { B | ∃ g : G, B = lcoset g N } := λ g, ⟨g ⋆ N, ⟨g, rfl⟩⟩ in 
+def to_lcosets (N : normal G) : G /ₘ N → lcosets (N : subgroup G) :=
+λ x, let f : G → lcosets (N : subgroup G) := λ g, ⟨g ⋆ N, ⟨g, rfl⟩⟩ in 
   lift_on x f (λ a b h, by simpa [h])
 
 lemma to_lcosets_mk {N : normal G} (g : G) : 

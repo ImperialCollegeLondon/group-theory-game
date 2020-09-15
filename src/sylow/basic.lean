@@ -4,6 +4,7 @@ namespace mygroup
 
 variables {G : Type} [group G]
 open classical function set mygroup.subgroup mygroup.group mygroup.group_hom
+  lagrange
 
 -- Definition of p-group for finite groups, not using definition of order of 
 -- an element explicitly
@@ -15,10 +16,6 @@ open classical function set mygroup.subgroup mygroup.group mygroup.group_hom
 -- (card_pow_p: ∃ n : ℕ , fincard (carrier) = p^n)
 
 def is_p_subgroup (H : subgroup G) (p : ℕ) := ∃ n : ℕ , fincard H = p ^ n 
-
-def is_lcoset (H : subgroup G) (B : set G) := ∃ g : G, B = lcoset g H
-
-def lcosets (H : subgroup G) := { B : set G // is_lcoset H B }
 
 def dumb_fun' (H : subgroup G) (g : G) (X : set G) : set G :=
   {t | ∃ x ∈ X , t = g * x}
