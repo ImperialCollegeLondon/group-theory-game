@@ -13,6 +13,8 @@ def C_infty := ℤ
 
 instance cyclic.to_int : has_coe C_infty ℤ := ⟨id⟩
 instance int.to_C_infty : has_coe ℤ C_infty := ⟨id⟩
+instance C_infty_infinite : infinite C_infty := 
+  by change infinite ℤ; apply_instance
 
 instance : has_le C_infty := { le := ((≤) : ℤ → ℤ → Prop) }
 
@@ -288,10 +290,19 @@ noncomputable def fin.equiv (hn : 0 < n) : fin n ≃ cyclic n :=
     ring
   end } 
 
-lemma fincard_cyclic (hn : 0 < n) : fincard (cyclic n) = n :=
+lemma fincard_cyclic : fincard (cyclic n) = n :=
 begin
-  rw [←fincard.of_equiv (fin.equiv n hn), ← fincard.card_eq_fincard],
-  exact fintype.card_fin n,
+  by_cases hn : 0 < n,
+    { rw [←fincard.of_equiv (fin.equiv n hn), ← fincard.card_eq_fincard],
+      exact fintype.card_fin n },
+    { push_neg at hn, rw nat.le_zero_iff at hn, rw hn,
+      unfold fincard, unfold finset.univ',
+      rw dif_neg,
+        { exact finset.card_empty },
+        { rw not_nonempty_fintype,
+          apply infinite.of_surjective 
+            (inv_fun C_infty_iso_cyclic_zero.to_fun) (inv_fun_surjective _),
+          exact C_infty_iso_cyclic_zero.is_bijective.1 } }
 end
 
 noncomputable instance (n : ℕ) : fintype (cyclic ↑(n.succ)) :=
