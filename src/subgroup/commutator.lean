@@ -53,4 +53,25 @@ def commutator_subgroup (G : Type) [group G] : normal G :=
     exact ⟨g * a * g⁻¹, (g * b * g⁻¹), rfl⟩,
   end .. closure { c | ∃ a b : G, c = commutator a b } }
 
+/-- A group `G` the abelian if and only if the cummutator subgroup is `{1}`-/
+lemma comm_group_iff : (commutator_subgroup G : set G) = {1} ↔ 
+  ∀ a b : G, a * b = b * a :=
+begin
+  split, intros h a b,
+    { change (closure { c | ∃ a b : G, c = commutator a b } : set G) = _ at h,
+      have : {c : G | ∃ (a b : G), c = commutator a b} = {1},
+        apply subset.antisymm, rw ← h, exact le_closure _,
+        rw singleton_subset_iff, exact ⟨a, a⁻¹, by simp⟩,
+      rw eq_singleton_iff_unique_mem at this,
+      rw [← group.mul_right_cancel_iff (a⁻¹ * b⁻¹),
+          (this.right (a * b * (a⁻¹ * b⁻¹)) 
+          ⟨a, b, by simp [group.mul_assoc]⟩).symm],
+      simp [group.mul_assoc] },
+    { intros h, apply subset.antisymm,
+        { change closure { c | ∃ a b : G, c = commutator a b } ≤ trivial,
+          rw closure_le, rintro _ ⟨a, b, rfl⟩, rw [commutator_def, h a b, mem_coe'], 
+          simp [group.mul_assoc, subgroup.trivial, ← mem_coe] },
+        { intros x hx, rw mem_singleton_iff at hx, subst hx, exact one_mem _ } }
+end
+
 end mygroup

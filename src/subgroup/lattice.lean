@@ -137,7 +137,7 @@ With that it follows that subgroups form a complete lattice!
 instance : complete_lattice (subgroup G) :=
 {.. galois_insertion.lift_complete_lattice gi}
 
-private def trivial : subgroup G := 
+def trivial : subgroup G := 
   ⟨{(1 : G)}, set.mem_singleton 1, 
     λ _ _ hx hy, by rw set.mem_singleton_iff at *; simp [hx, hy],
     λ _ hx, by rw set.mem_singleton_iff at *; rw hx; exact group.one_inv⟩
