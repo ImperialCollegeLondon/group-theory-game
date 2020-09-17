@@ -100,6 +100,12 @@ begin
       intros g hg, assumption, assumption }
 end
 
+lemma closure_induction {p : G → Prop} {x} {k : set G} (h : x ∈ closure k)
+  (Hk : ∀ x ∈ k, p x) (H1 : p 1)
+  (Hmul : ∀ x y, p x → p y → p (x * y))
+  (Hinv : ∀ x, p x → p x⁻¹) : p x :=
+(@closure_le _ _ _ ⟨p, H1, Hmul, Hinv⟩).2 Hk h
+
 /-
 Now, by considering the coercion between subgroup G → set G, we cheat a bit
 by transfering the partial order on set to the partial order on subgroups.

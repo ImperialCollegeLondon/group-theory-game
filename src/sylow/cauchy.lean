@@ -190,7 +190,7 @@ begin
   have h2 := group_hom.mul_equiv_of_iso h,
   replace h2 := mul_equiv.to_equiv h2,
   rw fincard.of_equiv h2.symm,
-  convert cyclic.fincard_cyclic p (nat.prime.pos hp),
+  convert cyclic.fincard_cyclic p,
   apply aux_lemma2 p hp g hg1 hg2,
 end
 
