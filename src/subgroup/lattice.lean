@@ -383,6 +383,13 @@ end ge
 
 end subgroup
 
+namespace normal
+
+instance partial_order : partial_order (normal G) := 
+{.. partial_order.lift (coe : normal G → subgroup G) (λ x y, normal.ext')}
+
+end normal
+
 namespace lattice
 
 /-- Given an equivalence `e` on preorders `A` and `B`, and a Galois connection 

@@ -146,6 +146,9 @@ begin
   ext x, exact h x
 end
 
+theorem ext' {H K : normal G} (h : H.to_subgroup = K.to_subgroup) : H = K :=
+by cases H; cases K; congr'
+
 instance of_normal (N : normal G) : group ↥N := 
   subgroup.of_subgroup (N : subgroup G)
 
