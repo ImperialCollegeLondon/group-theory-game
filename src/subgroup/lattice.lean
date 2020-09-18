@@ -244,7 +244,6 @@ def prod (H : subgroup G) (K : normal G) : subgroup G :=
         mem_normal.2 ⟨h, k⁻¹, inv_mem K hk, rfl⟩, by simp [group.mul_assoc]⟩      
     end } 
 
---notation H ` ⨯ `:70 K:70 := product_subgroup H K
 infix ` ⨯ `:70 := prod
 
 lemma mem_product {H : subgroup G} {K : normal G} {x} : 

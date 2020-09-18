@@ -103,15 +103,6 @@ instance of_subgroup (K : subgroup G) : group ↥K :=
   mul_left_inv := λ a, by { cases a, apply subtype.ext, 
     apply group.mul_left_inv } } 
 
--- This is so I can write K : subgroup G
-instance normal_to_subgroup : has_coe (normal G) (subgroup G) := 
-  ⟨λ K, K.to_subgroup⟩
-
--- This saves me from writting m ∈ (K : subgroup G) every time
-instance normal_has_mem : has_mem G (normal G) := ⟨λ m K, m ∈ K.carrier⟩
-
-instance normal_to_set : has_coe (normal G) (set G) := ⟨λ K, K.carrier⟩
-
 /-- Returns index of a subgroup in a group -/ 
 noncomputable def index (H : subgroup G) : ℕ := fincard G / fincard H
 
@@ -135,6 +126,14 @@ namespace normal
 
 variables {G : Type} [group G]
 
+instance : has_coe (normal G) (subgroup G) := 
+  ⟨λ K, K.to_subgroup⟩
+
+-- This saves me from writting m ∈ (K : subgroup G) every time
+instance : has_mem G (normal G) := ⟨λ m K, m ∈ K.carrier⟩
+
+instance to_set : has_coe (normal G) (set G) := ⟨λ K, K.carrier⟩
+
 lemma conj_mem  (N : normal G) (n : G) (hn : n ∈ N) (g : G) :
   g * n * g⁻¹ ∈ N := N.conj_mem' n hn g
 
@@ -151,6 +150,10 @@ by cases H; cases K; congr'
 
 instance of_normal (N : normal G) : group ↥N := 
   subgroup.of_subgroup (N : subgroup G)
+
+def of_subgroup (H : subgroup G) 
+  (hH : ∀ n, n ∈ H → ∀ g : G, g * n * g⁻¹ ∈ H) : normal G := 
+{ conj_mem' := hH, .. H }
 
 end normal
 

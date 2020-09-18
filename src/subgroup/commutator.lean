@@ -107,15 +107,15 @@ end
 -- Disadvantage with using bundled normal: we don't have a lattice structure for 
 -- normal subgroups
 
+-- ⊢ commutators G ⊆ ↑N ↔ commutators (G /ₘ N) = {1}
+-- Consider mk : G → G /ₘ N is a surjective homomorphism with the kernel N,
+-- so the goal is saying the commutators is in the kernel iff the 
+-- commutators of G /ₘ N  is 1, i.e. we need to show that 
+-- commutators (G /ₘ N) ⊆ quotient.mk N '' commutators G 
 lemma quotient.comm_iff_commutators_subset (N : normal G) : 
   commutators G ⊆ N ↔ @commutative (G /ₘ N) (*) :=
 begin
   rw [← comm_group_iff', commutator_subgroup_eq_bot_iff],
-  -- ⊢ commutators G ⊆ ↑N ↔ commutators (G /ₘ N) = {1}
-  -- Consider mk : G → G /ₘ N is a surjective homomorphism with the kernel N,
-  -- so the goal is saying the commutators is in the kernel iff the 
-  -- commutators of G /ₘ N  is 1, i.e. we need to show that 
-  -- commutators (G /ₘ N) ⊆ quotient.mk N '' commutators G 
   have : commutators (G /ₘ N) ⊆  quotient.mk N '' commutators G,
     rintro x ⟨a, b, rfl⟩,
     rcases exists_mk a with ⟨a, rfl⟩,
@@ -143,5 +143,17 @@ theorem quotient.comm_iff_commutators_le (N : normal G) :
   commutator_subgroup G ≤ N ↔ @commutative (G /ₘ N) (*) := 
 show closure (commutators G) ≤ _ ↔ _, 
   by rw [← quotient.comm_iff_commutators_subset, closure_le]; refl
+
+/-- A subgroup is normal if it comatins the commutators -/
+def normal.of_subset_commutators (H : subgroup G) (hH : commutators G ⊆ H) := 
+  normal.of_subgroup H 
+begin
+  intros n hn g, 
+  rw [show g * n * g⁻¹ = g * n * g⁻¹ * n⁻¹ * n, by simp [group.mul_assoc]],
+  exact mul_mem _ (hH ⟨g, n, rfl⟩) hn
+end
+
+-- If normal was a prop, chaining normal subgroups would also be easier
+
 
 end mygroup
