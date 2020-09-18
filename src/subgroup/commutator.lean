@@ -26,6 +26,8 @@ def commutators (G : Type) [group G] := { c | ∃ a b : G, c = commutator a b }
 
 -- We will use the induction principle on closure of subgroups
 
+namespace subgroup
+
 /-- The closure of an invariant set is also invariant under conjugation -/
 lemma closure_normal {s : set G} (hs : ∀ t ∈ s, ∀ g : G, g * t * g⁻¹ ∈ s) : 
   ∀ t ∈ closure s, ∀ g : G, g * t * g⁻¹ ∈ closure s := 
@@ -104,6 +106,8 @@ begin
       subst hx, exact one_mem _ }
 end
 
+end subgroup
+
 -- Disadvantage with using bundled normal: we don't have a lattice structure for 
 -- normal subgroups
 
@@ -115,7 +119,7 @@ end
 lemma quotient.comm_iff_commutators_subset (N : normal G) : 
   commutators G ⊆ N ↔ @commutative (G /ₘ N) (*) :=
 begin
-  rw [← comm_group_iff', commutator_subgroup_eq_bot_iff],
+  rw [← subgroup.comm_group_iff', subgroup.commutator_subgroup_eq_bot_iff],
   have : commutators (G /ₘ N) ⊆  quotient.mk N '' commutators G,
     rintro x ⟨a, b, rfl⟩,
     rcases exists_mk a with ⟨a, rfl⟩,
@@ -140,7 +144,7 @@ end
 /-- For all `N : normal G`, if it contains the comutator subgroup, then 
   `G /ₘ N` is abelian. -/
 theorem quotient.comm_iff_commutators_le (N : normal G) : 
-  commutator_subgroup G ≤ N ↔ @commutative (G /ₘ N) (*) := 
+  subgroup.commutator_subgroup G ≤ N ↔ @commutative (G /ₘ N) (*) := 
 show closure (commutators G) ≤ _ ↔ _, 
   by rw [← quotient.comm_iff_commutators_subset, closure_le]; refl
 
@@ -154,6 +158,5 @@ begin
 end
 
 -- If normal was a prop, chaining normal subgroups would also be easier
-
 
 end mygroup
