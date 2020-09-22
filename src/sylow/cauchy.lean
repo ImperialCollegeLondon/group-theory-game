@@ -185,7 +185,7 @@ theorem key_lemma (G : Type) [group G] (p : ℕ) (hp : p.prime) (g : G)
   (hg1 : g ≠ 1) (hg2 : g ^ (p : ℤ) = 1) : 
   fincard (closure ({g} : set G)) = p := 
 begin
-  have h := quotient.quotient_kernel_iso_image (order_map g),
+  have h := quotient.kernel_iso_image (order_map g),
   rw fincard.of_equiv (eq_equiv G _ _ (order_map_image_eq g).symm),
   have h2 := group_hom.mul_equiv_of_iso h,
   replace h2 := mul_equiv.to_equiv h2,

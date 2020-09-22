@@ -157,7 +157,7 @@ lemma bijective_of_kernel_lift_hom' {f : G →* H} :
 
 /-- The first isomorphism theorem: `G /ₘ kernel f ≅ image f` for `f : G →* H`
   a group homomorphism -/
-def quotient_kernel_iso_image (f : G →* H) :
+def kernel_iso_image (f : G →* H) :
   G /ₘ kernel f ≅ image f :=
 { is_bijective := bijective_of_kernel_lift_hom',
   .. kernel_lift_hom' f }
@@ -170,9 +170,9 @@ def iso_of_surjective {f : G →* H} (hf : surjective f) : image f ≅ H :=
 
 /-- The first isomorphism theorem with a surjective homomorphism:
   `G /ₘ kernel f ≅ H` for `f : G →* H` a surjective group homomorphism-/
-def quotient_kernel_iso_of_surjective {f : G →* H} (hf : surjective f) :
+def kernel_iso_of_surjective {f : G →* H} (hf : surjective f) :
   G /ₘ kernel f ≅ H :=
-iso_comp (quotient_kernel_iso_image f) $ iso_of_surjective hf
+iso_comp (kernel_iso_image f) $ iso_of_surjective hf
 
 def subst_iso {A B : normal G} (h : A = B) : G /ₘ A ≅ G /ₘ B :=
 { is_bijective := begin subst h, convert bijective_id, ext x, rcases x, refl end,
@@ -181,9 +181,9 @@ def subst_iso {A B : normal G} (h : A = B) : G /ₘ A ≅ G /ₘ B :=
 def subst_iso' {A B : normal G} (h : A = B) (f : G /ₘ A ≅ H) : G /ₘ B ≅ H := 
 iso_comp (subst_iso h.symm) f
 
-def quotient_kernel_iso_of_surjective' {f : G →* H} (hf : surjective f) 
+def kernel_iso_of_surjective' {f : G →* H} (hf : surjective f) 
 {N : normal G} (hN : kernel f = N) :
-  G /ₘ N ≅ H := subst_iso' hN $ quotient_kernel_iso_of_surjective hf
+  G /ₘ N ≅ H := subst_iso' hN $ kernel_iso_of_surjective hf
 
 /-- If `N ⊆ kernel f` then the kernel of induced map `lift f N h` is 
   image of `kernel f` -/
@@ -255,7 +255,7 @@ end
 
 def second_iso_theorem (T : subgroup G) (N : normal G) :
   T /ₘ comap (𝒾 T) N ≅ ↥(T ⨯ N) /ₘ comap (𝒾 (T ⨯ N)) N := 
-quotient_kernel_iso_of_surjective' (aux_hom_surjective T N) aux_hom_kernel
+kernel_iso_of_surjective' (aux_hom_surjective T N) aux_hom_kernel
 
 -- To state the third isomorphism theorem we need to be able to push forward 
 -- (`map`) a normal subgroup along a surjection
@@ -266,7 +266,7 @@ def third_iso_theorem (T : normal G) (N : normal G) (h : T.to_subgroup ≤ N) :
 let f : G /ₘ T →* G /ₘ N := (lift (mk N) _ (by { convert h, rw kernel_mk })) in 
 iso_comp (subst_iso $ 
     show nmap is_surjective_mk N = f.kernel, by rw [lift_kernel, kernel_mk]) $
-  quotient_kernel_iso_of_surjective 
+  kernel_iso_of_surjective 
     (by { rw [surjective_iff_max_img, lift_image, ←surjective_iff_max_img],
       exact is_surjective_mk })
 
@@ -399,10 +399,10 @@ order_iso.trans (subgroups_of_quotient_order_iso N) $
 -- preimage of `H : subgroup G /ₘ N` under the natural map from `G` to `G /ₘ N`
 -- is a subgroup of `G` with order `|H||N|`.
 
-def quotient.comap (N : normal G) (H : subgroup (G /ₘ N)) : subgroup G := 
+def comap (N : normal G) (H : subgroup (G /ₘ N)) : subgroup G := 
   subgroup.comap (mk N) H
 
-lemma quotient.comap_le (N : normal G) (H : subgroup (G /ₘ N)) : 
+lemma comap_le (N : normal G) (H : subgroup (G /ₘ N)) : 
   (N : set G) ⊆ quotient.comap N H := λ n hn, 
 show _ ∈ H, by { convert one_mem H, rw [← mem_kernel, kernel_mk], exact hn }
 
@@ -411,11 +411,11 @@ show _ ∈ H, by { convert one_mem H, rw [← mem_kernel, kernel_mk], exact hn }
 -- first isomorphism theorem `mk⁻¹ H /ₘ N ≅ H`
 
 lemma quotient.comap_iso (N : normal G) (H : subgroup (G /ₘ N)) :
-  quotient.comap N H /ₘ comap (𝒾 $ quotient.comap N H) N ≅ H :=
+  quotient.comap N H /ₘ normal.comap (𝒾 $ quotient.comap N H) N ≅ H :=
   let f : quotient.comap N H →* H :=
     { to_fun := λ x, ⟨mk N x.1, x.2⟩,
       map_mul' := λ _ _, rfl } in
-  quotient_kernel_iso_of_surjective' (begin
+  kernel_iso_of_surjective' (begin
     rintro ⟨y, hy⟩,
     rcases exists_mk y with ⟨g, rfl⟩,
     use [g, hy], refl
@@ -432,7 +432,7 @@ lemma quotient.comap_iso (N : normal G) (H : subgroup (G /ₘ N)) :
     show _ = (⟨(1 : G /ₘ N), _⟩ : H) ↔ _, simp
   end
 
-lemma quotient.comap_card_eq [fintype G] (N : normal G) (H : subgroup (G /ₘ N)) : 
+lemma comap_card_eq [fintype G] (N : normal G) (H : subgroup (G /ₘ N)) : 
   fincard (quotient.comap N H) = 
   fincard (normal.comap (𝒾 $ quotient.comap N H) N) * fincard H :=
 begin
