@@ -157,6 +157,4 @@ begin
   exact mul_mem _ (hH ⟨g, n, rfl⟩) hn
 end
 
--- If normal was a prop, chaining normal subgroups would also be easier
-
 end mygroup

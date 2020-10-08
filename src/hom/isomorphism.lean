@@ -440,6 +440,13 @@ begin
      ← lagrange.card_quotient_eq_mul]
 end
 
+-- Normal comap
+def ncomap (N : normal G) (H : normal (G /ₘ N)) : normal G := 
+  normal.comap (mk N) H
+
+-- I would like a theorem that states given `N : normal G` where `N` is the largest 
+-- proper subgroup of `G`, then `G /ₘ N` is simple. 
+
 end quotient
 
 end mygroup
