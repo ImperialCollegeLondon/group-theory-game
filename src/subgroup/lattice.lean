@@ -157,6 +157,13 @@ end
 lemma bot_eq_singleton_one : ((⊥ : subgroup G) : set G) = {1} :=
 by rw bot_eq_trivial; refl
 
+lemma mem_bot_iff {x : G} : x ∈ (⊥ : subgroup G) ↔ x = 1 :=
+begin 
+  split; intro h,
+    rw [← mem_singleton_iff, ← bot_eq_singleton_one], exact h,
+    rw [bot_eq_trivial], exact h
+end
+
 lemma fincard_bot : fincard (⊥ : subgroup G) = 1 :=
 by rw [← @fincard.card_singleton_eq_one _ (1 : G), ← bot_eq_singleton_one]; refl
 
