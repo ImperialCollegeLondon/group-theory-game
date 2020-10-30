@@ -237,9 +237,15 @@ begin
   exact subgroup.kernel_eq_comap_bot f
 end
 
-end abelianization
+@[simp] lemma lift_def (f : G →* H) : 
+  (lift f ∘* quotient.mk (subgroup.commutator_normal G)) = f := by ext; refl
 
--- example (H : Type) [comm_group H] (f : G →* H) : 
---   ∃! F : (G /ₘ subgroup.commutator_normal G) →* H, f = 
+/-- The universal property of Abelianization of Groups -/
+lemma lift.exists_unique (H : Type) [comm_group H] (f : G →* H) : 
+  ∃! F : (G /ₘ subgroup.commutator_normal G) →* H, 
+  f = (F ∘* quotient.mk (subgroup.commutator_normal G)) :=
+⟨abelianization.lift f, by simp, by rintros F rfl; tidy⟩
+
+end abelianization
 
 end mygroup
