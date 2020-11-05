@@ -63,7 +63,7 @@ def commutator_normal (G : Type) [group G] : normal G :=
     exact ⟨g * a * g⁻¹, (g * b * g⁻¹), rfl⟩,
   end .. closure $ commutators G }
 
-/-- A group `G` the abelian if and only if the cummutator subgroup is `{1}`-/
+/-- A group `G` the abelian if and only if the commutator subgroup is `{1}`-/
 lemma comm_group_iff : (commutator_normal G : set G) = {1} ↔ @commutative G (*) :=
 begin
   split, intros h a b,

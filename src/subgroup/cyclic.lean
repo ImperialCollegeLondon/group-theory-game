@@ -111,6 +111,15 @@ begin
     { rw [order_def, dif_neg h], exact zero_le _ }
 end
 
+@[simp] lemma order_one_eq_one : order (1 : G) = 1:=
+begin
+  refine le_antisymm (order_le_of_pow_order_eq_one zero_lt_one $ group.one_pow _) _,
+    { apply nat.succ_le_iff.mpr,
+      by_contra h, push_neg at h, 
+      rw [nat.le_zero_iff, order_eq_zero_iff] at h,
+      apply h 1 zero_lt_one (group.one_pow _) },
+end
+
 lemma pow_injective_of_lt_order_of {n m : ℕ} (a : G) (hn : n < order a) 
   (hm : m < order a) (eq : a ^ (n : ℤ) = a ^ (m : ℤ)) : n = m := 
 begin
