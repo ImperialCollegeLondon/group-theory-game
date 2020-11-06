@@ -52,15 +52,66 @@ end
 
 /-- The torsion subgroup of an abelian group is the subgroup of all elements of 
   finite order -/
-def torsion (G : Type) [comm_group G] : subgroup G :=
+def torsion_subgroup (G : Type) [comm_group G] : subgroup G :=
 { carrier := torsion_set G,
   one_mem' := one_mem_torsion_set,
   mul_mem' := λ _ _, mul_mem_torsion_set,
   inv_mem' := λ _, inv_mem_torsion_set }
 
-lemma mem_torsion_iff (g : G) : g ∈ torsion G ↔ order g ≠ 0 := iff.rfl
+lemma mem_torsion_subgroup_iff (g : G) : g ∈ torsion_subgroup G ↔ order g ≠ 0 := iff.rfl
 
--- lemma torsion_torsion_eq_bot : G /ₘ torsion G 
+attribute [simp] mem_torsion_subgroup_iff
+
+end torsion
+
+def torsion (G : Type) [comm_group G] : normal G :=
+  normal.of_comm_subgroup $ torsion.torsion_subgroup G
+
+-- Temporary (should infer from the fact that the normal subgroups form a complete lattice)
+instance {G : Type} [group G] : has_bot $ normal G := 
+⟨ { conj_mem' := λ _ hn _,
+      by rw [(mem_trivial_carrier_iff _).mp hn, group.mul_one, 
+        group.mul_right_inv]; exact one_mem _, .. subgroup.trivial } ⟩
+
+lemma normal.mem_bot_iff {G : Type} [group G] {x : G} : x ∈ (⊥ : normal G) ↔ x = 1 :=
+begin 
+  split, intro h,
+    { rw [← mem_singleton_iff, ← bot_eq_singleton_one], 
+      rw [bot_eq_trivial], exact h },
+    { rintro rfl, exact one_mem _ }
+end
+
+namespace torsion
+
+variables {G : Type} [comm_group G]
+
+@[simp] lemma mem_torsion_iff (g : G) : g ∈ torsion G ↔ order g ≠ 0 := iff.rfl
+
+/-- The quotient of an abelian group by its torsion subgroup is also an 
+  abelian subgroup -/
+instance : comm_group $ G /ₘ torsion G := 
+  { mul_comm := λ a b,
+      let ⟨g, hg⟩ := exists_mk a in
+      let ⟨h, hh⟩ := exists_mk b in
+      by rw [← hg, ← hh, quotient.coe_mul, group.mul_comm, ← quotient.coe_mul],
+  .. show group (G /ₘ torsion G), by apply_instance } -- french quotes does not work
+
+/-- The torsion of the quotient by the torsion is the trivial subgroup -/
+lemma of_quotient_torsion_eq_bot : torsion (G /ₘ torsion G) = ⊥ :=
+begin
+  ext, rw [normal.mem_bot_iff], split,
+    { intro h, 
+      rcases exists_mk g with ⟨g, rfl⟩,
+      rw [← coe_one, mk_eq', group.one_inv, group.one_mul],
+      intro hg, apply h,
+      rw order_eq_zero_iff at hg ⊢,
+      intros n hn hgn,
+      rw [coe_pow, ← coe_one, mk_eq', group.one_inv, 
+        group.one_mul, mem_torsion_iff, ← zero_lt_iff_ne_zero] at hgn,
+      refine hg (n * order (g ^ n)) (mul_pos hn $ int.coe_nat_pos.2 hgn) _,
+      rw [mul_comm, group.pow_mul, pow_order_eq_one] },
+    { rintro rfl, exact one_mem _ }
+end
 
 end torsion
 

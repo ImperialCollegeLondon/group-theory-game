@@ -155,6 +155,10 @@ def of_subgroup (H : subgroup G)
   (hH : ∀ n, n ∈ H → ∀ g : G, g * n * g⁻¹ ∈ H) : normal G := 
 { conj_mem' := hH, .. H }
 
+def of_comm_subgroup {G : Type} [comm_group G] (H : subgroup G) : 
+  normal G := 
+{ conj_mem' := λ _ _ _, by simpa [group.mul_comm, group.mul_assoc], .. H}
+
 end normal
 
 /-

@@ -142,6 +142,10 @@ def trivial : subgroup G :=
     λ _ _ hx hy, by rw set.mem_singleton_iff at *; simp [hx, hy],
     λ _ hx, by rw set.mem_singleton_iff at *; rw hx; exact group.one_inv⟩
 
+lemma mem_trivial_iff (g : G) : g ∈ (trivial : subgroup G) ↔ g = 1 := iff.rfl
+
+lemma mem_trivial_carrier_iff (g : G) : g ∈ (trivial : subgroup G).carrier ↔ g = 1 := iff.rfl
+
 lemma bot_eq_trivial : (⊥ : subgroup G) = trivial :=
 begin
   apply le_antisymm,

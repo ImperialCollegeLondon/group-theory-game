@@ -55,7 +55,7 @@ quotient.lift_on₂' x y f h
 -- (in this case `quotient R`), two elements of `quotient R` and a function 
 -- `f : G → G → β` that respects `R`, it returns a term of `β`.
 instance : has_mul (quotient R) := 
-{ mul := λ x y, lift_on₂ x y (λ x y , ((x * y : G) : quotient R)) 
+{ mul := λ x y, lift_on₂ x y (λ x y, ((x * y : G) : quotient R)) 
     $ λ _ _ _ _ h₁ h₂, eq.2 (mul h₁ h₂) }
 
 -- Similar story for the inverse in which we use `lift_on` instead.
@@ -68,7 +68,7 @@ instance : has_one (quotient R) := ⟨((1 : G) : quotient R)⟩
 
 lemma coe     (x : G)   : quotient.mk' x = (x : quotient R) := rfl 
 lemma coe_mul (x y : G) : (x : quotient R) * y = ((x * y : G) : quotient R) := rfl  
-lemma coe_inv (x : G)   : (x : quotient R)⁻¹ = ((x⁻¹ : G ): quotient R) := rfl
+lemma coe_inv (x : G)   : (x : quotient R)⁻¹ = ((x⁻¹ : G): quotient R) := rfl
 lemma coe_one           : ((1 : G) : quotient R) = 1 := rfl
 
 -- I think the rhs is more desirable in most cases so I will make simp use them
@@ -203,6 +203,17 @@ lemma mk_eq' {p q : G} : (p : G /ₘ N) = q ↔ q⁻¹ * p ∈ N :=
 begin
   rw mk_eq,
   exact lcoset_eq
+end
+
+lemma coe_pow (g : G) (n : ℤ) : (g : G /ₘ N) ^ n = ((g ^ n : G) : G /ₘ N) := 
+begin
+  apply int.induction_on n,
+    { refl },
+    { intros _ hi,
+      rw [group.pow_add, group.pow_add, ← quotient.coe_mul, hi], congr },
+    { intros _ hi,
+      rw [group.pow_sub, group.pow_sub, group.pow_neg_one_inv, 
+        group.pow_neg_one_inv, hi, ← quotient.coe_mul, quotient.coe_inv] }
 end
 
 end quotient
