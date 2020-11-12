@@ -393,13 +393,6 @@ end ge
 
 end subgroup
 
-namespace normal
-
-instance partial_order : partial_order (normal G) := 
-{.. partial_order.lift (coe : normal G → subgroup G) (λ x y, normal.ext')}
-
-end normal
-
 namespace lattice
 
 /-- Given an equivalence `e` on preorders `A` and `B`, and a Galois connection 
@@ -443,5 +436,86 @@ def distrib_lattice_of_order_iso'' {A B : Type} [distrib_lattice A] [partial_ord
   (@lattice_of_order_iso _ _ (distrib_lattice.to_lattice A) _ e) e
 
 end lattice 
+
+namespace normal 
+
+instance : partial_order (normal G) := 
+{.. partial_order.lift (normal.to_subgroup) (λ x y, normal.ext')}
+
+instance : has_Inf (normal G) :=
+⟨λ s, {
+  carrier := ⋂ t ∈ s, (t : set G),
+  one_mem' := mem_bInter $ λ i h, i.one_mem',
+  mul_mem' := λ x y hx hy, mem_bInter $ λ i h,
+    i.mul_mem' (by apply mem_bInter_iff.1 hx i h) 
+    (by apply mem_bInter_iff.1 hy i h),
+  inv_mem' := λ x hx, mem_bInter $ λ i h,
+    i.inv_mem' (by apply mem_bInter_iff.1 hx i h),
+  conj_mem' := 
+    begin
+      simp_rw mem_bInter_iff,
+      intros n hn g N hNs,
+      exact N.conj_mem _ (hn N hNs) _, 
+    end }⟩
+
+@[simp] lemma mem_Inf (x : G) (s : set (normal G)) : 
+  x ∈ Inf s ↔ x ∈ ⋂ t ∈ s, (t : set G) := iff.rfl
+
+def closure (S : set G) : normal G := Inf {H | S ⊆ H}
+
+lemma mem_closure_iff {S : set G} {x : G} : 
+  x ∈ closure S ↔ ∀ H : normal G, S ⊆ H → x ∈ H := mem_bInter_iff
+
+lemma le_closure (S : set G) : S ≤ closure S :=
+λ s hs H ⟨y, hy⟩, by rw ←hy; simp; exact λ hS, hS hs
+
+lemma closure_le (S : set G) (H : normal G) : closure S ≤ H ↔ S ≤ H :=
+begin
+  split,
+    { intro h, refine subset.trans (le_closure _) h },
+    { intros h y hy,
+      change y ∈ (_ : normal G) at hy,
+      unfold closure at hy,
+      rw [mem_Inf, mem_bInter_iff] at hy,
+      exact hy H h }
+end
+
+lemma closure_le' (S : set G) (H : normal G) : 
+  (closure S : set G) ⊆ H ↔ S ⊆ H := closure_le S H
+
+lemma closure_le'' (S : set G) (H : normal G) : 
+  (∀ x, x ∈ closure S → x ∈ H) ↔ (∀ x, x ∈ S → x ∈ H) := closure_le S H
+
+lemma closure_self {H : normal G} : closure (H : set G) = H :=
+begin
+  ext, split; intro hx,
+    { apply subset.trans _ ((closure_le (H : set G) H).2 (subset.refl H)), 
+      exact hx, exact subset.refl _ },
+    { rw ← mem_carrier,
+      apply subset.trans (le_closure (H : set G)), 
+      intros g hg, assumption, assumption }
+end
+
+-- lemma closure_induction {p : G → Prop} {x} {k : set G} (h : x ∈ closure k)
+--   (Hk : ∀ x ∈ k, p x) (H1 : p 1)
+--   (Hmul : ∀ x y, p x → p y → p (x * y))
+--   (Hinv : ∀ x, p x → p x⁻¹) : p x :=
+-- (@closure_le _ _ _ ⟨p, H1, Hmul, Hinv⟩).2 Hk h
+
+def gi : @galois_insertion (set G) (normal G) _ _ closure (λ H, H.carrier) :=
+{ choice := λ S _, closure S,
+  gc := λ H K,
+    begin
+      split; intro h,
+        { exact subset.trans (le_closure H) h },
+        { exact (closure_le _ _).2 h },
+    end,
+  le_l_u := λ H, le_closure (H : set G),
+  choice_eq := λ _ _, rfl }
+
+instance : complete_lattice (normal G) :=
+{.. galois_insertion.lift_complete_lattice gi}
+
+end normal
 
 end mygroup

@@ -134,6 +134,12 @@ instance : has_mem G (normal G) := ⟨λ m K, m ∈ K.carrier⟩
 
 instance to_set : has_coe (normal G) (set G) := ⟨λ K, K.carrier⟩
 
+@[simp] lemma mem_to_subgroup {K : normal G} (x : G) : 
+  x ∈ K.to_subgroup ↔ x ∈ K := iff.rfl
+
+@[simp] lemma mem_carrier {K : normal G} (x : G) : 
+  x ∈ K.carrier ↔ x ∈ K := iff.rfl
+
 lemma conj_mem  (N : normal G) (n : G) (hn : n ∈ N) (g : G) :
   g * n * g⁻¹ ∈ N := N.conj_mem' n hn g
 
