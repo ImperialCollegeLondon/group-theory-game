@@ -440,12 +440,58 @@ begin
      ← lagrange.card_quotient_eq_mul]
 end
 
--- Normal comap
-def ncomap (N : normal G) (H : normal (G /ₘ N)) : normal G := 
-  normal.comap (mk N) H
-
 -- I would like a theorem that states given `N : normal G` where `N` is the largest 
 -- proper subgroup of `G`, then `G /ₘ N` is simple. 
+
+def ncorrespondence (N : normal G) : 
+  { H : normal G // N ≤ H } → normal (G /ₘ N) := λ ⟨H, hH⟩,
+nmap is_surjective_mk H
+
+def ncorrespondence_inv (N : normal G) : 
+  normal (G /ₘ N) → { H : normal G // N ≤ H } := λ H, 
+⟨ normal.comap (mk N) H, 
+  begin
+    intros n hn,
+    erw mem_comap,
+    change n ∈ N at hn,
+    rw ← @kernel_mk _ _ N at hn,
+    convert H.one_mem',
+  end ⟩
+
+lemma ncorrespondence_left_inv (N : normal G) : 
+  left_inverse (ncorrespondence_inv N) (ncorrespondence N) :=
+begin
+  rintro ⟨H, hH⟩,
+  unfold ncorrespondence, 
+  unfold ncorrespondence_inv,
+  congr,
+  ext x, split; intro hx,
+  { rcases hx with ⟨x', hx'₀, hx'₁⟩, 
+    rw [← coe_eq_mk, ← coe_eq_mk] at hx'₁,
+    rw [show x = x' * (x'⁻¹ * x), by simp],
+    exact H.mul_mem' hx'₀ (hH (mk_eq'.1 hx'₁.symm)) },
+   { tidy }
+end
+
+lemma ncorrespondence_right_inv (N : normal G) : 
+  right_inverse (ncorrespondence_inv N) (ncorrespondence N) :=
+begin
+  rintro H,
+  unfold ncorrespondence_inv,
+  unfold ncorrespondence,  
+  ext x, split; intro hx,
+    { rw mem_nmap at hx,
+      rcases hx with ⟨_, hg, rfl⟩,
+      exact hg },
+    { tidy }
+end
+
+def normal_of_quotient_equiv (N : normal G) : 
+  { H : normal G // N ≤ H } ≃ normal (G /ₘ N) :=
+{ to_fun := ncorrespondence N,
+  inv_fun := ncorrespondence_inv N,
+  left_inv := ncorrespondence_left_inv N,
+  right_inv := ncorrespondence_right_inv N }
 
 end quotient
 
