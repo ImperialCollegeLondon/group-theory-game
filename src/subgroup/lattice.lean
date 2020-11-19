@@ -94,8 +94,7 @@ begin
   rw ←subgroup.ext'_iff, ext,
   split; intro hx,
     { apply subset.trans _ ((closure_le (H : set G) H).2 (subset.refl H)), 
-      exact hx, exact subset.refl _
-    },
+      exact hx, exact subset.refl _ },
     { apply subset.trans (le_closure (H : set G)), 
       intros g hg, assumption, assumption }
 end

@@ -357,7 +357,7 @@ def subgroups_of_quotient_equiv (N : normal G) :
   left_inv := correspondence_left_inv N,
   right_inv := correspondence_right_inv N }
 
-def gc (N : normal G) : galois_connection (subgroups_of_quotient_equiv N).to_fun 
+def subgroup.gc (N : normal G) : galois_connection (subgroups_of_quotient_equiv N).to_fun 
   (subgroups_of_quotient_equiv N).inv_fun := 
 begin
   intros A B,
@@ -371,10 +371,10 @@ begin
 end
 
 -- ↓ This turns out to be useless since gc + equiv = order_iso ⇒ gi...
-def gi (N : normal G) : galois_insertion (subgroups_of_quotient_equiv N).to_fun 
+def subgroup.gi (N : normal G) : galois_insertion (subgroups_of_quotient_equiv N).to_fun 
   (subgroups_of_quotient_equiv N).inv_fun := 
 { choice := λ x _, (subgroups_of_quotient_equiv N).to_fun x,
-  gc := gc N,
+  gc := subgroup.gc N,
   le_l_u := λ x, by { rw (subgroups_of_quotient_equiv N).right_inv, exact le_refl _ },
   choice_eq := λ _ _, rfl }
 
@@ -384,7 +384,7 @@ def subgroups_of_quotient_order_iso (N : normal G) :
   let A := subgroup_ge G N in 
   let B := subgroup_ge (G /ₘ N) ⊥ in
   ((≤) : A → A → Prop) ≃o ((≤) : B → B → Prop) :=
-lattice.order_iso_of_equiv_gi (subgroups_of_quotient_equiv N) (gc N)
+lattice.order_iso_of_equiv_gi (subgroups_of_quotient_equiv N) (subgroup.gc N)
 
 /-- The subgroups of `G` greater than some `N : normal G` is order isomorphic to 
   the subgroups of `G /ₘ N` -/
@@ -458,6 +458,12 @@ def ncorrespondence_inv (N : normal G) :
     convert H.one_mem',
   end ⟩
 
+@[simp] lemma ncorrespondence_def (N : normal G) (M : { H : normal G // N ≤ H }) : 
+  ncorrespondence N M = nmap is_surjective_mk M.val := by cases M; refl
+
+@[simp] lemma ncorrespondence_inv_def (N : normal G) (H : normal (G /ₘ N)) : 
+  (ncorrespondence_inv N H).val = normal.comap (mk N) H := rfl
+
 lemma ncorrespondence_left_inv (N : normal G) : 
   left_inverse (ncorrespondence_inv N) (ncorrespondence N) :=
 begin
@@ -492,6 +498,31 @@ def normal_of_quotient_equiv (N : normal G) :
   inv_fun := ncorrespondence_inv N,
   left_inv := ncorrespondence_left_inv N,
   right_inv := ncorrespondence_right_inv N }
+
+@[simp] lemma normal_of_quotient_equiv_to_fun_def (N : normal G) : 
+  (normal_of_quotient_equiv N).to_fun = ncorrespondence N := rfl
+
+@[simp] lemma normal_of_quotient_equiv_inv_fun_def (N : normal G) : 
+  (normal_of_quotient_equiv N).inv_fun = ncorrespondence_inv N := rfl
+
+def normal.gc (N : normal G) : galois_connection (normal_of_quotient_equiv N).to_fun 
+  (normal_of_quotient_equiv N).inv_fun := 
+begin
+  intros A B,
+  cases A with A hA,
+  split; rintros h a ha,
+    { apply h, tidy },
+    { change A ≤ _ at h,
+      rw [normal_of_quotient_equiv_to_fun_def, ncorrespondence_def] at ha,
+      rcases ha with ⟨g, hg, rfl⟩,
+      exact h hg }
+end
+
+def normal_of_quotient_order_iso (N : normal G) : 
+  let A := { H : normal G // N ≤ H }in 
+  let B := normal (G /ₘ N) in
+  ((≤) : A → A → Prop) ≃o ((≤) : B → B → Prop) :=
+lattice.order_iso_of_equiv_gi (normal_of_quotient_equiv N) (normal.gc N)
 
 end quotient
 

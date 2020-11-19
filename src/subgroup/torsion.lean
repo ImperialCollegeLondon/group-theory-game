@@ -68,16 +68,24 @@ def torsion (G : Type) [comm_group G] : normal G :=
   normal.of_comm_subgroup $ torsion.torsion_subgroup G
 
 -- Temporary (should infer from the fact that the normal subgroups form a complete lattice)
-instance {G : Type} [group G] : has_bot $ normal G := 
-⟨ { conj_mem' := λ _ hn _,
+def normal.trivial {G : Type} [group G] : normal G := 
+{ conj_mem' := λ _ hn _,
       by rw [(mem_trivial_carrier_iff _).mp hn, group.mul_one, 
-        group.mul_right_inv]; exact one_mem _, .. subgroup.trivial } ⟩
+        group.mul_right_inv]; exact one_mem _, .. subgroup.trivial }
+
+lemma normal.bot_eq_trivial {G : Type} [group G] : 
+  (⊥ : normal G) = normal.trivial :=
+begin
+  refine eq.symm (eq_bot_iff.2 $ λ x hx, _),
+  change x = 1 at hx,
+  exact hx.symm ▸ one_mem _,
+end
 
 lemma normal.mem_bot_iff {G : Type} [group G] {x : G} : x ∈ (⊥ : normal G) ↔ x = 1 :=
 begin 
   split, intro h,
-    { rw [← mem_singleton_iff, ← bot_eq_singleton_one], 
-      rw [bot_eq_trivial], exact h },
+    { rw [← mem_singleton_iff, ← bot_eq_singleton_one, bot_eq_trivial], 
+      rw normal.bot_eq_trivial at h, exact h },
     { rintro rfl, exact one_mem _ }
 end
 
