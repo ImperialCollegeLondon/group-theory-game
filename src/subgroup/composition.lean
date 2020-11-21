@@ -87,6 +87,18 @@ def normal.𝒾 {G : Type} [group G] {A B : normal G} (hle : A ≤ B) : normal B
   inv_mem' := λ _ h, A.inv_mem' h,
   conj_mem' := λ _ h _, A.conj_mem' _ h _ }
 
+lemma normal.mem_𝒾 {G : Type} [group G] {A B : normal G} (hle : A ≤ B) 
+  {g : G} (hg : g ∈ B) : (⟨g, hg⟩ : B) ∈ normal.𝒾 hle ↔ g ∈ A := iff.rfl
+
+lemma normal.inv_𝒾 {G : Type} [group G] {A B : normal G} (hle : A ≤ B) 
+  {g : G} (hg : g ∈ B) : (⟨g, hg⟩⁻¹ : B) = ⟨g⁻¹, B.inv_mem' hg⟩ := rfl
+
+lemma normal.mul_𝒾 {G : Type} [group G] {A B : normal G} (hle : A ≤ B) 
+  {g h : G} (hg : g ∈ B) (hh : h ∈ B) : 
+  (⟨g, hg⟩ : B) * (⟨h, hh⟩ : B) = ⟨g * h, B.mul_mem' hg hh⟩ := rfl
+
+attribute [simp] normal.mem_𝒾 normal.inv_𝒾 normal.mul_𝒾
+
 variables (H : subgroup G) (N : normal G)
 
 /-- A group is simple if and only if it is nontrivial and all its normal subgroups 
@@ -165,31 +177,59 @@ def top_div_bot_iso :
   G ≅ (⊤ : normal G) /ₘ (@normal.𝒾 _ _ ⊥ (⊤ : normal G) le_top) :=
 { to_fun := λ g, quotient.mk (@normal.𝒾 _ _ ⊥ (⊤ : normal G) le_top) 
     (⟨g, mem_top _⟩ : (⊤ : normal G)),
-  map_mul' := sorry,
-  is_bijective := sorry }
+  map_mul' := by tidy,
+  is_bijective := 
+    begin
+      refine ⟨_, by tidy⟩,
+      intros x₁ x₂ hx, dsimp at hx,
+      rw [← coe_eq_mk, ← coe_eq_mk, mk_eq'] at hx,
+      rw @normal.inv_𝒾 _ _ (⊥ : normal G) _ bot_le at hx,
+      erw @normal.mul_𝒾 _ _ (⊥ : normal G) _ bot_le at hx,
+      erw [normal.mem_𝒾, mem_bot_iff] at hx,
+      rw ← group.inv_eq_of_mul_eq_one hx,
+      exact group.inv_inv _,
+    end }
 
-def trivial_chain (h : is_simple G) (hG : group.nontrivial G) : chain G := 
+def to_top : G →* (⊤ : normal G) := ⟨λ g, ⟨g, mem_top _⟩, by tidy⟩
+def to_top_iso : G ≅ (⊤ : normal G) := ⟨to_top, by tidy⟩
+
+def trivial_chain (h : is_simple G) : chain G := 
 { carrier := [⊥, ⊤],
   nonempty := by simp,
   chain_prop := 
     begin
       simp, 
-      refine ⟨subgroup.nontrivial_of_iso_nontrivial (top_div_bot_iso) hG, _⟩,
-        { sorry }
+      refine ⟨subgroup.nontrivial_of_iso_nontrivial (top_div_bot_iso) h.1, λ N, _⟩,
+      rcases h with ⟨h₁, h₂⟩,
+      cases h₂ (comap to_top_iso.1 (normal.comap (quotient.mk _) N)) with h h,
+        { left, rw eq_bot_iff at h ⊢,
+          intros x hx,
+          rcases exists_mk x with ⟨y, rfl⟩,
+          rcases to_top_iso.2.2 y with ⟨x, rfl⟩,
+          erw [mem_bot_iff, ← coe_one, mk_eq', group.one_inv, group.one_mul],
+          change to_top_iso.1 x ∈ _,
+          rw ← mem_comap, convert one_mem _, rw ← mem_bot_iff,
+          apply h, erw [mem_comap, mem_comap], exact hx },
+        { right, rw eq_top_iff at h ⊢,
+          intros x hx,
+          rcases exists_mk x with ⟨y, rfl⟩,
+          rcases to_top_iso.2.2 y with ⟨x, rfl⟩,
+          erw [coe_eq_mk, ← mem_comap, ← mem_comap],
+          refine h (mem_top _) }
     end,
   chain_head := by simp,
   chain_last := by simp }
 
-example [fintype G] : ∀ (n = fintype.card G), ∃ c : chain G, true :=
-begin
-  intro n, apply nat.strong_induction_on n,
-  rintros k hk₁ rfl,
-  by_cases is_simple G,
-    sorry,
-    sorry
-end
+-- example [fintype G] : ∀ (n = fintype.card G), ∃ c : chain G, true :=
+-- begin
+--   intro n, apply nat.strong_induction_on n,
+--   rintros k hk₁ rfl,
+--   by_cases is_simple G,
+--     sorry,
+--     sorry
+-- end
 
-instance [fintype G] : inhabited $ chain G := ⟨ sorry ⟩
+-- instance [fintype G] : inhabited $ chain G := ⟨ sorry ⟩
 
 end normal
 
