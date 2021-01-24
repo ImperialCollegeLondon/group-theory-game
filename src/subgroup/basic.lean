@@ -84,7 +84,7 @@ begin
 end
 
 @[simp] theorem inv_mem_iff {x :G} : x⁻¹ ∈ H ↔ x ∈ H := 
-  ⟨λ hx, group.inv_inv x ▸ H.inv_mem hx , H.inv_mem ⟩ 
+  ⟨ λ hx, group.inv_inv x ▸ H.inv_mem hx, H.inv_mem ⟩ 
 
 -- Coersion to group
 -- Coercion from subgroup to underlying type
