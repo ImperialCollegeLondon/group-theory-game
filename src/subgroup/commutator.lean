@@ -118,7 +118,7 @@ begin
   intros x hx,
   rw mem_commutators_iff at hx,
   rcases hx with ⟨a, b, rfl⟩,
-  simp
+  simp [group.mul_comm],
 end
 
 lemma closure_eq_kernel_of_map_eq_one {H : Type} [group H] 
